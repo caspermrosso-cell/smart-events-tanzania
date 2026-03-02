@@ -14,6 +14,167 @@ export type Database = {
   }
   public: {
     Tables: {
+      events: {
+        Row: {
+          budget: number | null
+          created_at: string
+          description: string | null
+          event_date: string
+          event_type: string
+          id: string
+          max_guests: number | null
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+          venue: string | null
+        }
+        Insert: {
+          budget?: number | null
+          created_at?: string
+          description?: string | null
+          event_date: string
+          event_type?: string
+          id?: string
+          max_guests?: number | null
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+          venue?: string | null
+        }
+        Update: {
+          budget?: number | null
+          created_at?: string
+          description?: string | null
+          event_date?: string
+          event_type?: string
+          id?: string
+          max_guests?: number | null
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+          venue?: string | null
+        }
+        Relationships: []
+      }
+      guests: {
+        Row: {
+          barcode: string | null
+          checked_in: boolean
+          checked_in_at: string | null
+          created_at: string
+          email: string | null
+          event_id: string
+          full_name: string
+          id: string
+          phone: string | null
+          rsvp_status: string
+          table_number: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          barcode?: string | null
+          checked_in?: boolean
+          checked_in_at?: string | null
+          created_at?: string
+          email?: string | null
+          event_id: string
+          full_name: string
+          id?: string
+          phone?: string | null
+          rsvp_status?: string
+          table_number?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          barcode?: string | null
+          checked_in?: boolean
+          checked_in_at?: string | null
+          created_at?: string
+          email?: string | null
+          event_id?: string
+          full_name?: string
+          id?: string
+          phone?: string | null
+          rsvp_status?: string
+          table_number?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guests_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pledges: {
+        Row: {
+          amount: number
+          created_at: string
+          event_id: string
+          guest_id: string | null
+          guest_name: string
+          id: string
+          notes: string | null
+          paid_amount: number
+          payment_method: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          event_id: string
+          guest_id?: string | null
+          guest_name: string
+          id?: string
+          notes?: string | null
+          paid_amount?: number
+          payment_method?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          event_id?: string
+          guest_id?: string | null
+          guest_name?: string
+          id?: string
+          notes?: string | null
+          paid_amount?: number
+          payment_method?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pledges_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pledges_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
