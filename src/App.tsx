@@ -8,6 +8,9 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Events from "./pages/Events";
+import Guests from "./pages/Guests";
+import Pledges from "./pages/Pledges";
+import SMS from "./pages/SMS";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -25,6 +28,9 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
+            <Route path="/guests" element={<ProtectedRoute><Guests /></ProtectedRoute>} />
+            <Route path="/pledges" element={<ProtectedRoute><Pledges /></ProtectedRoute>} />
+            <Route path="/sms" element={<ProtectedRoute><SMS /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
