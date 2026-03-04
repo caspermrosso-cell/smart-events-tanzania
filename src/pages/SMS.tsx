@@ -43,7 +43,7 @@ const SMS = () => {
       if (!selectedEvent) return [];
       const { data, error } = await supabase.from('guests').select('id, full_name, phone').eq('event_id', selectedEvent).not('phone', 'is', null);
       if (error) throw error;
-      return data;
+      return data.filter((g: any) => g.phone && g.phone.length > 4);
     },
     enabled: !!selectedEvent,
   });
@@ -77,16 +77,34 @@ const SMS = () => {
     }
 
     setSending(true);
-    // Simulate sending - in production this would call Beem Africa API via edge function
-    await new Promise((r) => setTimeout(r, 1500));
-    setSending(false);
-    setSent(true);
-    toast.success(`SMS ${selectedGuests.length} zimetumwa!`);
+    try {
+      const recipients = guests
+        .filter((g: any) => selectedGuests.includes(g.id))
+        .map((g: any) => ({ name: g.full_name, phone: g.phone }));
 
-    setTimeout(() => {
-      setSent(false);
-      setSelectedGuests([]);
-    }, 3000);
+      const eventData = events.find((e: any) => e.id === selectedEvent);
+
+      const { error } = await supabase.functions.invoke('send-sms', {
+        body: {
+          message,
+          recipients,
+          eventTitle: eventData?.title || '',
+          eventDate: eventData?.event_date || '',
+        },
+      });
+
+      if (error) throw error;
+      setSent(true);
+      toast.success(`SMS ${selectedGuests.length} zimetumwa!`);
+      setTimeout(() => {
+        setSent(false);
+        setSelectedGuests([]);
+      }, 3000);
+    } catch {
+      toast.error('Imeshindikana kutuma SMS. Jaribu tena.');
+    } finally {
+      setSending(false);
+    }
   };
 
   return (

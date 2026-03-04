@@ -38,11 +38,21 @@ const Dashboard = () => {
     },
   });
 
+  const { data: revenueStats } = useQuery({
+    queryKey: ['dashboard-revenue'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('events').select('subscription_amount');
+      if (error) throw error;
+      const totalRevenue = (data || []).reduce((s, e) => s + Number(e.subscription_amount || 0), 0);
+      return { totalRevenue };
+    },
+  });
+
   const statCards = [
     { label: 'Matukio', value: stats?.events ?? 0, icon: Calendar },
     { label: 'Wageni', value: stats?.guests ?? 0, icon: Users },
     { label: 'Michango', value: `TZS ${(stats?.pledged ?? 0).toLocaleString()}`, icon: CreditCard },
-    { label: 'Pending', value: `TZS ${(stats?.pending ?? 0).toLocaleString()}`, icon: CreditCard },
+    { label: 'Mapato', value: `TZS ${(revenueStats?.totalRevenue ?? 0).toLocaleString()}`, icon: CreditCard },
   ];
 
   return (

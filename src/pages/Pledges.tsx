@@ -28,8 +28,9 @@ const Pledges = () => {
   const [editingPledge, setEditingPledge] = useState<any>(null);
   const [selectedEvent, setSelectedEvent] = useState<string>('all');
   const [search, setSearch] = useState('');
+  const [selectedGuestId, setSelectedGuestId] = useState<string>('');
 
-  const [form, setForm] = useState({ guest_name: '', amount: '', paid_amount: '', event_id: '', status: 'pledged', payment_method: '', notes: '' });
+  const [form, setForm] = useState({ guest_name: '', amount: '', paid_amount: '', event_id: '', status: 'pledged', payment_method: '', notes: '', guest_id: '' });
 
   const { data: events = [] } = useQuery({
     queryKey: ['events'],
@@ -38,6 +39,18 @@ const Pledges = () => {
       if (error) throw error;
       return data;
     },
+  });
+
+  // Fetch guests for selected event in form
+  const { data: eventGuests = [] } = useQuery({
+    queryKey: ['pledge-guests', form.event_id],
+    queryFn: async () => {
+      if (!form.event_id) return [];
+      const { data, error } = await supabase.from('guests').select('id, full_name').eq('event_id', form.event_id).order('full_name');
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!form.event_id,
   });
 
   const { data: pledges = [], isLoading } = useQuery({
@@ -57,6 +70,7 @@ const Pledges = () => {
         ...data,
         amount: parseFloat(data.amount) || 0,
         paid_amount: parseFloat(data.paid_amount) || 0,
+        guest_id: data.guest_id || null,
       };
       if (editingPledge) {
         const { error } = await supabase.from('pledges').update(payload).eq('id', editingPledge.id);
@@ -91,7 +105,7 @@ const Pledges = () => {
   const handleClose = () => {
     setDialogOpen(false);
     setEditingPledge(null);
-    setForm({ guest_name: '', amount: '', paid_amount: '', event_id: '', status: 'pledged', payment_method: '', notes: '' });
+    setForm({ guest_name: '', amount: '', paid_amount: '', event_id: '', status: 'pledged', payment_method: '', notes: '', guest_id: '' });
   };
 
   const handleEdit = (p: any) => {
@@ -104,8 +118,16 @@ const Pledges = () => {
       status: p.status,
       payment_method: p.payment_method || '',
       notes: p.notes || '',
+      guest_id: p.guest_id || '',
     });
     setDialogOpen(true);
+  };
+
+  const handleGuestSelect = (guestId: string) => {
+    const guest = eventGuests.find((g: any) => g.id === guestId);
+    if (guest) {
+      setForm({ ...form, guest_id: guestId, guest_name: (guest as any).full_name });
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -140,17 +162,26 @@ const Pledges = () => {
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label>Jina la Mgeni *</Label>
-                <Input value={form.guest_name} onChange={(e) => setForm({ ...form, guest_name: e.target.value })} placeholder="Jina" />
-              </div>
-              <div>
                 <Label>Tukio *</Label>
-                <Select value={form.event_id} onValueChange={(v) => setForm({ ...form, event_id: v })}>
+                <Select value={form.event_id} onValueChange={(v) => setForm({ ...form, event_id: v, guest_id: '', guest_name: '' })}>
                   <SelectTrigger><SelectValue placeholder="Chagua tukio" /></SelectTrigger>
                   <SelectContent>
                     {events.map((e: any) => <SelectItem key={e.id} value={e.id}>{e.title}</SelectItem>)}
                   </SelectContent>
                 </Select>
+              </div>
+              <div>
+                <Label>Mgeni (kutoka orodha ya wageni)</Label>
+                <Select value={form.guest_id} onValueChange={handleGuestSelect}>
+                  <SelectTrigger><SelectValue placeholder="Chagua mgeni au andika hapa chini" /></SelectTrigger>
+                  <SelectContent>
+                    {eventGuests.map((g: any) => <SelectItem key={g.id} value={g.id}>{g.full_name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Jina la Mgeni *</Label>
+                <Input value={form.guest_name} onChange={(e) => setForm({ ...form, guest_name: e.target.value })} placeholder="Jina" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>

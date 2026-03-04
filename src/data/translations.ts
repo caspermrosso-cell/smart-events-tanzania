@@ -76,7 +76,7 @@ export const translations = {
     'contact.message': 'Additional Details',
     'contact.submit': 'Submit Request',
     'contact.success': 'Request submitted successfully! We will contact you soon.',
-    'contact.email.info': 'Or email us at: info@smartevents.com',
+    'contact.email.info': 'Or email us at: tzsmartevents@gmail.com',
 
     // Footer
     'footer.tagline': 'Smart Events — Intelligent Event Management',
@@ -177,7 +177,7 @@ export const translations = {
     'contact.message': 'Maelezo Zaidi',
     'contact.submit': 'Tuma Ombi',
     'contact.success': 'Ombi limetumwa! Tutawasiliana nawe hivi karibuni.',
-    'contact.email.info': 'Au tutumie barua pepe: info@smartevents.com',
+    'contact.email.info': 'Au tutumie barua pepe: tzsmartevents@gmail.com',
 
     // Footer
     'footer.tagline': 'Smart Events — Usimamizi wa Matukio kwa Akili',
