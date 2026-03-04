@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      contact_requests: {
+        Row: {
+          created_at: string
+          email: string
+          event_date: string | null
+          event_type: string | null
+          expected_guests: number | null
+          id: string
+          message: string | null
+          name: string
+          phone: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          event_date?: string | null
+          event_type?: string | null
+          expected_guests?: number | null
+          id?: string
+          message?: string | null
+          name: string
+          phone?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          event_date?: string | null
+          event_type?: string | null
+          expected_guests?: number | null
+          id?: string
+          message?: string | null
+          name?: string
+          phone?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           budget: number | null
@@ -24,6 +63,8 @@ export type Database = {
           id: string
           max_guests: number | null
           status: string
+          subscription_amount: number | null
+          subscription_package: string | null
           title: string
           updated_at: string
           user_id: string
@@ -38,6 +79,8 @@ export type Database = {
           id?: string
           max_guests?: number | null
           status?: string
+          subscription_amount?: number | null
+          subscription_package?: string | null
           title: string
           updated_at?: string
           user_id: string
@@ -52,6 +95,8 @@ export type Database = {
           id?: string
           max_guests?: number | null
           status?: string
+          subscription_amount?: number | null
+          subscription_package?: string | null
           title?: string
           updated_at?: string
           user_id?: string

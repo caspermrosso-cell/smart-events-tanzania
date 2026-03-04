@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Calendar, Users, CreditCard, MessageSquare, Mail, QrCode, LogOut, LayoutDashboard } from 'lucide-react';
+import { Calendar, Users, CreditCard, MessageSquare, Mail, QrCode, LogOut, LayoutDashboard, BarChart3 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 
@@ -12,6 +12,7 @@ const navItems = [
   { label: 'SMS', icon: MessageSquare, href: '/sms' },
   { label: 'E-Cards', icon: Mail, href: '/ecards' },
   { label: 'Check-In', icon: QrCode, href: '/checkin' },
+  { label: 'Ripoti', icon: BarChart3, href: '/reports' },
 ];
 
 const DashboardLayout = ({ children }: { children: ReactNode }) => {
@@ -66,7 +67,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
         <header className="md:hidden border-b border-border bg-card px-4 py-3 flex items-center justify-between">
           <Link to="/" className="font-heading text-lg font-bold text-gradient-gold">Smart Events</Link>
           <div className="flex items-center gap-2">
-            {navItems.slice(0, 4).map((item) => {
+            {navItems.slice(0, 5).map((item) => {
               const isActive = location.pathname === item.href;
               return (
                 <Link key={item.href} to={item.href} className={`p-2 rounded-lg ${isActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}>

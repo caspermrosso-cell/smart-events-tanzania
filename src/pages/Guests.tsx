@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Users, Search, Phone, Mail, CheckCircle, XCircle, Clock, Trash2, Pencil } from 'lucide-react';
+import { Plus, Users, Search, Phone, Mail, CheckCircle, XCircle, Clock, Trash2, Pencil, Upload } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -12,6 +12,8 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
 import DashboardLayout from '@/components/DashboardLayout';
+import PhoneInput from '@/components/PhoneInput';
+import * as XLSX from 'xlsx';
 
 const RSVP_ICONS: Record<string, any> = {
   confirmed: { icon: CheckCircle, class: 'text-green-600' },
@@ -23,12 +25,15 @@ const Guests = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
   const [editingGuest, setEditingGuest] = useState<any>(null);
   const [selectedEvent, setSelectedEvent] = useState<string>('all');
   const [search, setSearch] = useState('');
+  const [bulkEventId, setBulkEventId] = useState('');
+  const [bulkData, setBulkData] = useState<any[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Form state
-  const [form, setForm] = useState({ full_name: '', phone: '', email: '', event_id: '', rsvp_status: 'pending', table_number: '' });
+  const [form, setForm] = useState({ full_name: '', phone: '+255', email: '', event_id: '', rsvp_status: 'pending', table_number: '' });
 
   const { data: events = [] } = useQuery({
     queryKey: ['events'],
@@ -82,17 +87,33 @@ const Guests = () => {
     onError: () => toast.error('Imeshindikana kufuta mgeni'),
   });
 
+  const bulkMutation = useMutation({
+    mutationFn: async (rows: any[]) => {
+      const { error } = await supabase.from('guests').insert(rows);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['guests'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      toast.success(`Wageni ${bulkData.length} wameongezwa!`);
+      setBulkDialogOpen(false);
+      setBulkData([]);
+      setBulkEventId('');
+    },
+    onError: () => toast.error('Imeshindikana kuongeza wageni'),
+  });
+
   const handleClose = () => {
     setDialogOpen(false);
     setEditingGuest(null);
-    setForm({ full_name: '', phone: '', email: '', event_id: '', rsvp_status: 'pending', table_number: '' });
+    setForm({ full_name: '', phone: '+255', email: '', event_id: '', rsvp_status: 'pending', table_number: '' });
   };
 
   const handleEdit = (guest: any) => {
     setEditingGuest(guest);
     setForm({
       full_name: guest.full_name,
-      phone: guest.phone || '',
+      phone: guest.phone || '+255',
       email: guest.email || '',
       event_id: guest.event_id,
       rsvp_status: guest.rsvp_status,
@@ -110,6 +131,44 @@ const Guests = () => {
     saveMutation.mutate(form);
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const wb = XLSX.read(evt.target?.result, { type: 'binary' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const data = XLSX.utils.sheet_to_json(ws);
+        const parsed = data.map((row: any) => ({
+          full_name: row['Jina'] || row['Name'] || row['full_name'] || '',
+          phone: row['Simu'] || row['Phone'] || row['phone'] || '',
+          email: row['Email'] || row['email'] || '',
+          table_number: row['Meza'] || row['Table'] || row['table_number'] || '',
+        })).filter(r => r.full_name);
+        setBulkData(parsed);
+        if (parsed.length === 0) toast.error('Hakuna data iliyopatikana kwenye faili');
+      } catch {
+        toast.error('Imeshindikana kusoma faili');
+      }
+    };
+    reader.readAsBinaryString(file);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleBulkSubmit = () => {
+    if (!bulkEventId) { toast.error('Chagua tukio'); return; }
+    if (bulkData.length === 0) { toast.error('Hakuna wageni'); return; }
+    const rows = bulkData.map(r => ({
+      ...r,
+      phone: r.phone ? (r.phone.startsWith('+255') ? r.phone : '+255' + r.phone.replace(/^0/, '')) : null,
+      event_id: bulkEventId,
+      user_id: user!.id,
+      rsvp_status: 'pending',
+    }));
+    bulkMutation.mutate(rows);
+  };
+
   const filtered = guests.filter((g: any) =>
     g.full_name.toLowerCase().includes(search.toLowerCase()) ||
     (g.phone && g.phone.includes(search)) ||
@@ -122,61 +181,111 @@ const Guests = () => {
         <motion.h2 initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-heading text-2xl font-bold text-foreground">
           Wageni
         </motion.h2>
-        <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) handleClose(); else setDialogOpen(true); }}>
-          <DialogTrigger asChild>
-            <Button className="gap-2"><Plus className="w-4 h-4" /> Ongeza Mgeni</Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle className="font-heading">{editingGuest ? 'Hariri Mgeni' : 'Ongeza Mgeni Mpya'}</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label>Jina Kamili *</Label>
-                <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} placeholder="Jina la mgeni" />
-              </div>
-              <div>
-                <Label>Tukio *</Label>
-                <Select value={form.event_id} onValueChange={(v) => setForm({ ...form, event_id: v })}>
-                  <SelectTrigger><SelectValue placeholder="Chagua tukio" /></SelectTrigger>
-                  <SelectContent>
-                    {events.map((e: any) => <SelectItem key={e.id} value={e.id}>{e.title}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
+        <div className="flex gap-2">
+          {/* Bulk Upload Dialog */}
+          <Dialog open={bulkDialogOpen} onOpenChange={setBulkDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="gap-2"><Upload className="w-4 h-4" /> Bulk Upload</Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-lg">
+              <DialogHeader>
+                <DialogTitle className="font-heading">Ongeza Wageni Wengi</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
                 <div>
-                  <Label>Simu</Label>
-                  <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+255..." />
-                </div>
-                <div>
-                  <Label>Email</Label>
-                  <Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="email@..." />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label>RSVP</Label>
-                  <Select value={form.rsvp_status} onValueChange={(v) => setForm({ ...form, rsvp_status: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                  <Label>Tukio *</Label>
+                  <Select value={bulkEventId} onValueChange={setBulkEventId}>
+                    <SelectTrigger><SelectValue placeholder="Chagua tukio" /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="confirmed">Confirmed</SelectItem>
-                      <SelectItem value="declined">Declined</SelectItem>
+                      {events.map((e: any) => <SelectItem key={e.id} value={e.id}>{e.title}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label>Meza #</Label>
-                  <Input value={form.table_number} onChange={(e) => setForm({ ...form, table_number: e.target.value })} placeholder="e.g. A1" />
+                  <Label>Faili (Excel/CSV)</Label>
+                  <p className="text-xs text-muted-foreground mb-2">Safu: Jina, Simu, Email, Meza (au Name, Phone, Email, Table)</p>
+                  <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" onChange={handleFileUpload} className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
                 </div>
+                {bulkData.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium text-foreground mb-2">Wageni {bulkData.length} wamepatikana:</p>
+                    <div className="max-h-40 overflow-y-auto rounded-lg border border-border">
+                      <Table>
+                        <TableHeader><TableRow><TableHead>Jina</TableHead><TableHead>Simu</TableHead></TableRow></TableHeader>
+                        <TableBody>
+                          {bulkData.slice(0, 20).map((r, i) => (
+                            <TableRow key={i}><TableCell className="text-sm">{r.full_name}</TableCell><TableCell className="text-sm text-muted-foreground">{r.phone || '-'}</TableCell></TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                      {bulkData.length > 20 && <p className="text-xs text-muted-foreground text-center py-2">...na {bulkData.length - 20} zaidi</p>}
+                    </div>
+                  </div>
+                )}
+                <Button onClick={handleBulkSubmit} className="w-full" disabled={bulkMutation.isPending || bulkData.length === 0}>
+                  {bulkMutation.isPending ? 'Inaongeza...' : `Ongeza Wageni ${bulkData.length}`}
+                </Button>
               </div>
-              <Button type="submit" className="w-full" disabled={saveMutation.isPending}>
-                {saveMutation.isPending ? 'Inahifadhi...' : editingGuest ? 'Sasisha' : 'Hifadhi'}
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+
+          {/* Single Guest Dialog */}
+          <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) handleClose(); else setDialogOpen(true); }}>
+            <DialogTrigger asChild>
+              <Button className="gap-2"><Plus className="w-4 h-4" /> Ongeza Mgeni</Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="font-heading">{editingGuest ? 'Hariri Mgeni' : 'Ongeza Mgeni Mpya'}</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <Label>Jina Kamili *</Label>
+                  <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} placeholder="Jina la mgeni" />
+                </div>
+                <div>
+                  <Label>Tukio *</Label>
+                  <Select value={form.event_id} onValueChange={(v) => setForm({ ...form, event_id: v })}>
+                    <SelectTrigger><SelectValue placeholder="Chagua tukio" /></SelectTrigger>
+                    <SelectContent>
+                      {events.map((e: any) => <SelectItem key={e.id} value={e.id}>{e.title}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Simu</Label>
+                    <PhoneInput value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} />
+                  </div>
+                  <div>
+                    <Label>Email</Label>
+                    <Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="email@..." />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>RSVP</Label>
+                    <Select value={form.rsvp_status} onValueChange={(v) => setForm({ ...form, rsvp_status: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="confirmed">Confirmed</SelectItem>
+                        <SelectItem value="declined">Declined</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Meza #</Label>
+                    <Input value={form.table_number} onChange={(e) => setForm({ ...form, table_number: e.target.value })} placeholder="e.g. A1" />
+                  </div>
+                </div>
+                <Button type="submit" className="w-full" disabled={saveMutation.isPending}>
+                  {saveMutation.isPending ? 'Inahifadhi...' : editingGuest ? 'Sasisha' : 'Hifadhi'}
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Filters */}
