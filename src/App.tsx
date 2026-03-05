@@ -14,6 +14,7 @@ import SMS from "./pages/SMS";
 import ECards from "./pages/ECards";
 import CheckIn from "./pages/CheckIn";
 import Reports from "./pages/Reports";
+import Payments from "./pages/Payments";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/ecards" element={<ProtectedRoute><ECards /></ProtectedRoute>} />
             <Route path="/checkin" element={<ProtectedRoute><CheckIn /></ProtectedRoute>} />
             <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+            <Route path="/payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
