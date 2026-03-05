@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { BarChart3, TrendingUp, Calendar, DollarSign, Wallet } from 'lucide-react';
+import { BarChart3, TrendingUp, Calendar, DollarSign, Wallet, Users } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format, subMonths, subYears, startOfMonth, eachMonthOfInterval } from 'date-fns';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend, AreaChart, Area } from 'recharts';
 import DashboardLayout from '@/components/DashboardLayout';
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--accent))', '#f59e0b', '#10b981', '#8b5cf6'];
@@ -23,6 +23,12 @@ const METHOD_LABELS: Record<string, string> = {
   mpesa: 'M-Pesa',
   bank: 'Bank Transfer',
   cash: 'Cash',
+};
+
+const RSVP_LABELS: Record<string, string> = {
+  confirmed: 'Wamethibitisha',
+  pending: 'Wanasubiri',
+  declined: 'Wamekataa',
 };
 
 const Reports = () => {
@@ -58,7 +64,18 @@ const Reports = () => {
     },
   });
 
-  const isLoading = eventsLoading || paymentsLoading;
+  const { data: guests = [], isLoading: guestsLoading } = useQuery({
+    queryKey: ['report-guests', period],
+    queryFn: async () => {
+      let q = supabase.from('guests').select('*, events(title)').order('created_at', { ascending: false });
+      if (periodFilter) q = q.gte('created_at', periodFilter.toISOString());
+      const { data, error } = await q;
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const isLoading = eventsLoading || paymentsLoading || guestsLoading;
 
   // Subscription revenue stats
   const totalSubRevenue = events.reduce((s: number, e: any) => s + Number(e.subscription_amount || 0), 0);
@@ -121,6 +138,51 @@ const Reports = () => {
     });
   }, [events]);
 
+  // Guest trend data
+  const totalGuests = guests.length;
+  const checkedInGuests = guests.filter((g: any) => g.checked_in).length;
+
+  const rsvpBreakdown = guests.reduce((acc: Record<string, number>, g: any) => {
+    const status = g.rsvp_status || 'pending';
+    acc[status] = (acc[status] || 0) + 1;
+    return acc;
+  }, {});
+
+  const rsvpPieData = Object.entries(rsvpBreakdown).map(([status, count]) => ({
+    name: RSVP_LABELS[status] || status,
+    value: count,
+  }));
+
+  const monthlyGuestData = useMemo(() => {
+    if (guests.length === 0) return [];
+    const sorted = [...guests].sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    const startDate = startOfMonth(new Date(sorted[0].created_at));
+    const endDate = new Date();
+    const months = eachMonthOfInterval({ start: startDate, end: endDate });
+
+    return months.map(month => {
+      const monthStr = format(month, 'yyyy-MM');
+      const label = format(month, 'MMM yyyy');
+      const monthGuests = guests.filter((g: any) => format(new Date(g.created_at), 'yyyy-MM') === monthStr);
+      const total = monthGuests.length;
+      const confirmed = monthGuests.filter((g: any) => g.rsvp_status === 'confirmed').length;
+      const checkedIn = monthGuests.filter((g: any) => g.checked_in).length;
+      return { name: label, Wageni: total, Wamethibitisha: confirmed, 'Check-In': checkedIn };
+    });
+  }, [guests]);
+
+  // Guests per event
+  const guestsByEvent = useMemo(() => {
+    const map: Record<string, { title: string; count: number; checkedIn: number }> = {};
+    guests.forEach((g: any) => {
+      const eid = g.event_id;
+      if (!map[eid]) map[eid] = { title: (g as any).events?.title || 'N/A', count: 0, checkedIn: 0 };
+      map[eid].count++;
+      if (g.checked_in) map[eid].checkedIn++;
+    });
+    return Object.values(map).sort((a, b) => b.count - a.count);
+  }, [guests]);
+
   const grandTotal = totalSubRevenue + totalPayments;
 
   return (
@@ -143,7 +205,7 @@ const Reports = () => {
       </div>
 
       {/* Top-level Summary */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card rounded-xl p-5">
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1"><DollarSign className="w-4 h-4" /> Jumla Yote</div>
           <p className="text-2xl font-bold text-foreground">TZS {grandTotal.toLocaleString()}</p>
@@ -160,11 +222,17 @@ const Reports = () => {
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1"><Calendar className="w-4 h-4" /> Matukio</div>
           <p className="text-2xl font-bold text-foreground">{totalEvents}</p>
         </motion.div>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="glass-card rounded-xl p-5">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1"><Users className="w-4 h-4" /> Wageni</div>
+          <p className="text-2xl font-bold text-foreground">{totalGuests}</p>
+          <p className="text-xs text-muted-foreground">{checkedInGuests} wamefika</p>
+        </motion.div>
       </div>
 
       <Tabs defaultValue="payments" className="space-y-6">
         <TabsList className="bg-muted/50">
           <TabsTrigger value="payments">Malipo</TabsTrigger>
+          <TabsTrigger value="guests">Wageni</TabsTrigger>
           <TabsTrigger value="subscriptions">Subscriptions</TabsTrigger>
         </TabsList>
 
@@ -257,6 +325,105 @@ const Reports = () => {
                         }`}>{METHOD_LABELS[p.payment_method] || p.payment_method}</span>
                       </TableCell>
                       <TableCell className="text-right font-semibold">TZS {Number(p.amount).toLocaleString()}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </div>
+        </TabsContent>
+
+        {/* === GUESTS TAB === */}
+        <TabsContent value="guests" className="space-y-6">
+          {/* Monthly Guest Area Chart */}
+          <div className="glass-card rounded-xl p-6">
+            <h3 className="font-heading font-semibold text-foreground text-lg mb-4">Mwenendo wa Wageni kwa Mwezi</h3>
+            {monthlyGuestData.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">Hakuna data ya wageni</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={320}>
+                <AreaChart data={monthlyGuestData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="name" tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
+                  <YAxis tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
+                  <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8 }} />
+                  <Legend />
+                  <Area type="monotone" dataKey="Wageni" stroke="hsl(var(--primary))" fill="hsl(var(--primary) / 0.2)" strokeWidth={2} name="Wageni Wote" />
+                  <Area type="monotone" dataKey="Wamethibitisha" stroke="#22c55e" fill="rgba(34,197,94,0.15)" strokeWidth={2} name="Wamethibitisha" />
+                  <Area type="monotone" dataKey="Check-In" stroke="#f59e0b" fill="rgba(245,158,11,0.15)" strokeWidth={2} name="Wamefika" />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+
+          {/* RSVP Pie + Stats */}
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="glass-card rounded-xl p-6">
+              <h3 className="font-heading font-semibold text-foreground text-lg mb-4">Hali ya RSVP</h3>
+              {rsvpPieData.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">Hakuna data</p>
+              ) : (
+                <ResponsiveContainer width="100%" height={250}>
+                  <PieChart>
+                    <Pie data={rsvpPieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+                      {rsvpPieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+            <div className="glass-card rounded-xl p-6">
+              <h3 className="font-heading font-semibold text-foreground text-lg mb-4">Muhtasari wa Wageni</h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 rounded-lg border border-border">
+                  <span className="text-sm font-medium text-foreground">Jumla Wageni</span>
+                  <span className="font-bold text-foreground">{totalGuests}</span>
+                </div>
+                <div className="flex items-center justify-between p-3 rounded-lg border border-border">
+                  <span className="text-sm font-medium text-foreground">Wamefika (Check-In)</span>
+                  <span className="font-bold text-foreground">{checkedInGuests}</span>
+                </div>
+                <div className="flex items-center justify-between p-3 rounded-lg border border-border">
+                  <span className="text-sm font-medium text-foreground">Kiwango cha Kufika</span>
+                  <span className="font-bold text-foreground">{totalGuests > 0 ? `${Math.round((checkedInGuests / totalGuests) * 100)}%` : '0%'}</span>
+                </div>
+                {Object.entries(rsvpBreakdown).map(([status, count]) => (
+                  <div key={status} className="flex items-center justify-between p-3 rounded-lg border border-border">
+                    <span className="text-sm font-medium text-foreground">{RSVP_LABELS[status] || status}</span>
+                    <span className="font-bold text-foreground">{count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Guests per Event Table */}
+          <div className="glass-card rounded-xl overflow-hidden">
+            <div className="p-4 border-b border-border">
+              <h3 className="font-heading font-semibold text-foreground">Wageni kwa Tukio</h3>
+            </div>
+            {guestsLoading ? (
+              <div className="flex justify-center py-16"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>
+            ) : guestsByEvent.length === 0 ? (
+              <div className="text-center py-16"><Users className="w-16 h-16 mx-auto text-muted-foreground mb-4" /><p className="text-muted-foreground">Hakuna wageni</p></div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tukio</TableHead>
+                    <TableHead className="text-right">Wageni</TableHead>
+                    <TableHead className="text-right">Wamefika</TableHead>
+                    <TableHead className="text-right">Kiwango</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {guestsByEvent.map((item, i) => (
+                    <TableRow key={i}>
+                      <TableCell className="font-medium">{item.title}</TableCell>
+                      <TableCell className="text-right">{item.count}</TableCell>
+                      <TableCell className="text-right">{item.checkedIn}</TableCell>
+                      <TableCell className="text-right font-semibold">{item.count > 0 ? `${Math.round((item.checkedIn / item.count) * 100)}%` : '0%'}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
