@@ -1,15 +1,17 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { BarChart3, TrendingUp, Calendar, DollarSign, Wallet, Users } from 'lucide-react';
+import { BarChart3, TrendingUp, Calendar, DollarSign, Wallet, Users, Download } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { format, subMonths, subYears, startOfMonth, eachMonthOfInterval } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend, AreaChart, Area } from 'recharts';
 import DashboardLayout from '@/components/DashboardLayout';
+import * as XLSX from 'xlsx';
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--accent))', '#f59e0b', '#10b981', '#8b5cf6'];
 
@@ -29,6 +31,35 @@ const RSVP_LABELS: Record<string, string> = {
   confirmed: 'Wamethibitisha',
   pending: 'Wanasubiri',
   declined: 'Wamekataa',
+};
+
+// Export helpers
+const exportToExcel = (data: any[], filename: string) => {
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Data');
+  XLSX.writeFile(wb, `${filename}.xlsx`);
+};
+
+const exportToPDF = (title: string, headers: string[], rows: string[][]) => {
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) return;
+  const tableRows = rows.map(r => `<tr>${r.map(c => `<td style="border:1px solid #ddd;padding:8px;font-size:12px">${c}</td>`).join('')}</tr>`).join('');
+  printWindow.document.write(`
+    <html><head><title>${title}</title><style>
+      body{font-family:Arial,sans-serif;padding:20px}
+      h1{font-size:18px;margin-bottom:4px}
+      p{color:#666;font-size:12px;margin-bottom:16px}
+      table{border-collapse:collapse;width:100%}
+      th{border:1px solid #333;padding:8px;background:#f5f5f5;font-size:12px;text-align:left}
+    </style></head><body>
+    <h1>${title}</h1>
+    <p>Tarehe: ${format(new Date(), 'dd/MM/yyyy HH:mm')}</p>
+    <table><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${tableRows}</tbody></table>
+    </body></html>
+  `);
+  printWindow.document.close();
+  printWindow.print();
 };
 
 const Reports = () => {
@@ -77,7 +108,6 @@ const Reports = () => {
 
   const isLoading = eventsLoading || paymentsLoading || guestsLoading;
 
-  // Subscription revenue stats
   const totalSubRevenue = events.reduce((s: number, e: any) => s + Number(e.subscription_amount || 0), 0);
   const totalEvents = events.length;
   const packageBreakdown = events.reduce((acc: Record<string, { count: number; revenue: number }>, e: any) => {
@@ -88,7 +118,6 @@ const Reports = () => {
     return acc;
   }, {});
 
-  // Payment stats
   const totalPayments = payments.reduce((s: number, p: any) => s + Number(p.amount), 0);
   const paymentsByMethod = payments.reduce((acc: Record<string, number>, p: any) => {
     const m = p.payment_method || 'cash';
@@ -96,14 +125,12 @@ const Reports = () => {
     return acc;
   }, {});
 
-  // Monthly payment chart data
   const monthlyPaymentData = useMemo(() => {
     if (payments.length === 0) return [];
     const sorted = [...payments].sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
     const startDate = startOfMonth(new Date(sorted[0].created_at));
     const endDate = new Date();
     const months = eachMonthOfInterval({ start: startDate, end: endDate });
-
     return months.map(month => {
       const monthStr = format(month, 'yyyy-MM');
       const label = format(month, 'MMM yyyy');
@@ -115,20 +142,17 @@ const Reports = () => {
     });
   }, [payments]);
 
-  // Pie chart data for payment methods
   const pieData = Object.entries(paymentsByMethod).map(([method, amount]) => ({
     name: METHOD_LABELS[method] || method,
     value: amount,
   }));
 
-  // Monthly subscription revenue
   const monthlySubData = useMemo(() => {
     if (events.length === 0) return [];
     const sorted = [...events].sort((a: any, b: any) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime());
     const startDate = startOfMonth(new Date(sorted[0].event_date));
     const endDate = new Date();
     const months = eachMonthOfInterval({ start: startDate, end: endDate });
-
     return months.map(month => {
       const monthStr = format(month, 'yyyy-MM');
       const label = format(month, 'MMM yyyy');
@@ -138,7 +162,6 @@ const Reports = () => {
     });
   }, [events]);
 
-  // Guest trend data
   const totalGuests = guests.length;
   const checkedInGuests = guests.filter((g: any) => g.checked_in).length;
 
@@ -159,7 +182,6 @@ const Reports = () => {
     const startDate = startOfMonth(new Date(sorted[0].created_at));
     const endDate = new Date();
     const months = eachMonthOfInterval({ start: startDate, end: endDate });
-
     return months.map(month => {
       const monthStr = format(month, 'yyyy-MM');
       const label = format(month, 'MMM yyyy');
@@ -171,7 +193,6 @@ const Reports = () => {
     });
   }, [guests]);
 
-  // Guests per event
   const guestsByEvent = useMemo(() => {
     const map: Record<string, { title: string; count: number; checkedIn: number }> = {};
     guests.forEach((g: any) => {
@@ -184,6 +205,57 @@ const Reports = () => {
   }, [guests]);
 
   const grandTotal = totalSubRevenue + totalPayments;
+
+  // Export functions
+  const handleExportPaymentsExcel = () => {
+    const data = payments.map((p: any) => ({
+      Tarehe: format(new Date(p.created_at), 'dd/MM/yyyy'),
+      Mlipaji: p.payer_name,
+      Tukio: p.events?.title || '-',
+      Njia: METHOD_LABELS[p.payment_method] || p.payment_method,
+      Reference: p.reference || '-',
+      'Kiasi (TZS)': Number(p.amount),
+    }));
+    exportToExcel(data, `Malipo_${format(new Date(), 'yyyy-MM-dd')}`);
+  };
+
+  const handleExportPaymentsPDF = () => {
+    const headers = ['Tarehe', 'Mlipaji', 'Tukio', 'Njia', 'Reference', 'Kiasi (TZS)'];
+    const rows = payments.map((p: any) => [
+      format(new Date(p.created_at), 'dd/MM/yyyy'),
+      p.payer_name,
+      p.events?.title || '-',
+      METHOD_LABELS[p.payment_method] || p.payment_method,
+      p.reference || '-',
+      `TZS ${Number(p.amount).toLocaleString()}`,
+    ]);
+    exportToPDF('Ripoti ya Malipo - Smart Events', headers, rows);
+  };
+
+  const handleExportGuestsExcel = () => {
+    const data = guests.map((g: any) => ({
+      'Jina Kamili': g.full_name,
+      Tukio: (g as any).events?.title || '-',
+      Simu: g.phone || '-',
+      Email: g.email || '-',
+      RSVP: RSVP_LABELS[g.rsvp_status] || g.rsvp_status,
+      'Check-In': g.checked_in ? 'Ndio' : 'Hapana',
+      'Check-In Saa': g.checked_in_at ? format(new Date(g.checked_in_at), 'dd/MM/yyyy HH:mm') : '-',
+    }));
+    exportToExcel(data, `Wageni_${format(new Date(), 'yyyy-MM-dd')}`);
+  };
+
+  const handleExportGuestsPDF = () => {
+    const headers = ['Jina', 'Tukio', 'Simu', 'RSVP', 'Check-In'];
+    const rows = guests.map((g: any) => [
+      g.full_name,
+      (g as any).events?.title || '-',
+      g.phone || '-',
+      RSVP_LABELS[g.rsvp_status] || g.rsvp_status,
+      g.checked_in ? 'Ndio' : 'Hapana',
+    ]);
+    exportToPDF('Ripoti ya Wageni - Smart Events', headers, rows);
+  };
 
   return (
     <DashboardLayout>
@@ -238,7 +310,16 @@ const Reports = () => {
 
         {/* === PAYMENTS TAB === */}
         <TabsContent value="payments" className="space-y-6">
-          {/* Monthly Payment Bar Chart */}
+          {/* Export buttons */}
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" size="sm" onClick={handleExportPaymentsExcel} className="gap-2" disabled={payments.length === 0}>
+              <Download className="w-4 h-4" /> Excel
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExportPaymentsPDF} className="gap-2" disabled={payments.length === 0}>
+              <Download className="w-4 h-4" /> PDF
+            </Button>
+          </div>
+
           <div className="glass-card rounded-xl p-6">
             <h3 className="font-heading font-semibold text-foreground text-lg mb-4">Malipo kwa Mwezi</h3>
             {monthlyPaymentData.length === 0 ? (
@@ -259,7 +340,6 @@ const Reports = () => {
             )}
           </div>
 
-          {/* Payment Method Pie + Summary */}
           <div className="grid md:grid-cols-2 gap-6">
             <div className="glass-card rounded-xl p-6">
               <h3 className="font-heading font-semibold text-foreground text-lg mb-4">Mgawanyo kwa Njia ya Malipo</h3>
@@ -292,7 +372,6 @@ const Reports = () => {
             </div>
           </div>
 
-          {/* Recent payments table */}
           <div className="glass-card rounded-xl overflow-hidden">
             <div className="p-4 border-b border-border">
               <h3 className="font-heading font-semibold text-foreground">Malipo ya Hivi Karibuni</h3>
@@ -335,7 +414,16 @@ const Reports = () => {
 
         {/* === GUESTS TAB === */}
         <TabsContent value="guests" className="space-y-6">
-          {/* Monthly Guest Area Chart */}
+          {/* Export buttons */}
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" size="sm" onClick={handleExportGuestsExcel} className="gap-2" disabled={guests.length === 0}>
+              <Download className="w-4 h-4" /> Excel
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExportGuestsPDF} className="gap-2" disabled={guests.length === 0}>
+              <Download className="w-4 h-4" /> PDF
+            </Button>
+          </div>
+
           <div className="glass-card rounded-xl p-6">
             <h3 className="font-heading font-semibold text-foreground text-lg mb-4">Mwenendo wa Wageni kwa Mwezi</h3>
             {monthlyGuestData.length === 0 ? (
@@ -356,7 +444,6 @@ const Reports = () => {
             )}
           </div>
 
-          {/* RSVP Pie + Stats */}
           <div className="grid md:grid-cols-2 gap-6">
             <div className="glass-card rounded-xl p-6">
               <h3 className="font-heading font-semibold text-foreground text-lg mb-4">Hali ya RSVP</h3>
@@ -398,7 +485,6 @@ const Reports = () => {
             </div>
           </div>
 
-          {/* Guests per Event Table */}
           <div className="glass-card rounded-xl overflow-hidden">
             <div className="p-4 border-b border-border">
               <h3 className="font-heading font-semibold text-foreground">Wageni kwa Tukio</h3>
@@ -434,7 +520,6 @@ const Reports = () => {
 
         {/* === SUBSCRIPTIONS TAB === */}
         <TabsContent value="subscriptions" className="space-y-6">
-          {/* Monthly Subscription Line Chart */}
           <div className="glass-card rounded-xl p-6">
             <h3 className="font-heading font-semibold text-foreground text-lg mb-4">Mapato ya Subscriptions kwa Mwezi</h3>
             {monthlySubData.length === 0 ? (
@@ -452,7 +537,6 @@ const Reports = () => {
             )}
           </div>
 
-          {/* Package Breakdown */}
           <div className="glass-card rounded-xl p-6">
             <h3 className="font-heading font-semibold text-foreground text-lg mb-4">Mapato kwa Kifurushi</h3>
             <div className="grid sm:grid-cols-3 gap-4">
@@ -467,7 +551,6 @@ const Reports = () => {
             </div>
           </div>
 
-          {/* Events Table */}
           <div className="glass-card rounded-xl overflow-hidden">
             <div className="p-4 border-b border-border"><h3 className="font-heading font-semibold text-foreground">Matukio na Mapato</h3></div>
             {eventsLoading ? (

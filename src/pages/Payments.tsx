@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { QRCodeSVG } from 'qrcode.react';
 
 const MPESA_MERCHANT_ID = '5537073';
 
@@ -132,9 +133,22 @@ const Payments = () => {
         })}
       </div>
 
-      <div className="glass-card rounded-xl p-4 mb-6">
-        <p className="text-sm text-muted-foreground">Jumla ya Malipo Yaliyopokelewa</p>
-        <p className="text-3xl font-bold text-foreground">TZS {totalReceived.toLocaleString()}</p>
+      {/* M-Pesa QR Code + Total */}
+      <div className="grid sm:grid-cols-2 gap-4 mb-6">
+        <div className="glass-card rounded-xl p-4">
+          <p className="text-sm text-muted-foreground">Jumla ya Malipo Yaliyopokelewa</p>
+          <p className="text-3xl font-bold text-foreground">TZS {totalReceived.toLocaleString()}</p>
+        </div>
+        <div className="glass-card rounded-xl p-4 flex items-center gap-4">
+          <div className="bg-white rounded-lg p-2.5 shrink-0">
+            <QRCodeSVG value={MPESA_MERCHANT_ID} size={80} />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-foreground">M-Pesa Lipa Namba</p>
+            <p className="text-2xl font-bold text-foreground">{MPESA_MERCHANT_ID}</p>
+            <p className="text-xs text-muted-foreground">Scan QR code kulipa kupitia M-Pesa</p>
+          </div>
+        </div>
       </div>
 
       {/* Add Payment Form */}
