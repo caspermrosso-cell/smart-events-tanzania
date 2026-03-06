@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Calendar, Users, CreditCard, MessageSquare, Mail, QrCode, LogOut, LayoutDashboard, BarChart3, Wallet } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import ThemeToggle from '@/components/ThemeToggle';
 
 const navItems = [
   { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
@@ -53,7 +54,10 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
           })}
         </nav>
         <div className="p-3 border-t border-border">
-          <div className="text-xs text-muted-foreground truncate mb-2 px-3">{user?.email}</div>
+          <div className="flex items-center justify-between px-3 mb-2">
+            <span className="text-xs text-muted-foreground truncate">{user?.email}</span>
+            <ThemeToggle />
+          </div>
           <button
             onClick={handleLogout}
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-destructive hover:bg-muted transition-colors w-full"
@@ -76,6 +80,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                 </Link>
               );
             })}
+            <ThemeToggle />
             <button onClick={handleLogout} className="p-2 text-muted-foreground hover:text-destructive">
               <LogOut className="w-4 h-4" />
             </button>
