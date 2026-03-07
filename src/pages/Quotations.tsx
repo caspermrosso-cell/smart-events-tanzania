@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Plus, Download, Eye, ArrowRight, Trash2, Receipt } from 'lucide-react';
+import { FileText, Plus, Download, Eye, ArrowRight, Trash2, Receipt, Contact } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
