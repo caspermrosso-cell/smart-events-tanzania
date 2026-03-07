@@ -9,6 +9,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { QRCodeSVG } from 'qrcode.react';
+import selcomQr from '@/assets/selcom-qr.png';
 
 const MPESA_MERCHANT_ID = '5537073';
 
