@@ -255,7 +255,14 @@ const Guests = () => {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label>Simu</Label>
-                    <PhoneInput value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} />
+                    <PhoneInput
+                      value={form.phone}
+                      onChange={(v) => setForm({ ...form, phone: v })}
+                      onContactPicked={(c) => {
+                        if (c.name && !form.full_name) setForm(prev => ({ ...prev, full_name: c.name! }));
+                        if (c.email && !form.email) setForm(prev => ({ ...prev, email: c.email! }));
+                      }}
+                    />
                   </div>
                   <div>
                     <Label>Email</Label>

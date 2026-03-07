@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Plus, Download, Eye, ArrowRight, Trash2, Receipt } from 'lucide-react';
+import { FileText, Plus, Download, Eye, ArrowRight, Trash2, Receipt, Contact } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -14,6 +14,7 @@ import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import DocumentPreview, { type DocItem, type DocumentData } from '@/components/documents/DocumentPreview';
+import ContactPicker from '@/components/ContactPicker';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
@@ -481,7 +482,17 @@ const Quotations = () => {
                 <div><Label>Contact Person *</Label><Input value={contactPerson} onChange={e => setContactPerson(e.target.value)} placeholder="Jina la contact person" /></div>
                 <div><Label>Address</Label><Input value={clientAddress} onChange={e => setClientAddress(e.target.value)} placeholder="Anwani" /></div>
                 <div><Label>Email</Label><Input type="email" value={clientEmail} onChange={e => setClientEmail(e.target.value)} placeholder="Email" /></div>
-                <div><Label>Phone</Label><Input value={clientPhone} onChange={e => setClientPhone(e.target.value)} placeholder="Simu" /></div>
+                <div>
+                  <Label>Phone</Label>
+                  <div className="flex gap-1">
+                    <Input value={clientPhone} onChange={e => setClientPhone(e.target.value)} placeholder="Simu" />
+                    <ContactPicker size="icon" variant="outline" onPick={(c) => {
+                      if (c.phone) setClientPhone(c.phone.replace(/[\s\-()]/g, ''));
+                      if (c.name && !contactPerson) setContactPerson(c.name);
+                      if (c.email && !clientEmail) setClientEmail(c.email);
+                    }} />
+                  </div>
+                </div>
               </div>
             </div>
 
