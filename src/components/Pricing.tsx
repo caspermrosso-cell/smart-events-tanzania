@@ -56,7 +56,7 @@ const Pricing = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.15 }}
-              className={`relative rounded-2xl p-6 flex flex-col min-w-[220px] flex-1 ${
+              className={`relative rounded-2xl p-6 flex flex-col ${
                 pkg.is_popular
                   ? 'bg-primary text-primary-foreground shadow-warm scale-105'
                   : 'glass-card'
