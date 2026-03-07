@@ -48,7 +48,7 @@ const Pricing = () => {
           <p className="text-muted-foreground text-lg max-w-xl mx-auto">{t('pricing.subtitle')}</p>
         </motion.div>
 
-        <div className="grid gap-4 max-w-2xl mx-auto grid-cols-1">
+        <div className="flex gap-4 max-w-7xl mx-auto overflow-x-auto">
           {packages.map((pkg, i) => (
             <motion.div
               key={pkg.id}
