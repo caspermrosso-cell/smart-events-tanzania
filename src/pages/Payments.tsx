@@ -12,6 +12,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import selcomQr from '@/assets/selcom-qr.png';
 
 const MPESA_MERCHANT_ID = '5537073';
+const SELCOM_ACCOUNT = '5525100337337';
 
 const paymentMethods = [
   { value: 'mpesa', label: 'M-Pesa', icon: Smartphone, desc: `Merchant ID: ${MPESA_MERCHANT_ID}` },
