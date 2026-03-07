@@ -1,5 +1,5 @@
 import { forwardRef } from 'react';
-import smartEventsLogo from '@/assets/smart-events-logo.jpg';
+import smartEventsLogo from '@/assets/smart-events-logo.png';
 import selcomQr from '@/assets/selcom-qr.png';
 import { QRCodeSVG } from 'qrcode.react';
 

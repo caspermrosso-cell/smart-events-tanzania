@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, Lock, Fingerprint } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
-import smartEventsLogo from '@/assets/smart-events-logo.jpg';
+import smartEventsLogo from '@/assets/smart-events-logo.png';
 
 const BIOMETRIC_KEY = 'se_bio_cred';
 
