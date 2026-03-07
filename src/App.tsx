@@ -15,6 +15,7 @@ import ECards from "./pages/ECards";
 import CheckIn from "./pages/CheckIn";
 import Reports from "./pages/Reports";
 import Payments from "./pages/Payments";
+import Quotations from "./pages/Quotations";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
