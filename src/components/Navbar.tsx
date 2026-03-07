@@ -3,6 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Link } from 'react-router-dom';
 import { Menu, X, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import smartEventsLogo from '@/assets/smart-events-logo.jpg';
 
 const Navbar = () => {
   const { t, language, setLanguage } = useLanguage();
