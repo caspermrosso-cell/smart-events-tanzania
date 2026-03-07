@@ -136,7 +136,7 @@ const Payments = () => {
       </div>
 
       {/* M-Pesa QR Code + Total */}
-      <div className="grid sm:grid-cols-2 gap-4 mb-6">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <div className="glass-card rounded-xl p-4">
           <p className="text-sm text-muted-foreground">Jumla ya Malipo Yaliyopokelewa</p>
           <p className="text-3xl font-bold text-foreground">TZS {totalReceived.toLocaleString()}</p>
