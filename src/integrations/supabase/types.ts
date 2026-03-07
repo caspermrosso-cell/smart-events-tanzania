@@ -163,6 +163,99 @@ export type Database = {
           },
         ]
       }
+      invoices: {
+        Row: {
+          client_address: string | null
+          client_email: string | null
+          client_name: string
+          client_phone: string | null
+          contact_person: string | null
+          created_at: string
+          discount_amount: number
+          discount_type: string | null
+          discount_value: number
+          event_id: string | null
+          grand_total: number
+          id: string
+          invoice_number: string
+          items: Json
+          payment_due_days: number
+          payment_method: string | null
+          quotation_id: string | null
+          status: string
+          subtotal: number
+          updated_at: string
+          user_id: string
+          vat_amount: number
+          vat_enabled: boolean
+        }
+        Insert: {
+          client_address?: string | null
+          client_email?: string | null
+          client_name: string
+          client_phone?: string | null
+          contact_person?: string | null
+          created_at?: string
+          discount_amount?: number
+          discount_type?: string | null
+          discount_value?: number
+          event_id?: string | null
+          grand_total?: number
+          id?: string
+          invoice_number: string
+          items?: Json
+          payment_due_days?: number
+          payment_method?: string | null
+          quotation_id?: string | null
+          status?: string
+          subtotal?: number
+          updated_at?: string
+          user_id: string
+          vat_amount?: number
+          vat_enabled?: boolean
+        }
+        Update: {
+          client_address?: string | null
+          client_email?: string | null
+          client_name?: string
+          client_phone?: string | null
+          contact_person?: string | null
+          created_at?: string
+          discount_amount?: number
+          discount_type?: string | null
+          discount_value?: number
+          event_id?: string | null
+          grand_total?: number
+          id?: string
+          invoice_number?: string
+          items?: Json
+          payment_due_days?: number
+          payment_method?: string | null
+          quotation_id?: string | null
+          status?: string
+          subtotal?: number
+          updated_at?: string
+          user_id?: string
+          vat_amount?: number
+          vat_enabled?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_quotation_id_fkey"
+            columns: ["quotation_id"]
+            isOneToOne: false
+            referencedRelation: "quotations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number
@@ -297,6 +390,133 @@ export type Database = {
         }
         Relationships: []
       }
+      quotations: {
+        Row: {
+          client_address: string | null
+          client_email: string | null
+          client_name: string
+          client_phone: string | null
+          contact_person: string | null
+          created_at: string
+          discount_amount: number
+          discount_type: string | null
+          discount_value: number
+          event_id: string | null
+          grand_total: number
+          id: string
+          items: Json
+          quotation_number: string
+          status: string
+          subtotal: number
+          updated_at: string
+          user_id: string
+          validity_days: number
+          vat_amount: number
+          vat_enabled: boolean
+        }
+        Insert: {
+          client_address?: string | null
+          client_email?: string | null
+          client_name: string
+          client_phone?: string | null
+          contact_person?: string | null
+          created_at?: string
+          discount_amount?: number
+          discount_type?: string | null
+          discount_value?: number
+          event_id?: string | null
+          grand_total?: number
+          id?: string
+          items?: Json
+          quotation_number: string
+          status?: string
+          subtotal?: number
+          updated_at?: string
+          user_id: string
+          validity_days?: number
+          vat_amount?: number
+          vat_enabled?: boolean
+        }
+        Update: {
+          client_address?: string | null
+          client_email?: string | null
+          client_name?: string
+          client_phone?: string | null
+          contact_person?: string | null
+          created_at?: string
+          discount_amount?: number
+          discount_type?: string | null
+          discount_value?: number
+          event_id?: string | null
+          grand_total?: number
+          id?: string
+          items?: Json
+          quotation_number?: string
+          status?: string
+          subtotal?: number
+          updated_at?: string
+          user_id?: string
+          validity_days?: number
+          vat_amount?: number
+          vat_enabled?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      receipts: {
+        Row: {
+          amount_in_words: string | null
+          amount_paid: number
+          created_at: string
+          id: string
+          invoice_id: string | null
+          payment_method: string
+          receipt_number: string
+          remarks: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_in_words?: string | null
+          amount_paid?: number
+          created_at?: string
+          id?: string
+          invoice_id?: string | null
+          payment_method?: string
+          receipt_number: string
+          remarks?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_in_words?: string | null
+          amount_paid?: number
+          created_at?: string
+          id?: string
+          invoice_id?: string | null
+          payment_method?: string
+          receipt_number?: string
+          remarks?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "receipts_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -327,6 +547,9 @@ export type Database = {
         }
         Returns: boolean
       }
+      next_invoice_number: { Args: never; Returns: string }
+      next_quotation_number: { Args: never; Returns: string }
+      next_receipt_number: { Args: never; Returns: string }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
