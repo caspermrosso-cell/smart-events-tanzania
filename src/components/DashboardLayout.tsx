@@ -16,6 +16,7 @@ const navItems = [
   { label: 'Check-In', icon: QrCode, href: '/checkin' },
   { label: 'Malipo', icon: Wallet, href: '/payments' },
   { label: 'Nyaraka', icon: FileText, href: '/quotations' },
+  { label: 'Vifurushi', icon: Package, href: '/packages' },
   { label: 'Ripoti', icon: BarChart3, href: '/reports' },
 ];
 
