@@ -48,7 +48,7 @@ const Pricing = () => {
           <p className="text-muted-foreground text-lg max-w-xl mx-auto">{t('pricing.subtitle')}</p>
         </motion.div>
 
-        <div className="flex gap-4 max-w-7xl mx-auto overflow-x-auto">
+        <div className="grid gap-4 max-w-5xl mx-auto grid-cols-1 md:grid-cols-2">
           {packages.map((pkg, i) => (
             <motion.div
               key={pkg.id}
@@ -56,7 +56,7 @@ const Pricing = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.15 }}
-              className={`relative rounded-2xl p-6 flex flex-col min-w-[220px] flex-1 ${
+              className={`relative rounded-2xl p-6 flex flex-col ${
                 pkg.is_popular
                   ? 'bg-primary text-primary-foreground shadow-warm scale-105'
                   : 'glass-card'
