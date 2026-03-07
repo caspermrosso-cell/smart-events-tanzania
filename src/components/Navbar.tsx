@@ -3,6 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Link } from 'react-router-dom';
 import { Menu, X, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import smartEventsLogo from '@/assets/smart-events-logo.jpg';
 
 const Navbar = () => {
   const { t, language, setLanguage } = useLanguage();
@@ -16,14 +17,16 @@ const Navbar = () => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass-card">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        <button onClick={() => scrollTo('hero')} className="font-heading text-2xl font-bold text-gradient-gold">
-          Smart Events
+        <button onClick={() => scrollTo('hero')} className="flex items-center gap-2">
+          <img src={smartEventsLogo} alt="Smart Events" className="w-10 h-auto" />
+          <span className="font-heading text-xl font-bold text-gradient-gold">Smart Events</span>
         </button>
 
         {/* Desktop */}
         <div className="hidden md:flex items-center gap-6">
           <button onClick={() => scrollTo('services')} className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors">{t('nav.services')}</button>
           <button onClick={() => scrollTo('pricing')} className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors">{t('nav.pricing')}</button>
+          <button onClick={() => scrollTo('howtopay')} className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors">{language === 'en' ? 'How to Pay' : 'Jinsi ya Kulipa'}</button>
           <button onClick={() => scrollTo('contact')} className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors">{t('nav.contact')}</button>
           
           <button

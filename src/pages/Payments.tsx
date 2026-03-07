@@ -9,8 +9,10 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { QRCodeSVG } from 'qrcode.react';
+import selcomQr from '@/assets/selcom-qr.png';
 
 const MPESA_MERCHANT_ID = '5537073';
+const SELCOM_ACCOUNT = '5525100337337';
 
 const paymentMethods = [
   { value: 'mpesa', label: 'M-Pesa', icon: Smartphone, desc: `Merchant ID: ${MPESA_MERCHANT_ID}` },
@@ -134,19 +136,29 @@ const Payments = () => {
       </div>
 
       {/* M-Pesa QR Code + Total */}
-      <div className="grid sm:grid-cols-2 gap-4 mb-6">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <div className="glass-card rounded-xl p-4">
           <p className="text-sm text-muted-foreground">Jumla ya Malipo Yaliyopokelewa</p>
           <p className="text-3xl font-bold text-foreground">TZS {totalReceived.toLocaleString()}</p>
         </div>
         <div className="glass-card rounded-xl p-4 flex items-center gap-4">
           <div className="bg-white rounded-lg p-2.5 shrink-0">
-            <QRCodeSVG value={MPESA_MERCHANT_ID} size={80} />
+            <QRCodeSVG value={MPESA_MERCHANT_ID} size={70} />
           </div>
           <div>
             <p className="text-sm font-semibold text-foreground">M-Pesa Lipa Namba</p>
             <p className="text-2xl font-bold text-foreground">{MPESA_MERCHANT_ID}</p>
             <p className="text-xs text-muted-foreground">Scan QR code kulipa kupitia M-Pesa</p>
+          </div>
+        </div>
+        <div className="glass-card rounded-xl p-4 flex items-center gap-4">
+          <div className="bg-white rounded-lg p-1.5 shrink-0">
+            <img src={selcomQr} alt="Selcom Pesa" className="w-[76px] h-[76px] object-contain" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-foreground">Selcom Pesa</p>
+            <p className="text-xl font-bold text-foreground">{SELCOM_ACCOUNT}</p>
+            <p className="text-xs text-muted-foreground">Scan QR code kulipa kupitia Selcom</p>
           </div>
         </div>
       </div>

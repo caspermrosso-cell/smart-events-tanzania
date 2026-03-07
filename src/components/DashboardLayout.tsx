@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Calendar, Users, CreditCard, MessageSquare, Mail, QrCode, LogOut, LayoutDashboard, BarChart3, Wallet } from 'lucide-react';
+import { Calendar, Users, CreditCard, MessageSquare, Mail, QrCode, LogOut, LayoutDashboard, BarChart3, Wallet, FileText } from 'lucide-react';
+import smartEventsLogo from '@/assets/smart-events-logo.jpg';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import ThemeToggle from '@/components/ThemeToggle';
@@ -14,6 +15,7 @@ const navItems = [
   { label: 'E-Cards', icon: Mail, href: '/ecards' },
   { label: 'Check-In', icon: QrCode, href: '/checkin' },
   { label: 'Malipo', icon: Wallet, href: '/payments' },
+  { label: 'Nyaraka', icon: FileText, href: '/quotations' },
   { label: 'Ripoti', icon: BarChart3, href: '/reports' },
 ];
 
@@ -32,7 +34,10 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
       {/* Sidebar */}
       <aside className="hidden md:flex w-60 flex-col border-r border-border bg-card">
         <div className="p-4 border-b border-border">
-          <Link to="/" className="font-heading text-xl font-bold text-gradient-gold">Smart Events</Link>
+          <Link to="/" className="flex items-center gap-2">
+            <img src={smartEventsLogo} alt="Smart Events" className="w-10 h-auto" />
+            <span className="font-heading text-lg font-bold text-gradient-gold">Smart Events</span>
+          </Link>
         </div>
         <nav className="flex-1 p-3 space-y-1">
           {navItems.map((item) => {
@@ -69,21 +74,29 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
 
       {/* Mobile header */}
       <div className="flex-1 flex flex-col">
-        <header className="md:hidden border-b border-border bg-card px-4 py-3 flex items-center justify-between">
-          <Link to="/" className="font-heading text-lg font-bold text-gradient-gold">Smart Events</Link>
-          <div className="flex items-center gap-2">
-            {navItems.slice(0, 5).map((item) => {
+        <header className="md:hidden border-b border-border bg-card px-3 py-2">
+          <div className="flex items-center justify-between mb-2">
+            <Link to="/" className="flex items-center gap-2">
+              <img src={smartEventsLogo} alt="Smart Events" className="w-8 h-auto" />
+              <span className="font-heading text-base font-bold text-gradient-gold">Smart Events</span>
+            </Link>
+            <div className="flex items-center gap-1">
+              <ThemeToggle />
+              <button onClick={handleLogout} className="p-2 text-muted-foreground hover:text-destructive">
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+          <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-hide">
+            {navItems.map((item) => {
               const isActive = location.pathname === item.href;
               return (
-                <Link key={item.href} to={item.href} className={`p-2 rounded-lg ${isActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}>
-                  <item.icon className="w-4 h-4" />
+                <Link key={item.href} to={item.href} className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs whitespace-nowrap ${isActive ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground'}`}>
+                  <item.icon className="w-3.5 h-3.5" />
+                  <span className="hidden xs:inline">{item.label}</span>
                 </Link>
               );
             })}
-            <ThemeToggle />
-            <button onClick={handleLogout} className="p-2 text-muted-foreground hover:text-destructive">
-              <LogOut className="w-4 h-4" />
-            </button>
           </div>
         </header>
 

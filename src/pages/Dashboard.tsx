@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Calendar, Users, CreditCard, MessageSquare, Mail, QrCode, Wallet } from 'lucide-react';
+import { Calendar, Users, CreditCard, MessageSquare, Mail, QrCode, Wallet, FileText } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -14,6 +14,7 @@ const modules = [
   { title: 'E-Cards', desc: 'Buni & tuma kadi', icon: Mail, color: 'bg-gold/10 text-gold', href: '/ecards' },
   { title: 'Check-In', desc: 'Skani barcode mlangoni', icon: QrCode, color: 'bg-accent/10 text-accent', href: '/checkin' },
   { title: 'Malipo', desc: 'Pokea & fuatilia malipo', icon: Wallet, color: 'bg-primary/10 text-primary', href: '/payments' },
+  { title: 'Nyaraka', desc: 'Quotations, Invoices & Receipts', icon: FileText, color: 'bg-gold/10 text-gold', href: '/quotations' },
 ];
 
 const Dashboard = () => {
