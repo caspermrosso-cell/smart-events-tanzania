@@ -494,13 +494,11 @@ const Quotations = () => {
                     const pkg = packages.find((p: any) => p.id === pkgId);
                     if (pkg) {
                       const features = (Array.isArray(pkg.features) ? pkg.features : []) as string[];
-                      const newItems: LineItem[] = features.map((f: string) => ({ description: f, qty: 1, unitPrice: 0 }));
-                      if (newItems.length > 0) {
-                        // Replace empty items or append
-                        const hasContent = items.some(it => it.description.trim() !== '');
-                        setItems(hasContent ? [...items, ...newItems] : newItems);
-                        toast.success(`Huduma ${features.length} zimeongezwa kutoka "${pkg.title}"`);
-                      }
+                      const desc = `${pkg.title}${features.length > 0 ? ' (' + features.join(', ') + ')' : ''}`;
+                      const newItem: LineItem = { description: desc, qty: 1, unitPrice: Number(pkg.price) || 0 };
+                      const hasContent = items.some(it => it.description.trim() !== '');
+                      setItems(hasContent ? [...items, newItem] : [newItem]);
+                      toast.success(`"${pkg.title}" imeongezwa`);
                     }
                   }}>
                     <SelectTrigger className="w-[200px] h-8 text-xs">
