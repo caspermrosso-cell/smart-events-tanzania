@@ -2,6 +2,8 @@ import { motion } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 import selcomQr from '@/assets/selcom-qr.png';
 import { useLanguage } from '@/contexts/LanguageContext';
+import mpesaLogo from '@/assets/mpesa-logo.png';
+import selcomLogo from '@/assets/selcom-logo.png';
 
 const MPESA_MERCHANT_ID = '5537073';
 const SELCOM_ACCOUNT = '5525100337337';
@@ -35,8 +37,8 @@ const HowToPay = () => {
             viewport={{ once: true }}
             className="glass-card rounded-2xl p-8 text-center"
           >
-            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl font-bold text-green-700">M</span>
+            <div className="w-16 h-16 rounded-xl overflow-hidden mx-auto mb-4">
+              <img src={mpesaLogo} alt="M-Pesa" className="w-full h-full object-cover" />
             </div>
             <h3 className="font-heading text-2xl font-bold text-foreground mb-2">Lipa kwa M-Pesa</h3>
             <p className="text-muted-foreground text-sm mb-4">
@@ -67,8 +69,8 @@ const HowToPay = () => {
             viewport={{ once: true }}
             className="glass-card rounded-2xl p-8 text-center"
           >
-            <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl font-bold text-blue-700">S</span>
+            <div className="w-16 h-16 rounded-xl overflow-hidden mx-auto mb-4">
+              <img src={selcomLogo} alt="Selcom" className="w-full h-full object-contain bg-white" />
             </div>
             <h3 className="font-heading text-2xl font-bold text-foreground mb-2">Selcom Pesa</h3>
             <p className="text-muted-foreground text-sm mb-4">
