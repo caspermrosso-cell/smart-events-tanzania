@@ -14,6 +14,7 @@ import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import DocumentPreview, { type DocItem, type DocumentData } from '@/components/documents/DocumentPreview';
+import ContactPicker from '@/components/ContactPicker';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
