@@ -35,7 +35,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
       <aside className="hidden md:flex w-60 flex-col border-r border-border bg-card">
         <div className="p-4 border-b border-border">
           <Link to="/" className="flex items-center gap-2">
-            <img src={smartEventsLogo} alt="Smart Events" className="w-10 h-auto" />
+            <img src={smartEventsLogo} alt="Smart Events" className="w-14 h-auto" />
             <span className="font-heading text-lg font-bold text-gradient-gold">Smart Events</span>
           </Link>
         </div>
