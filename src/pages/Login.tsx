@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Lock } from 'lucide-react';
+import { ArrowLeft, Lock, Fingerprint } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
+import smartEventsLogo from '@/assets/smart-events-logo.jpg';
+
+const BIOMETRIC_KEY = 'se_bio_cred';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -25,10 +28,71 @@ const Login = () => {
       toast.error(error.message);
     } else {
       toast.success('Umeingia kikamilifu!');
+      // Offer to save biometric
+      if (window.PublicKeyCredential && email && password) {
+        try {
+          localStorage.setItem(BIOMETRIC_KEY, btoa(JSON.stringify({ e: email, p: password })));
+          toast.info('Unaweza kutumia biometric login siku zijazo!');
+        } catch { /* ignore */ }
+      }
       navigate('/dashboard');
     }
     setLoading(false);
   };
+
+  const handleBiometric = async () => {
+    if (!window.PublicKeyCredential) {
+      toast.error('Biometric haipo kwenye kifaa hiki');
+      return;
+    }
+    const stored = localStorage.getItem(BIOMETRIC_KEY);
+    if (!stored) {
+      toast.error('Tafadhali ingia kwanza kwa email/password ili kuwezesha biometric');
+      return;
+    }
+    setLoading(true);
+    try {
+      // Use WebAuthn for biometric verification
+      const credential = await navigator.credentials.create({
+        publicKey: {
+          challenge: crypto.getRandomValues(new Uint8Array(32)),
+          rp: { name: 'Smart Events' },
+          user: {
+            id: crypto.getRandomValues(new Uint8Array(16)),
+            name: 'admin',
+            displayName: 'Admin',
+          },
+          pubKeyCredParams: [{ type: 'public-key', alg: -7 }],
+          authenticatorSelection: {
+            authenticatorAttachment: 'platform',
+            userVerification: 'required',
+          },
+          timeout: 60000,
+        },
+      });
+
+      if (credential) {
+        const cred = JSON.parse(atob(stored));
+        const { error } = await signIn(cred.e, cred.p);
+        if (error) {
+          toast.error('Biometric imeshindikana. Jaribu email/password.');
+          localStorage.removeItem(BIOMETRIC_KEY);
+        } else {
+          toast.success('Umeingia kwa biometric!');
+          navigate('/dashboard');
+        }
+      }
+    } catch (err: any) {
+      if (err.name === 'NotAllowedError') {
+        toast.error('Biometric imekataliwa na mtumiaji');
+      } else {
+        toast.error('Biometric haipo au haijawezeshwa');
+      }
+    }
+    setLoading(false);
+  };
+
+  const hasBiometric = !!window.PublicKeyCredential && !!localStorage.getItem(BIOMETRIC_KEY);
 
   const inputClass = "w-full px-4 py-3 rounded-lg bg-background border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-sm";
 
@@ -44,9 +108,7 @@ const Login = () => {
         </Link>
 
         <div className="text-center mb-8">
-          <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-            <Lock className="w-7 h-7 text-primary" />
-          </div>
+          <img src={smartEventsLogo} alt="Smart Events" className="w-20 h-auto mx-auto mb-4" />
           <h1 className="font-heading text-3xl font-bold text-foreground">Admin Login</h1>
           <p className="text-sm text-muted-foreground mt-1">Smart Events Dashboard</p>
         </div>
@@ -79,6 +141,23 @@ const Login = () => {
             {loading ? '...' : 'Login'}
           </button>
         </form>
+
+        {hasBiometric && (
+          <div className="mt-4">
+            <div className="relative flex items-center justify-center my-3">
+              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
+              <span className="relative px-3 bg-card text-xs text-muted-foreground">au</span>
+            </div>
+            <button
+              onClick={handleBiometric}
+              disabled={loading}
+              className="w-full py-3 rounded-lg border-2 border-primary/30 text-foreground font-medium hover:bg-primary/5 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              <Fingerprint className="w-5 h-5 text-primary" />
+              Ingia kwa Biometric
+            </button>
+          </div>
+        )}
       </motion.div>
     </div>
   );
