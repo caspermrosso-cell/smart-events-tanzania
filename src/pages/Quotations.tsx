@@ -85,6 +85,15 @@ const Quotations = () => {
     },
   });
 
+  const { data: packages = [] } = useQuery({
+    queryKey: ['packages-for-quotation'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('packages').select('id, title, price, features').eq('is_active', true).order('sort_order');
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   const selectedEventData = events.find((e: any) => e.id === selectedEvent);
   const subtotal = items.reduce((s, i) => s + i.qty * i.unitPrice, 0);
   const vatAmount = vatEnabled ? Math.round(subtotal * 0.18) : 0;
