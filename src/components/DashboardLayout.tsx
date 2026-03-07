@@ -75,7 +75,10 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
       {/* Mobile header */}
       <div className="flex-1 flex flex-col">
         <header className="md:hidden border-b border-border bg-card px-4 py-3 flex items-center justify-between">
-          <Link to="/" className="font-heading text-lg font-bold text-gradient-gold">Smart Events</Link>
+          <Link to="/" className="flex items-center gap-2">
+            <img src={smartEventsLogo} alt="Smart Events" className="w-8 h-auto" />
+            <span className="font-heading text-lg font-bold text-gradient-gold">Smart Events</span>
+          </Link>
           <div className="flex items-center gap-2">
             {navItems.slice(0, 5).map((item) => {
               const isActive = location.pathname === item.href;
