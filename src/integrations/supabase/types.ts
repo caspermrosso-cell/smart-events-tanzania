@@ -256,6 +256,42 @@ export type Database = {
           },
         ]
       }
+      packages: {
+        Row: {
+          created_at: string
+          features: Json
+          id: string
+          is_active: boolean
+          is_popular: boolean
+          price: number
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          features?: Json
+          id?: string
+          is_active?: boolean
+          is_popular?: boolean
+          price?: number
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          features?: Json
+          id?: string
+          is_active?: boolean
+          is_popular?: boolean
+          price?: number
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number
