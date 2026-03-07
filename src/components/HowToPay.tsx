@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
-import selcomQr from '@/assets/selcom-qr.png';
+
 import { useLanguage } from '@/contexts/LanguageContext';
 import mpesaLogo from '@/assets/mpesa-logo.png';
 import selcomLogo from '@/assets/selcom-logo.png';

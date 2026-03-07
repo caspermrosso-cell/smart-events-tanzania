@@ -161,8 +161,8 @@ const DocumentPreview = forwardRef<HTMLDivElement, { data: DocumentData }>(({ da
               <p className="text-[10px] text-gray-500 mt-1">M-Pesa: {MPESA_MERCHANT_ID}</p>
             </div>
             <div className="text-center">
-              <div className="bg-white border border-gray-200 rounded-lg p-1 inline-block">
-                <img src={selcomQr} alt="Selcom" className="w-[78px] h-[78px] object-contain" />
+              <div className="bg-white border border-gray-200 rounded-lg p-2 inline-block">
+                <QRCodeSVG value={SELCOM_ACCOUNT} size={70} />
               </div>
               <p className="text-[10px] text-gray-500 mt-1">Selcom: {SELCOM_ACCOUNT}</p>
             </div>
