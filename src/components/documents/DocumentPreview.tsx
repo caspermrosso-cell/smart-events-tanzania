@@ -51,7 +51,7 @@ const DocumentPreview = forwardRef<HTMLDivElement, { data: DocumentData }>(({ da
       {/* Header */}
       <div className="flex items-start justify-between mb-6 pb-4 border-b-2 border-amber-500">
         <div className="flex items-center gap-3">
-          <img src={smartEventsLogo} alt="Smart Events" className="w-20 h-auto" />
+          <img src={smartEventsLogo} alt="Smart Events" className="w-28 h-auto" />
           <div>
             <h1 className="text-lg font-bold text-gray-900">{COMPANY.name}</h1>
             <p className="text-xs text-gray-600">{COMPANY.address}</p>
