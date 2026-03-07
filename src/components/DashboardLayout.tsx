@@ -34,7 +34,10 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
       {/* Sidebar */}
       <aside className="hidden md:flex w-60 flex-col border-r border-border bg-card">
         <div className="p-4 border-b border-border">
-          <Link to="/" className="font-heading text-xl font-bold text-gradient-gold">Smart Events</Link>
+          <Link to="/" className="flex items-center gap-2">
+            <img src={smartEventsLogo} alt="Smart Events" className="w-10 h-auto" />
+            <span className="font-heading text-lg font-bold text-gradient-gold">Smart Events</span>
+          </Link>
         </div>
         <nav className="flex-1 p-3 space-y-1">
           {navItems.map((item) => {
