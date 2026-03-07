@@ -15,6 +15,7 @@ const navItems = [
   { label: 'E-Cards', icon: Mail, href: '/ecards' },
   { label: 'Check-In', icon: QrCode, href: '/checkin' },
   { label: 'Malipo', icon: Wallet, href: '/payments' },
+  { label: 'Nyaraka', icon: FileText, href: '/quotations' },
   { label: 'Ripoti', icon: BarChart3, href: '/reports' },
 ];
 
