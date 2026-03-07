@@ -480,7 +480,33 @@ const Quotations = () => {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <Label>Huduma / Products</Label>
-                <Button type="button" size="sm" variant="outline" onClick={addItem} className="gap-1"><Plus className="w-3 h-3" /> Ongeza</Button>
+                <div className="flex gap-2">
+                  <Select onValueChange={(pkgId) => {
+                    const pkg = packages.find((p: any) => p.id === pkgId);
+                    if (pkg) {
+                      const features = (Array.isArray(pkg.features) ? pkg.features : []) as string[];
+                      const newItems: LineItem[] = features.map((f: string) => ({ description: f, qty: 1, unitPrice: 0 }));
+                      if (newItems.length > 0) {
+                        // Replace empty items or append
+                        const hasContent = items.some(it => it.description.trim() !== '');
+                        setItems(hasContent ? [...items, ...newItems] : newItems);
+                        toast.success(`Huduma ${features.length} zimeongezwa kutoka "${pkg.title}"`);
+                      }
+                    }
+                  }}>
+                    <SelectTrigger className="w-[200px] h-8 text-xs">
+                      <SelectValue placeholder="📦 Chagua kutoka Vifurushi" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {packages.map((pkg: any) => (
+                        <SelectItem key={pkg.id} value={pkg.id}>
+                          {pkg.title} - TZS {Number(pkg.price).toLocaleString()}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button type="button" size="sm" variant="outline" onClick={addItem} className="gap-1"><Plus className="w-3 h-3" /> Ongeza</Button>
+                </div>
               </div>
               <div className="space-y-2">
                 {items.map((item, i) => (
