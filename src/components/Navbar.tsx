@@ -26,6 +26,7 @@ const Navbar = () => {
         <div className="hidden md:flex items-center gap-6">
           <button onClick={() => scrollTo('services')} className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors">{t('nav.services')}</button>
           <button onClick={() => scrollTo('pricing')} className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors">{t('nav.pricing')}</button>
+          <button onClick={() => scrollTo('howtopay')} className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors">{language === 'en' ? 'How to Pay' : 'Jinsi ya Kulipa'}</button>
           <button onClick={() => scrollTo('contact')} className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors">{t('nav.contact')}</button>
           
           <button
