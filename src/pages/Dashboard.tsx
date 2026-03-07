@@ -14,6 +14,7 @@ const modules = [
   { title: 'E-Cards', desc: 'Buni & tuma kadi', icon: Mail, color: 'bg-gold/10 text-gold', href: '/ecards' },
   { title: 'Check-In', desc: 'Skani barcode mlangoni', icon: QrCode, color: 'bg-accent/10 text-accent', href: '/checkin' },
   { title: 'Malipo', desc: 'Pokea & fuatilia malipo', icon: Wallet, color: 'bg-primary/10 text-primary', href: '/payments' },
+  { title: 'Nyaraka', desc: 'Quotations, Invoices & Receipts', icon: FileText, color: 'bg-gold/10 text-gold', href: '/quotations' },
 ];
 
 const Dashboard = () => {
