@@ -69,8 +69,8 @@ const HowToPay = () => {
             viewport={{ once: true }}
             className="glass-card rounded-2xl p-8 text-center"
           >
-            <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl font-bold text-blue-700">S</span>
+            <div className="w-16 h-16 rounded-xl overflow-hidden mx-auto mb-4">
+              <img src={selcomLogo} alt="Selcom" className="w-full h-full object-contain bg-white" />
             </div>
             <h3 className="font-heading text-2xl font-bold text-foreground mb-2">Selcom Pesa</h3>
             <p className="text-muted-foreground text-sm mb-4">
