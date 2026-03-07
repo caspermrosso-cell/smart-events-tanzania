@@ -74,24 +74,29 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
 
       {/* Mobile header */}
       <div className="flex-1 flex flex-col">
-        <header className="md:hidden border-b border-border bg-card px-4 py-3 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <img src={smartEventsLogo} alt="Smart Events" className="w-8 h-auto" />
-            <span className="font-heading text-lg font-bold text-gradient-gold">Smart Events</span>
-          </Link>
-          <div className="flex items-center gap-2">
-            {navItems.slice(0, 5).map((item) => {
+        <header className="md:hidden border-b border-border bg-card px-3 py-2">
+          <div className="flex items-center justify-between mb-2">
+            <Link to="/" className="flex items-center gap-2">
+              <img src={smartEventsLogo} alt="Smart Events" className="w-8 h-auto" />
+              <span className="font-heading text-base font-bold text-gradient-gold">Smart Events</span>
+            </Link>
+            <div className="flex items-center gap-1">
+              <ThemeToggle />
+              <button onClick={handleLogout} className="p-2 text-muted-foreground hover:text-destructive">
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+          <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-hide">
+            {navItems.map((item) => {
               const isActive = location.pathname === item.href;
               return (
-                <Link key={item.href} to={item.href} className={`p-2 rounded-lg ${isActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}>
-                  <item.icon className="w-4 h-4" />
+                <Link key={item.href} to={item.href} className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs whitespace-nowrap ${isActive ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground'}`}>
+                  <item.icon className="w-3.5 h-3.5" />
+                  <span className="hidden xs:inline">{item.label}</span>
                 </Link>
               );
             })}
-            <ThemeToggle />
-            <button onClick={handleLogout} className="p-2 text-muted-foreground hover:text-destructive">
-              <LogOut className="w-4 h-4" />
-            </button>
           </div>
         </header>
 

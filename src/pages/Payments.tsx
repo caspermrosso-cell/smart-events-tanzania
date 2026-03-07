@@ -143,12 +143,22 @@ const Payments = () => {
         </div>
         <div className="glass-card rounded-xl p-4 flex items-center gap-4">
           <div className="bg-white rounded-lg p-2.5 shrink-0">
-            <QRCodeSVG value={MPESA_MERCHANT_ID} size={80} />
+            <QRCodeSVG value={MPESA_MERCHANT_ID} size={70} />
           </div>
           <div>
             <p className="text-sm font-semibold text-foreground">M-Pesa Lipa Namba</p>
             <p className="text-2xl font-bold text-foreground">{MPESA_MERCHANT_ID}</p>
             <p className="text-xs text-muted-foreground">Scan QR code kulipa kupitia M-Pesa</p>
+          </div>
+        </div>
+        <div className="glass-card rounded-xl p-4 flex items-center gap-4">
+          <div className="bg-white rounded-lg p-1.5 shrink-0">
+            <img src={selcomQr} alt="Selcom Pesa" className="w-[76px] h-[76px] object-contain" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-foreground">Selcom Pesa</p>
+            <p className="text-xl font-bold text-foreground">{SELCOM_ACCOUNT}</p>
+            <p className="text-xs text-muted-foreground">Scan QR code kulipa kupitia Selcom</p>
           </div>
         </div>
       </div>
