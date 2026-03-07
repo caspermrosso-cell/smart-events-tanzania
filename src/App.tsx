@@ -16,6 +16,7 @@ import CheckIn from "./pages/CheckIn";
 import Reports from "./pages/Reports";
 import Payments from "./pages/Payments";
 import Quotations from "./pages/Quotations";
+import Packages from "./pages/Packages";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -41,6 +42,7 @@ const App = () => (
             <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
             <Route path="/payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
             <Route path="/quotations" element={<ProtectedRoute><Quotations /></ProtectedRoute>} />
+            <Route path="/packages" element={<ProtectedRoute><Packages /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
