@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
-import selcomQr from '@/assets/selcom-qr.png';
+
 import { useLanguage } from '@/contexts/LanguageContext';
 import mpesaLogo from '@/assets/mpesa-logo.png';
 import selcomLogo from '@/assets/selcom-logo.png';
@@ -76,8 +76,8 @@ const HowToPay = () => {
             <p className="text-muted-foreground text-sm mb-4">
               {isEn ? 'Scan the QR code or use the account number below' : 'Scan QR code au tumia namba ya akaunti hapa chini'}
             </p>
-            <div className="bg-white rounded-xl p-2 inline-block mb-4 shadow-warm">
-              <img src={selcomQr} alt="Selcom Pesa QR" className="w-40 h-40 object-contain" />
+            <div className="bg-white rounded-xl p-4 inline-block mb-4 shadow-warm">
+              <QRCodeSVG value={SELCOM_ACCOUNT} size={160} />
             </div>
             <div className="mt-2">
               <p className="text-sm text-muted-foreground">{isEn ? 'Account Number' : 'Namba ya Akaunti'}:</p>
