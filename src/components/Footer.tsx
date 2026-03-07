@@ -1,5 +1,5 @@
 import { useLanguage } from '@/contexts/LanguageContext';
-import smartEventsLogo from '@/assets/smart-events-logo.jpg';
+import smartEventsLogo from '@/assets/smart-events-logo.png';
 
 const Footer = () => {
   const { t } = useLanguage();
