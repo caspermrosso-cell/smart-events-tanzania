@@ -37,8 +37,8 @@ const HowToPay = () => {
             viewport={{ once: true }}
             className="glass-card rounded-2xl p-8 text-center"
           >
-            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl font-bold text-green-700">M</span>
+            <div className="w-16 h-16 rounded-xl overflow-hidden mx-auto mb-4">
+              <img src={mpesaLogo} alt="M-Pesa" className="w-full h-full object-cover" />
             </div>
             <h3 className="font-heading text-2xl font-bold text-foreground mb-2">Lipa kwa M-Pesa</h3>
             <p className="text-muted-foreground text-sm mb-4">
