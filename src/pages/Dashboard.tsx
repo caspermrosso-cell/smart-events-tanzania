@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Calendar, Users, CreditCard, MessageSquare, Mail, QrCode, Wallet } from 'lucide-react';
+import { Calendar, Users, CreditCard, MessageSquare, Mail, QrCode, Wallet, FileText } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
