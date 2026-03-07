@@ -16,6 +16,7 @@ import CheckIn from "./pages/CheckIn";
 import Reports from "./pages/Reports";
 import Payments from "./pages/Payments";
 import Quotations from "./pages/Quotations";
+import Packages from "./pages/Packages";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
