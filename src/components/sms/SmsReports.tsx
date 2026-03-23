@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { BarChart3, CheckCircle, XCircle, Clock, TrendingUp, FileText, FileSpreadsheet, Signal } from 'lucide-react';
+import { BarChart3, CheckCircle, XCircle, Clock, TrendingUp, FileText, FileSpreadsheet, Signal, CalendarDays } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 import * as XLSX from 'xlsx';
@@ -55,8 +56,21 @@ const NETWORK_COLORS: Record<string, { color: string; bg: string }> = {
 const SmsReports = () => {
   const { user } = useAuth();
   const [exporting, setExporting] = useState<'pdf' | 'excel' | null>(null);
+  const [selectedEventId, setSelectedEventId] = useState<string>('all');
 
-  const { data: logs = [] } = useQuery({
+  const { data: events = [] } = useQuery({
+    queryKey: ['events-for-sms-report'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('events')
+        .select('id, title')
+        .order('event_date', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: allLogs = [] } = useQuery({
     queryKey: ['sms-logs'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -79,6 +93,19 @@ const SmsReports = () => {
     },
     staleTime: 60000,
   });
+
+  // Filter logs by selected event
+  const logs = useMemo(() => {
+    if (selectedEventId === 'all') return allLogs;
+    if (selectedEventId === 'no-event') return allLogs.filter((l: any) => !l.event_id);
+    return allLogs.filter((l: any) => l.event_id === selectedEventId);
+  }, [allLogs, selectedEventId]);
+
+  const selectedEventTitle = selectedEventId === 'all'
+    ? 'Matukio Yote'
+    : selectedEventId === 'no-event'
+      ? 'Bila Tukio'
+      : events.find((e: any) => e.id === selectedEventId)?.title || '';
 
   const totalSent = logs.filter((l: any) => l.status === 'sent').length;
   const totalFailed = logs.filter((l: any) => l.status === 'failed').length;
@@ -131,24 +158,26 @@ const SmsReports = () => {
       const now = new Date().toLocaleDateString('sw-TZ', { day: '2-digit', month: 'long', year: 'numeric' });
 
       doc.setFontSize(18);
-      doc.text('Smart Events - Ripoti ya SMS', 14, 20);
+      doc.text(`Smart Events - Ripoti ya SMS`, 14, 20);
+      doc.setFontSize(11);
+      doc.text(`Tukio: ${selectedEventTitle}`, 14, 28);
       doc.setFontSize(10);
-      doc.text(`Tarehe ya Ripoti: ${now}`, 14, 28);
-      doc.line(14, 31, 196, 31);
+      doc.text(`Tarehe ya Ripoti: ${now}`, 14, 35);
+      doc.line(14, 38, 196, 38);
 
       doc.setFontSize(12);
-      doc.text('Muhtasari', 14, 40);
+      doc.text('Muhtasari', 14, 47);
       doc.setFontSize(10);
-      doc.text(`SMS Zimetumwa: ${totalSent}`, 14, 48);
-      doc.text(`SMS Zimeshindikana: ${totalFailed}`, 14, 55);
-      doc.text(`SMS Zimepangwa: ${totalScheduled}`, 14, 62);
-      doc.text(`Jumla SMS Units: ${totalSmsUnits}`, 14, 69);
+      doc.text(`SMS Zimetumwa: ${totalSent}`, 14, 55);
+      doc.text(`SMS Zimeshindikana: ${totalFailed}`, 14, 62);
+      doc.text(`SMS Zimepangwa: ${totalScheduled}`, 14, 69);
+      doc.text(`Jumla SMS Units: ${totalSmsUnits}`, 14, 76);
 
-      let y = 82;
+      let y = 89;
       if (balance) {
         const creditBal = Number(balance?.credit_balance || 0);
-        doc.text(`Salio: TZS ${creditBal.toLocaleString()}`, 14, 76);
-        y = 89;
+        doc.text(`Salio: TZS ${creditBal.toLocaleString()}`, 14, 83);
+        y = 96;
       }
 
       // Network breakdown in PDF
@@ -205,6 +234,7 @@ const SmsReports = () => {
     try {
       const summaryData: any[][] = [
         ['Smart Events - Ripoti ya SMS'],
+        ['Tukio', selectedEventTitle],
         ['Tarehe ya Ripoti', new Date().toLocaleDateString('sw-TZ')],
         [],
         ['Muhtasari'],
@@ -254,16 +284,35 @@ const SmsReports = () => {
 
   return (
     <div className="space-y-6">
-      {/* Export Buttons */}
-      <div className="flex items-center justify-end gap-2">
-        <Button variant="outline" size="sm" onClick={exportPDF} disabled={exporting !== null || logs.length === 0} className="gap-1.5">
-          <FileText className="w-4 h-4" />
-          {exporting === 'pdf' ? 'Inapakua...' : 'PDF'}
-        </Button>
-        <Button variant="outline" size="sm" onClick={exportExcel} disabled={exporting !== null || logs.length === 0} className="gap-1.5">
-          <FileSpreadsheet className="w-4 h-4" />
-          {exporting === 'excel' ? 'Inapakua...' : 'Excel'}
-        </Button>
+      {/* Event Filter + Export Buttons */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <CalendarDays className="w-4 h-4 text-primary shrink-0" />
+          <Select value={selectedEventId} onValueChange={setSelectedEventId}>
+            <SelectTrigger className="w-full sm:w-[260px]">
+              <SelectValue placeholder="Chagua Tukio" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">📊 Matukio Yote</SelectItem>
+              <SelectItem value="no-event">📝 Bila Tukio</SelectItem>
+              {events.map((event: any) => (
+                <SelectItem key={event.id} value={event.id}>
+                  🎉 {event.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={exportPDF} disabled={exporting !== null || logs.length === 0} className="gap-1.5">
+            <FileText className="w-4 h-4" />
+            {exporting === 'pdf' ? 'Inapakua...' : 'PDF'}
+          </Button>
+          <Button variant="outline" size="sm" onClick={exportExcel} disabled={exporting !== null || logs.length === 0} className="gap-1.5">
+            <FileSpreadsheet className="w-4 h-4" />
+            {exporting === 'excel' ? 'Inapakua...' : 'Excel'}
+          </Button>
+        </div>
       </div>
 
       {/* Stats Grid */}
