@@ -173,11 +173,11 @@ const SmsReports = () => {
       doc.text(`SMS Zimepangwa: ${totalScheduled}`, 14, 69);
       doc.text(`Jumla SMS Units: ${totalSmsUnits}`, 14, 76);
 
-      let y = 82;
+      let y = 89;
       if (balance) {
         const creditBal = Number(balance?.credit_balance || 0);
-        doc.text(`Salio: TZS ${creditBal.toLocaleString()}`, 14, 76);
-        y = 89;
+        doc.text(`Salio: TZS ${creditBal.toLocaleString()}`, 14, 83);
+        y = 96;
       }
 
       // Network breakdown in PDF
