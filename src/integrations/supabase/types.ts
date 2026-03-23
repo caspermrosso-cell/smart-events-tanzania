@@ -63,6 +63,7 @@ export type Database = {
           id: string
           max_guests: number | null
           photo_url: string | null
+          sms_allocation: number
           status: string
           subscription_amount: number | null
           subscription_package: string | null
@@ -80,6 +81,7 @@ export type Database = {
           id?: string
           max_guests?: number | null
           photo_url?: string | null
+          sms_allocation?: number
           status?: string
           subscription_amount?: number | null
           subscription_package?: string | null
@@ -97,6 +99,7 @@ export type Database = {
           id?: string
           max_guests?: number | null
           photo_url?: string | null
+          sms_allocation?: number
           status?: string
           subscription_amount?: number | null
           subscription_package?: string | null

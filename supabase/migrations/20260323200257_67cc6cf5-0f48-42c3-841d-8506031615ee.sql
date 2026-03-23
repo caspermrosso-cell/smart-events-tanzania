@@ -1,0 +1,1 @@
+ALTER TABLE public.events ADD COLUMN sms_allocation integer NOT NULL DEFAULT 0;

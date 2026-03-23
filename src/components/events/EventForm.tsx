@@ -28,6 +28,7 @@ const EventForm = ({ event, onSuccess }: EventFormProps) => {
     status: event?.status || 'draft',
     max_guests: event?.max_guests?.toString() || '',
     budget: event?.budget?.toString() || '',
+    sms_allocation: event?.sms_allocation?.toString() || '0',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,6 +45,7 @@ const EventForm = ({ event, onSuccess }: EventFormProps) => {
       status: form.status,
       max_guests: form.max_guests ? parseInt(form.max_guests) : null,
       budget: form.budget ? parseFloat(form.budget) : 0,
+      sms_allocation: form.sms_allocation ? parseInt(form.sms_allocation) : 0,
       user_id: user.id,
     };
 
@@ -116,10 +118,14 @@ const EventForm = ({ event, onSuccess }: EventFormProps) => {
         <Textarea id="description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Maelezo ya tukio..." rows={3} />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         <div>
           <Label htmlFor="max_guests">Wageni (Max)</Label>
           <Input id="max_guests" type="number" value={form.max_guests} onChange={(e) => setForm({ ...form, max_guests: e.target.value })} placeholder="500" />
+        </div>
+        <div>
+          <Label htmlFor="sms_allocation">SMS Allocation</Label>
+          <Input id="sms_allocation" type="number" value={form.sms_allocation} onChange={(e) => setForm({ ...form, sms_allocation: e.target.value })} placeholder="1000" />
         </div>
         <div>
           <Label htmlFor="budget">Bajeti (TZS)</Label>

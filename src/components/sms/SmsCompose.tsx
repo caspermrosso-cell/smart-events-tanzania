@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Send, CheckCircle, Clock, Plus, X, Phone } from 'lucide-react';
+import { Send, CheckCircle, Clock, Plus, X, Phone, MessageSquare } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -45,11 +45,31 @@ const SmsCompose = () => {
   const { data: events = [] } = useQuery({
     queryKey: ['events'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('events').select('id, title, event_date').order('event_date', { ascending: false });
+      const { data, error } = await supabase.from('events').select('id, title, event_date, sms_allocation').order('event_date', { ascending: false });
       if (error) throw error;
       return data;
     },
   });
+
+  // Get SMS used count for selected event
+  const { data: eventSmsUsed = 0 } = useQuery({
+    queryKey: ['event-sms-used', selectedEvent],
+    queryFn: async () => {
+      if (!selectedEvent) return 0;
+      const { data, error } = await supabase
+        .from('sms_logs')
+        .select('sms_count')
+        .eq('event_id', selectedEvent)
+        .eq('status', 'sent');
+      if (error) throw error;
+      return (data || []).reduce((sum: number, l: any) => sum + (l.sms_count || 1), 0);
+    },
+    enabled: !!selectedEvent,
+  });
+
+  const selectedEventData = events.find((e: any) => e.id === selectedEvent);
+  const eventAllocation = selectedEventData?.sms_allocation || 0;
+  const eventSmsRemaining = Math.max(eventAllocation - eventSmsUsed, 0);
 
   const { data: guests = [] } = useQuery({
     queryKey: ['sms-guests', selectedEvent],
@@ -109,6 +129,15 @@ const SmsCompose = () => {
       return;
     }
 
+    // Check SMS allocation for the selected event
+    if (selectedEvent && eventAllocation > 0) {
+      const smsNeeded = totalRecipients * smsCount;
+      if (smsNeeded > eventSmsRemaining) {
+        toast.error(`SMS hazitoshi! Unahitaji ${smsNeeded} lakini zimebaki ${eventSmsRemaining} tu kwa tukio hili.`);
+        return;
+      }
+    }
+
     setSending(true);
     try {
       const guestRecipients = guests
@@ -159,6 +188,8 @@ const SmsCompose = () => {
 
       queryClient.invalidateQueries({ queryKey: ['sms-logs'] });
       queryClient.invalidateQueries({ queryKey: ['beem-balance'] });
+      queryClient.invalidateQueries({ queryKey: ['event-sms-used'] });
+      queryClient.invalidateQueries({ queryKey: ['events-sms-allocation'] });
 
       setSent(true);
       setTimeout(() => {
@@ -187,9 +218,19 @@ const SmsCompose = () => {
           <Select value={selectedEvent} onValueChange={(v) => { setSelectedEvent(v); setSelectedGuests([]); }}>
             <SelectTrigger><SelectValue placeholder="Chagua tukio" /></SelectTrigger>
             <SelectContent>
-              {events.map((e: any) => <SelectItem key={e.id} value={e.id}>{e.title}</SelectItem>)}
+              {events.map((e: any) => (
+                <SelectItem key={e.id} value={e.id}>
+                  {e.title} {e.sms_allocation > 0 ? `(SMS: ${e.sms_allocation})` : ''}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
+          {selectedEvent && eventAllocation > 0 && (
+            <div className={`mt-1.5 flex items-center gap-2 text-xs ${eventSmsRemaining < eventAllocation * 0.2 ? 'text-destructive' : 'text-muted-foreground'}`}>
+              <MessageSquare className="w-3 h-3" />
+              <span>SMS zimebaki: <strong>{eventSmsRemaining.toLocaleString()}</strong> / {eventAllocation.toLocaleString()}</span>
+            </div>
+          )}
         </div>
 
         <div>
