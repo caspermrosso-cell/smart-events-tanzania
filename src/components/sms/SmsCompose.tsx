@@ -45,11 +45,31 @@ const SmsCompose = () => {
   const { data: events = [] } = useQuery({
     queryKey: ['events'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('events').select('id, title, event_date').order('event_date', { ascending: false });
+      const { data, error } = await supabase.from('events').select('id, title, event_date, sms_allocation').order('event_date', { ascending: false });
       if (error) throw error;
       return data;
     },
   });
+
+  // Get SMS used count for selected event
+  const { data: eventSmsUsed = 0 } = useQuery({
+    queryKey: ['event-sms-used', selectedEvent],
+    queryFn: async () => {
+      if (!selectedEvent) return 0;
+      const { data, error } = await supabase
+        .from('sms_logs')
+        .select('sms_count')
+        .eq('event_id', selectedEvent)
+        .eq('status', 'sent');
+      if (error) throw error;
+      return (data || []).reduce((sum: number, l: any) => sum + (l.sms_count || 1), 0);
+    },
+    enabled: !!selectedEvent,
+  });
+
+  const selectedEventData = events.find((e: any) => e.id === selectedEvent);
+  const eventAllocation = selectedEventData?.sms_allocation || 0;
+  const eventSmsRemaining = Math.max(eventAllocation - eventSmsUsed, 0);
 
   const { data: guests = [] } = useQuery({
     queryKey: ['sms-guests', selectedEvent],
