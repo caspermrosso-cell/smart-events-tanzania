@@ -216,6 +216,20 @@ export const translations = {
     'dashboard.totalGuests': 'Wageni Wote',
     'dashboard.totalPledges': 'Ahadi Zote',
     'dashboard.pendingPayments': 'Malipo Yanayosubiri',
+
+    // Admin Nav
+    'admin.dashboard': 'Dashibodi',
+    'admin.events': 'Matukio',
+    'admin.guests': 'Wageni',
+    'admin.pledges': 'Michango',
+    'admin.sms': 'SMS',
+    'admin.ecards': 'E-Cards',
+    'admin.checkin': 'Ukaguzi',
+    'admin.payments': 'Malipo',
+    'admin.quotations': 'Nyaraka',
+    'admin.packages': 'Vifurushi',
+    'admin.reports': 'Ripoti',
+    'admin.logout': 'Ondoka',
   },
 } as const;
 
