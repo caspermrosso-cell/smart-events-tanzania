@@ -158,18 +158,20 @@ const SmsReports = () => {
       const now = new Date().toLocaleDateString('sw-TZ', { day: '2-digit', month: 'long', year: 'numeric' });
 
       doc.setFontSize(18);
-      doc.text('Smart Events - Ripoti ya SMS', 14, 20);
+      doc.text(`Smart Events - Ripoti ya SMS`, 14, 20);
+      doc.setFontSize(11);
+      doc.text(`Tukio: ${selectedEventTitle}`, 14, 28);
       doc.setFontSize(10);
-      doc.text(`Tarehe ya Ripoti: ${now}`, 14, 28);
-      doc.line(14, 31, 196, 31);
+      doc.text(`Tarehe ya Ripoti: ${now}`, 14, 35);
+      doc.line(14, 38, 196, 38);
 
       doc.setFontSize(12);
-      doc.text('Muhtasari', 14, 40);
+      doc.text('Muhtasari', 14, 47);
       doc.setFontSize(10);
-      doc.text(`SMS Zimetumwa: ${totalSent}`, 14, 48);
-      doc.text(`SMS Zimeshindikana: ${totalFailed}`, 14, 55);
-      doc.text(`SMS Zimepangwa: ${totalScheduled}`, 14, 62);
-      doc.text(`Jumla SMS Units: ${totalSmsUnits}`, 14, 69);
+      doc.text(`SMS Zimetumwa: ${totalSent}`, 14, 55);
+      doc.text(`SMS Zimeshindikana: ${totalFailed}`, 14, 62);
+      doc.text(`SMS Zimepangwa: ${totalScheduled}`, 14, 69);
+      doc.text(`Jumla SMS Units: ${totalSmsUnits}`, 14, 76);
 
       let y = 82;
       if (balance) {
