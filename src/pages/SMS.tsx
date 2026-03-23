@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MessageSquare, Send, Users, CheckCircle } from 'lucide-react';
+import { MessageSquare, Send, Users, CheckCircle, Wallet } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -48,6 +47,19 @@ const SMS = () => {
     enabled: !!selectedEvent,
   });
 
+  // Check Beem balance
+  const { data: balance, refetch: refetchBalance } = useQuery({
+    queryKey: ['beem-balance'],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke('send-sms', {
+        body: { action: 'balance' },
+      });
+      if (error) throw error;
+      return data?.data?.data;
+    },
+    staleTime: 60000,
+  });
+
   const handleTemplateChange = (templateId: string) => {
     setSelectedTemplate(templateId);
     const tpl = SMS_TEMPLATES.find((t) => t.id === templateId);
@@ -84,7 +96,7 @@ const SMS = () => {
 
       const eventData = events.find((e: any) => e.id === selectedEvent);
 
-      const { error } = await supabase.functions.invoke('send-sms', {
+      const { data, error } = await supabase.functions.invoke('send-sms', {
         body: {
           message,
           recipients,
@@ -94,8 +106,16 @@ const SMS = () => {
       });
 
       if (error) throw error;
+
+      const failedCount = (data?.results || []).filter((r: any) => r.status === 'failed').length;
+      if (failedCount > 0) {
+        toast.warning(`SMS ${selectedGuests.length - failedCount} zimetumwa, ${failedCount} zimeshindikana`);
+      } else {
+        toast.success(`SMS ${selectedGuests.length} zimetumwa kupitia Beem Africa!`);
+      }
+
       setSent(true);
-      toast.success(`SMS ${selectedGuests.length} zimetumwa!`);
+      refetchBalance();
       setTimeout(() => {
         setSent(false);
         setSelectedGuests([]);
@@ -107,11 +127,24 @@ const SMS = () => {
     }
   };
 
+  const charCount = message.length;
+  const smsCount = charCount <= 160 ? 1 : Math.ceil(charCount / 153);
+
   return (
     <DashboardLayout>
-      <motion.h2 initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-heading text-2xl font-bold text-foreground mb-6">
-        Tuma SMS
-      </motion.h2>
+      <div className="flex items-center justify-between mb-6">
+        <motion.h2 initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-heading text-2xl font-bold text-foreground">
+          Tuma SMS
+        </motion.h2>
+        {balance && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2 glass-card rounded-lg px-4 py-2">
+            <Wallet className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium text-foreground">
+              Salio: TZS {Number(balance?.credit_balance || 0).toLocaleString()}
+            </span>
+          </motion.div>
+        )}
+      </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Compose */}
@@ -143,16 +176,19 @@ const SMS = () => {
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Andika ujumbe hapa..."
+              placeholder="Andika ujumbe hapa... Tumia {name}, {event}, {date} kwa personalization"
               rows={4}
               className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
-            <p className="text-xs text-muted-foreground mt-1">{message.length}/160 herufi</p>
+            <div className="flex justify-between text-xs text-muted-foreground mt-1">
+              <span>{charCount} herufi • SMS {smsCount}</span>
+              <span>Gharama: ~{selectedGuests.length * smsCount} SMS</span>
+            </div>
           </div>
 
           <Button onClick={handleSend} disabled={sending || sent || !message || selectedGuests.length === 0} className="w-full gap-2">
             {sent ? <><CheckCircle className="w-4 h-4" /> Zimetumwa!</> :
-             sending ? 'Inatuma...' :
+             sending ? 'Inatuma kupitia Beem Africa...' :
              <><Send className="w-4 h-4" /> Tuma kwa Wageni {selectedGuests.length}</>}
           </Button>
         </motion.div>
