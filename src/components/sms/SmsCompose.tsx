@@ -261,7 +261,14 @@ const SmsCompose = () => {
             <Input placeholder="0712345678" value={newPhone} onChange={e => setNewPhone(e.target.value)} className="flex-1" />
             <Button size="icon" variant="outline" onClick={addManualRecipient}><Plus className="w-4 h-4" /></Button>
           </div>
-          <ContactPicker onContactsSelected={handleContactImport} />
+          <ContactPicker
+            onPick={(c) => handleContactImport([{ name: c.name || 'Mgeni', phone: c.phone || '' }])}
+            onPickMultiple={(contacts) => handleContactImport(contacts.map(c => ({ name: c.name || 'Mgeni', phone: c.phone || '' })))}
+            multiple
+            label="Import Contacts"
+            variant="outline"
+            size="sm"
+          />
         </div>
 
         {/* Manual recipients list */}
