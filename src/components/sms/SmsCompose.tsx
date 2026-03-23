@@ -129,6 +129,15 @@ const SmsCompose = () => {
       return;
     }
 
+    // Check SMS allocation for the selected event
+    if (selectedEvent && eventAllocation > 0) {
+      const smsNeeded = totalRecipients * smsCount;
+      if (smsNeeded > eventSmsRemaining) {
+        toast.error(`SMS hazitoshi! Unahitaji ${smsNeeded} lakini zimebaki ${eventSmsRemaining} tu kwa tukio hili.`);
+        return;
+      }
+    }
+
     setSending(true);
     try {
       const guestRecipients = guests
