@@ -22,9 +22,10 @@ const PACKAGE_LABELS: Record<string, string> = {
 };
 
 const METHOD_LABELS: Record<string, string> = {
-  mpesa: 'M-Pesa',
+  selcom: 'Selcom Pesa',
   bank: 'Bank Transfer',
   cash: 'Cash',
+  mpesa: 'M-Pesa', // legacy
 };
 
 const RSVP_LABELS: Record<string, string> = {
