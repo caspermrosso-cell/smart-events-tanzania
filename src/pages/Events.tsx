@@ -144,7 +144,7 @@ const Events = () => {
               <div className="space-y-1.5 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <Calendar className="w-3.5 h-3.5" />
-                  <span>{format(new Date(event.event_date), 'dd MMM yyyy, HH:mm')}</span>
+                  <span>{event.event_date && !isNaN(new Date(event.event_date).getTime()) ? format(new Date(event.event_date), 'dd MMM yyyy, HH:mm') : 'Tarehe haijulikani'}</span>
                 </div>
                 {event.venue && (
                   <div className="flex items-center gap-2">
