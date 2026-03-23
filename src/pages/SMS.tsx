@@ -7,6 +7,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import SmsCompose from '@/components/sms/SmsCompose';
 import SmsDeliveryLogs from '@/components/sms/SmsDeliveryLogs';
 import SmsReports from '@/components/sms/SmsReports';
+import SmsErrorLogs from '@/components/sms/SmsErrorLogs';
 
 const SMS = () => {
   const queryClient = useQueryClient();
