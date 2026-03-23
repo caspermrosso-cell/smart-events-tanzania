@@ -333,7 +333,7 @@ const Reports = () => {
                   <YAxis tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
                   <Tooltip formatter={(v: number) => `TZS ${v.toLocaleString()}`} contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8 }} />
                   <Legend />
-                  <Bar dataKey="M-Pesa" stackId="a" fill="#22c55e" radius={[0, 0, 0, 0]} />
+                  <Bar dataKey="Selcom" stackId="a" fill="#22c55e" radius={[0, 0, 0, 0]} />
                   <Bar dataKey="Bank" stackId="a" fill="#3b82f6" />
                   <Bar dataKey="Cash" stackId="a" fill="#f59e0b" radius={[4, 4, 0, 0]} />
                 </BarChart>
