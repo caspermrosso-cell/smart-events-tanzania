@@ -400,7 +400,7 @@ const Reports = () => {
                       <TableCell>{p.events?.title || '-'}</TableCell>
                       <TableCell>
                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                          p.payment_method === 'mpesa' ? 'bg-green-100 text-green-700' :
+                          p.payment_method === 'selcom' || p.payment_method === 'mpesa' ? 'bg-green-100 text-green-700' :
                           p.payment_method === 'bank' ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700'
                         }`}>{METHOD_LABELS[p.payment_method] || p.payment_method}</span>
                       </TableCell>

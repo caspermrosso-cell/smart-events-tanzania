@@ -8,14 +8,12 @@ import { supabase } from '@/integrations/supabase/client';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { QRCodeSVG } from 'qrcode.react';
 import selcomQr from '@/assets/selcom-qr.png';
 
-const MPESA_MERCHANT_ID = '5537073';
 const SELCOM_ACCOUNT = '5525100337337';
 
 const paymentMethods = [
-  { value: 'mpesa', label: 'M-Pesa', icon: Smartphone, desc: `Merchant ID: ${MPESA_MERCHANT_ID}` },
+  { value: 'selcom', label: 'Selcom Pesa', icon: Smartphone, desc: `Account: ${SELCOM_ACCOUNT}` },
   { value: 'bank', label: 'Bank Transfer', icon: Banknote, desc: 'Lipa kupitia benki' },
   { value: 'cash', label: 'Cash', icon: CreditCard, desc: 'Malipo ya taslimu' },
 ];
@@ -99,6 +97,19 @@ const Payments = () => {
 
   const totalReceived = (payments || []).reduce((s, p) => s + Number(p.amount), 0);
 
+  const getMethodLabel = (method: string) => {
+    if (method === 'selcom') return 'Selcom';
+    if (method === 'bank') return 'Bank';
+    if (method === 'mpesa') return 'M-Pesa'; // legacy support
+    return method === 'cash' ? 'Cash' : method;
+  };
+
+  const getMethodColor = (method: string) => {
+    if (method === 'selcom') return 'bg-green-100 text-green-700';
+    if (method === 'bank') return 'bg-blue-100 text-blue-700';
+    return 'bg-yellow-100 text-yellow-700';
+  };
+
   return (
     <DashboardLayout>
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
@@ -135,21 +146,11 @@ const Payments = () => {
         })}
       </div>
 
-      {/* M-Pesa QR Code + Total */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+      {/* Selcom QR Code + Total */}
+      <div className="grid sm:grid-cols-2 gap-4 mb-6">
         <div className="glass-card rounded-xl p-4">
           <p className="text-sm text-muted-foreground">Jumla ya Malipo Yaliyopokelewa</p>
           <p className="text-3xl font-bold text-foreground">TZS {totalReceived.toLocaleString()}</p>
-        </div>
-        <div className="glass-card rounded-xl p-4 flex items-center gap-4">
-          <div className="bg-white rounded-lg p-2.5 shrink-0">
-            <QRCodeSVG value={MPESA_MERCHANT_ID} size={70} />
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-foreground">M-Pesa Lipa Namba</p>
-            <p className="text-2xl font-bold text-foreground">{MPESA_MERCHANT_ID}</p>
-            <p className="text-xs text-muted-foreground">Scan QR code kulipa kupitia M-Pesa</p>
-          </div>
         </div>
         <div className="glass-card rounded-xl p-4 flex items-center gap-4">
           <div className="bg-white rounded-lg p-1.5 shrink-0">
@@ -194,7 +195,7 @@ const Payments = () => {
                 <SelectContent>
                   {paymentMethods.map(pm => (
                     <SelectItem key={pm.value} value={pm.value}>
-                      {pm.label} {pm.value === 'mpesa' ? `(${MPESA_MERCHANT_ID})` : ''}
+                      {pm.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -251,12 +252,8 @@ const Payments = () => {
                     <td className="p-3 text-foreground font-medium">{p.payer_name}</td>
                     <td className="p-3 text-foreground">{p.events?.title || '-'}</td>
                     <td className="p-3">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                        p.payment_method === 'mpesa' ? 'bg-green-100 text-green-700' :
-                        p.payment_method === 'bank' ? 'bg-blue-100 text-blue-700' :
-                        'bg-yellow-100 text-yellow-700'
-                      }`}>
-                        {p.payment_method === 'mpesa' ? 'M-Pesa' : p.payment_method === 'bank' ? 'Bank' : 'Cash'}
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getMethodColor(p.payment_method)}`}>
+                        {getMethodLabel(p.payment_method)}
                       </span>
                     </td>
                     <td className="p-3 text-muted-foreground">{p.reference || '-'}</td>

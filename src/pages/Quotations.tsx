@@ -602,9 +602,8 @@ const Quotations = () => {
               <Select value={receiptPaymentMethod} onValueChange={setReceiptPaymentMethod}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="mpesa">M-Pesa</SelectItem>
-                  <SelectItem value="bank">Bank Transfer</SelectItem>
                   <SelectItem value="selcom">Selcom Pesa</SelectItem>
+                  <SelectItem value="bank">Bank Transfer</SelectItem>
                   <SelectItem value="cash">Cash</SelectItem>
                 </SelectContent>
               </Select>

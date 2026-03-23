@@ -3,7 +3,6 @@ import smartEventsLogo from '@/assets/smart-events-logo.png';
 
 import { QRCodeSVG } from 'qrcode.react';
 
-const MPESA_MERCHANT_ID = '5537073';
 const SELCOM_ACCOUNT = '5525100337337';
 
 const COMPANY = {
