@@ -218,9 +218,19 @@ const SmsCompose = () => {
           <Select value={selectedEvent} onValueChange={(v) => { setSelectedEvent(v); setSelectedGuests([]); }}>
             <SelectTrigger><SelectValue placeholder="Chagua tukio" /></SelectTrigger>
             <SelectContent>
-              {events.map((e: any) => <SelectItem key={e.id} value={e.id}>{e.title}</SelectItem>)}
+              {events.map((e: any) => (
+                <SelectItem key={e.id} value={e.id}>
+                  {e.title} {e.sms_allocation > 0 ? `(SMS: ${e.sms_allocation})` : ''}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
+          {selectedEvent && eventAllocation > 0 && (
+            <div className={`mt-1.5 flex items-center gap-2 text-xs ${eventSmsRemaining < eventAllocation * 0.2 ? 'text-destructive' : 'text-muted-foreground'}`}>
+              <MessageSquare className="w-3 h-3" />
+              <span>SMS zimebaki: <strong>{eventSmsRemaining.toLocaleString()}</strong> / {eventAllocation.toLocaleString()}</span>
+            </div>
+          )}
         </div>
 
         <div>
