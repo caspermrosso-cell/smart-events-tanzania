@@ -284,16 +284,35 @@ const SmsReports = () => {
 
   return (
     <div className="space-y-6">
-      {/* Export Buttons */}
-      <div className="flex items-center justify-end gap-2">
-        <Button variant="outline" size="sm" onClick={exportPDF} disabled={exporting !== null || logs.length === 0} className="gap-1.5">
-          <FileText className="w-4 h-4" />
-          {exporting === 'pdf' ? 'Inapakua...' : 'PDF'}
-        </Button>
-        <Button variant="outline" size="sm" onClick={exportExcel} disabled={exporting !== null || logs.length === 0} className="gap-1.5">
-          <FileSpreadsheet className="w-4 h-4" />
-          {exporting === 'excel' ? 'Inapakua...' : 'Excel'}
-        </Button>
+      {/* Event Filter + Export Buttons */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <CalendarDays className="w-4 h-4 text-primary shrink-0" />
+          <Select value={selectedEventId} onValueChange={setSelectedEventId}>
+            <SelectTrigger className="w-full sm:w-[260px]">
+              <SelectValue placeholder="Chagua Tukio" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">📊 Matukio Yote</SelectItem>
+              <SelectItem value="no-event">📝 Bila Tukio</SelectItem>
+              {events.map((event: any) => (
+                <SelectItem key={event.id} value={event.id}>
+                  🎉 {event.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={exportPDF} disabled={exporting !== null || logs.length === 0} className="gap-1.5">
+            <FileText className="w-4 h-4" />
+            {exporting === 'pdf' ? 'Inapakua...' : 'PDF'}
+          </Button>
+          <Button variant="outline" size="sm" onClick={exportExcel} disabled={exporting !== null || logs.length === 0} className="gap-1.5">
+            <FileSpreadsheet className="w-4 h-4" />
+            {exporting === 'excel' ? 'Inapakua...' : 'Excel'}
+          </Button>
+        </div>
       </div>
 
       {/* Stats Grid */}
