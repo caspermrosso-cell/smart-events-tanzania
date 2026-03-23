@@ -45,6 +45,7 @@ const EventForm = ({ event, onSuccess }: EventFormProps) => {
       status: form.status,
       max_guests: form.max_guests ? parseInt(form.max_guests) : null,
       budget: form.budget ? parseFloat(form.budget) : 0,
+      sms_allocation: form.sms_allocation ? parseInt(form.sms_allocation) : 0,
       user_id: user.id,
     };
 
