@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Wallet } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DashboardLayout from '@/components/DashboardLayout';
 import SmsCompose from '@/components/sms/SmsCompose';
@@ -9,6 +9,8 @@ import SmsDeliveryLogs from '@/components/sms/SmsDeliveryLogs';
 import SmsReports from '@/components/sms/SmsReports';
 
 const SMS = () => {
+  const queryClient = useQueryClient();
+
   const { data: balance } = useQuery({
     queryKey: ['beem-balance'],
     queryFn: async () => {
@@ -18,8 +20,10 @@ const SMS = () => {
       if (error) throw error;
       return data?.data?.data;
     },
-    staleTime: 60000,
+    staleTime: 30000,
   });
+
+  const creditBalance = Number(balance?.credit_balance || 0);
 
   return (
     <DashboardLayout>
@@ -31,7 +35,7 @@ const SMS = () => {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2 glass-card rounded-lg px-4 py-2">
             <Wallet className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium text-foreground">
-              Salio: SMS ~{Math.floor(Number(balance?.credit_balance || 0) / 25).toLocaleString()}
+              Salio: TZS {creditBalance.toLocaleString()}
             </span>
           </motion.div>
         )}
