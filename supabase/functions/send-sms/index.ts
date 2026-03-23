@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -50,7 +51,7 @@ serve(async (req) => {
     }
 
     // Send SMS
-    const { message, recipients, eventTitle, eventDate, senderID } = body;
+    const { message, recipients, eventTitle, eventDate, senderID, scheduleTime, logSms, userId, eventId } = body;
 
     if (!message || !recipients || recipients.length === 0) {
       return new Response(JSON.stringify({ 
@@ -75,12 +76,21 @@ serve(async (req) => {
       };
     });
 
-    // Personalize message for each recipient if needed
-    // Beem sends same message to all recipients in one call
-    // For personalized messages, we need separate calls
     const hasPlaceholders = message.includes('{name}') || message.includes('{event}') || message.includes('{date}');
+    const charCount = message.length;
+    const smsCount = charCount <= 160 ? 1 : Math.ceil(charCount / 153);
 
-    const results = [];
+    const results: any[] = [];
+
+    // Initialize Supabase client for logging
+    let supabaseClient: any = null;
+    if (logSms && userId) {
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+      const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      supabaseClient = createClient(supabaseUrl, supabaseServiceKey);
+    }
+
+    const isScheduled = !!scheduleTime;
 
     if (hasPlaceholders) {
       // Send individually for personalized messages
@@ -100,7 +110,7 @@ serve(async (req) => {
             },
             body: JSON.stringify({
               source_addr: sourceAddr,
-              schedule_time: '',
+              schedule_time: scheduleTime || '',
               encoding: 0,
               message: personalizedMsg,
               recipients: [beemRecipients[i]],
@@ -108,17 +118,46 @@ serve(async (req) => {
           });
 
           const data = await response.json();
+          const status = response.ok ? (isScheduled ? 'scheduled' : 'sent') : 'failed';
           results.push({ 
             phone: beemRecipients[i].dest_addr, 
-            status: response.ok ? 'sent' : 'failed', 
+            name: r.name,
+            status, 
             response: data 
           });
+
+          // Log to database
+          if (supabaseClient) {
+            await supabaseClient.from('sms_logs').insert({
+              user_id: userId,
+              event_id: eventId || null,
+              recipient_name: r.name || null,
+              recipient_phone: beemRecipients[i].dest_addr,
+              message: personalizedMsg,
+              status,
+              scheduled_at: isScheduled ? new Date(scheduleTime.replace(' ', 'T')).toISOString() : null,
+              beem_response: data,
+              sms_count: smsCount,
+            });
+          }
         } catch (err) {
           results.push({ 
             phone: beemRecipients[i].dest_addr, 
             status: 'failed', 
             error: err.message 
           });
+          if (supabaseClient) {
+            await supabaseClient.from('sms_logs').insert({
+              user_id: userId,
+              event_id: eventId || null,
+              recipient_name: r.name || null,
+              recipient_phone: beemRecipients[i].dest_addr,
+              message: personalizedMsg,
+              status: 'failed',
+              beem_response: { error: err.message },
+              sms_count: smsCount,
+            });
+          }
         }
       }
     } else {
@@ -132,7 +171,7 @@ serve(async (req) => {
           },
           body: JSON.stringify({
             source_addr: sourceAddr,
-            schedule_time: '',
+            schedule_time: scheduleTime || '',
             encoding: 0,
             message,
             recipients: beemRecipients,
@@ -140,16 +179,43 @@ serve(async (req) => {
         });
 
         const data = await response.json();
+        const status = response.ok ? (isScheduled ? 'scheduled' : 'sent') : 'failed';
         results.push({ 
-          status: response.ok ? 'sent' : 'failed', 
+          status, 
           count: beemRecipients.length, 
           response: data 
         });
+
+        // Log each recipient
+        if (supabaseClient) {
+          const logEntries = recipients.map((r: any, i: number) => ({
+            user_id: userId,
+            event_id: eventId || null,
+            recipient_name: r.name || null,
+            recipient_phone: beemRecipients[i].dest_addr,
+            message,
+            status,
+            scheduled_at: isScheduled ? new Date(scheduleTime.replace(' ', 'T')).toISOString() : null,
+            beem_response: data,
+            sms_count: smsCount,
+          }));
+          await supabaseClient.from('sms_logs').insert(logEntries);
+        }
       } catch (err) {
-        results.push({ 
-          status: 'failed', 
-          error: err.message 
-        });
+        results.push({ status: 'failed', error: err.message });
+        if (supabaseClient) {
+          const logEntries = recipients.map((r: any, i: number) => ({
+            user_id: userId,
+            event_id: eventId || null,
+            recipient_name: r.name || null,
+            recipient_phone: beemRecipients[i].dest_addr,
+            message,
+            status: 'failed',
+            beem_response: { error: err.message },
+            sms_count: smsCount,
+          }));
+          await supabaseClient.from('sms_logs').insert(logEntries);
+        }
       }
     }
 
