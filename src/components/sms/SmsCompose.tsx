@@ -11,7 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
-import { ContactPicker } from '@/components/ContactPicker';
+import ContactPicker from '@/components/ContactPicker';
 
 const SMS_TEMPLATES = [
   { id: 'invite', label: 'Mwaliko', template: 'Habari {name}, unaalikwa kwenye {event} tarehe {date}. Karibu sana!' },
