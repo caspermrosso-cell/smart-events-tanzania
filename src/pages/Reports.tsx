@@ -136,10 +136,10 @@ const Reports = () => {
       const monthStr = format(month, 'yyyy-MM');
       const label = format(month, 'MMM yyyy');
       const monthPayments = payments.filter((p: any) => format(new Date(p.created_at), 'yyyy-MM') === monthStr);
-      const mpesa = monthPayments.filter((p: any) => p.payment_method === 'mpesa').reduce((s: number, p: any) => s + Number(p.amount), 0);
+      const selcom = monthPayments.filter((p: any) => p.payment_method === 'selcom' || p.payment_method === 'mpesa').reduce((s: number, p: any) => s + Number(p.amount), 0);
       const bank = monthPayments.filter((p: any) => p.payment_method === 'bank').reduce((s: number, p: any) => s + Number(p.amount), 0);
       const cash = monthPayments.filter((p: any) => p.payment_method === 'cash').reduce((s: number, p: any) => s + Number(p.amount), 0);
-      return { name: label, 'M-Pesa': mpesa, Bank: bank, Cash: cash, total: mpesa + bank + cash };
+      return { name: label, 'Selcom': selcom, Bank: bank, Cash: cash, total: selcom + bank + cash };
     });
   }, [payments]);
 
