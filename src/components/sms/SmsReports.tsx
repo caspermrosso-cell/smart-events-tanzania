@@ -79,15 +79,15 @@ const SmsReports = () => {
       {/* Balance Card */}
       {balance && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card rounded-xl p-4">
-          <h4 className="font-heading font-semibold text-foreground mb-2">Salio la Beem Africa</h4>
+          <h4 className="font-heading font-semibold text-foreground mb-2">Salio la SMS</h4>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-xs text-muted-foreground">Salio (TZS)</p>
-              <p className="text-xl font-bold text-primary">{Number(balance?.credit_balance || 0).toLocaleString()}</p>
+              <p className="text-xs text-muted-foreground">Salio (SMS)</p>
+              <p className="text-xl font-bold text-primary">~{Math.floor(Number(balance?.credit_balance || 0) / 25).toLocaleString()}</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">SMS Zinazokadiriwa</p>
-              <p className="text-xl font-bold text-foreground">~{Math.floor(Number(balance?.credit_balance || 0) / 25)}</p>
+              <p className="text-xs text-muted-foreground">Salio (TZS)</p>
+              <p className="text-xl font-bold text-foreground">{Number(balance?.credit_balance || 0).toLocaleString()}</p>
             </div>
           </div>
         </motion.div>
