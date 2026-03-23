@@ -101,6 +101,20 @@ export const translations = {
     'dashboard.totalGuests': 'Total Guests',
     'dashboard.totalPledges': 'Total Pledges',
     'dashboard.pendingPayments': 'Pending Payments',
+
+    // Admin Nav
+    'admin.dashboard': 'Dashboard',
+    'admin.events': 'Events',
+    'admin.guests': 'Guests',
+    'admin.pledges': 'Contributions',
+    'admin.sms': 'SMS',
+    'admin.ecards': 'E-Cards',
+    'admin.checkin': 'Check-In',
+    'admin.payments': 'Payments',
+    'admin.quotations': 'Documents',
+    'admin.packages': 'Packages',
+    'admin.reports': 'Reports',
+    'admin.logout': 'Logout',
   },
   sw: {
     // Navbar
@@ -202,6 +216,20 @@ export const translations = {
     'dashboard.totalGuests': 'Wageni Wote',
     'dashboard.totalPledges': 'Ahadi Zote',
     'dashboard.pendingPayments': 'Malipo Yanayosubiri',
+
+    // Admin Nav
+    'admin.dashboard': 'Dashibodi',
+    'admin.events': 'Matukio',
+    'admin.guests': 'Wageni',
+    'admin.pledges': 'Michango',
+    'admin.sms': 'SMS',
+    'admin.ecards': 'E-Cards',
+    'admin.checkin': 'Ukaguzi',
+    'admin.payments': 'Malipo',
+    'admin.quotations': 'Nyaraka',
+    'admin.packages': 'Vifurushi',
+    'admin.reports': 'Ripoti',
+    'admin.logout': 'Ondoka',
   },
 } as const;
 

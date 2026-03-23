@@ -1,33 +1,40 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Calendar, Users, CreditCard, MessageSquare, Mail, QrCode, LogOut, LayoutDashboard, BarChart3, Wallet, FileText, Package } from 'lucide-react';
+import { Calendar, Users, CreditCard, MessageSquare, Mail, QrCode, LogOut, LayoutDashboard, BarChart3, Wallet, FileText, Package, Globe } from 'lucide-react';
 import smartEventsLogo from '@/assets/smart-events-logo.png';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import ThemeToggle from '@/components/ThemeToggle';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { TranslationKey } from '@/data/translations';
 
-const navItems = [
-  { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
-  { label: 'Matukio', icon: Calendar, href: '/events' },
-  { label: 'Wageni', icon: Users, href: '/guests' },
-  { label: 'Michango', icon: CreditCard, href: '/pledges' },
-  { label: 'SMS', icon: MessageSquare, href: '/sms' },
-  { label: 'E-Cards', icon: Mail, href: '/ecards' },
-  { label: 'Check-In', icon: QrCode, href: '/checkin' },
-  { label: 'Malipo', icon: Wallet, href: '/payments' },
-  { label: 'Nyaraka', icon: FileText, href: '/quotations' },
-  { label: 'Vifurushi', icon: Package, href: '/packages' },
-  { label: 'Ripoti', icon: BarChart3, href: '/reports' },
+const navItems: { labelKey: TranslationKey; icon: any; href: string }[] = [
+  { labelKey: 'admin.dashboard', icon: LayoutDashboard, href: '/dashboard' },
+  { labelKey: 'admin.events', icon: Calendar, href: '/events' },
+  { labelKey: 'admin.guests', icon: Users, href: '/guests' },
+  { labelKey: 'admin.pledges', icon: CreditCard, href: '/pledges' },
+  { labelKey: 'admin.sms', icon: MessageSquare, href: '/sms' },
+  { labelKey: 'admin.ecards', icon: Mail, href: '/ecards' },
+  { labelKey: 'admin.checkin', icon: QrCode, href: '/checkin' },
+  { labelKey: 'admin.payments', icon: Wallet, href: '/payments' },
+  { labelKey: 'admin.quotations', icon: FileText, href: '/quotations' },
+  { labelKey: 'admin.packages', icon: Package, href: '/packages' },
+  { labelKey: 'admin.reports', icon: BarChart3, href: '/reports' },
 ];
 
 const DashboardLayout = ({ children }: { children: ReactNode }) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { language, setLanguage, t } = useLanguage();
 
   const handleLogout = async () => {
     await signOut();
     navigate('/');
+  };
+
+  const toggleLanguage = () => {
+    setLanguage(language === 'sw' ? 'en' : 'sw');
   };
 
   return (
@@ -54,7 +61,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                 }`}
               >
                 <item.icon className="w-4 h-4" />
-                {item.label}
+                {t(item.labelKey)}
               </Link>
             );
           })}
@@ -62,13 +69,22 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
         <div className="p-3 border-t border-border">
           <div className="flex items-center justify-between px-3 mb-2">
             <span className="text-xs text-muted-foreground truncate">{user?.email}</span>
-            <ThemeToggle />
+            <div className="flex items-center gap-1">
+              <button
+                onClick={toggleLanguage}
+                className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                title={language === 'sw' ? 'Switch to English' : 'Badili kuwa Kiswahili'}
+              >
+                <Globe className="w-4 h-4" />
+              </button>
+              <ThemeToggle />
+            </div>
           </div>
           <button
             onClick={handleLogout}
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-destructive hover:bg-muted transition-colors w-full"
           >
-            <LogOut className="w-4 h-4" /> Ondoka
+            <LogOut className="w-4 h-4" /> {t('admin.logout')}
           </button>
         </div>
       </aside>
@@ -82,6 +98,13 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
               <span className="font-heading text-base font-bold text-gradient-gold">Smart Events</span>
             </Link>
             <div className="flex items-center gap-1">
+              <button
+                onClick={toggleLanguage}
+                className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground text-xs font-bold"
+                title={language === 'sw' ? 'Switch to English' : 'Badili kuwa Kiswahili'}
+              >
+                {language === 'sw' ? 'EN' : 'SW'}
+              </button>
               <ThemeToggle />
               <button onClick={handleLogout} className="p-2 text-muted-foreground hover:text-destructive">
                 <LogOut className="w-4 h-4" />
@@ -94,7 +117,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
               return (
                 <Link key={item.href} to={item.href} className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs whitespace-nowrap ${isActive ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground'}`}>
                   <item.icon className="w-3.5 h-3.5" />
-                  <span className="hidden xs:inline">{item.label}</span>
+                  <span className="hidden xs:inline">{t(item.labelKey)}</span>
                 </Link>
               );
             })}
