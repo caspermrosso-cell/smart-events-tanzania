@@ -56,8 +56,21 @@ const NETWORK_COLORS: Record<string, { color: string; bg: string }> = {
 const SmsReports = () => {
   const { user } = useAuth();
   const [exporting, setExporting] = useState<'pdf' | 'excel' | null>(null);
+  const [selectedEventId, setSelectedEventId] = useState<string>('all');
 
-  const { data: logs = [] } = useQuery({
+  const { data: events = [] } = useQuery({
+    queryKey: ['events-for-sms-report'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('events')
+        .select('id, title')
+        .order('event_date', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: allLogs = [] } = useQuery({
     queryKey: ['sms-logs'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -80,6 +93,19 @@ const SmsReports = () => {
     },
     staleTime: 60000,
   });
+
+  // Filter logs by selected event
+  const logs = useMemo(() => {
+    if (selectedEventId === 'all') return allLogs;
+    if (selectedEventId === 'no-event') return allLogs.filter((l: any) => !l.event_id);
+    return allLogs.filter((l: any) => l.event_id === selectedEventId);
+  }, [allLogs, selectedEventId]);
+
+  const selectedEventTitle = selectedEventId === 'all'
+    ? 'Matukio Yote'
+    : selectedEventId === 'no-event'
+      ? 'Bila Tukio'
+      : events.find((e: any) => e.id === selectedEventId)?.title || '';
 
   const totalSent = logs.filter((l: any) => l.status === 'sent').length;
   const totalFailed = logs.filter((l: any) => l.status === 'failed').length;
