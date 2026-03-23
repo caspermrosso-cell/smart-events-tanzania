@@ -3,7 +3,6 @@ import smartEventsLogo from '@/assets/smart-events-logo.png';
 
 import { QRCodeSVG } from 'qrcode.react';
 
-const MPESA_MERCHANT_ID = '5537073';
 const SELCOM_ACCOUNT = '5525100337337';
 
 const COMPANY = {
@@ -154,12 +153,6 @@ const DocumentPreview = forwardRef<HTMLDivElement, { data: DocumentData }>(({ da
             <p>• Payment Due: Ndani ya siku {data.paymentDueDays || 7}</p>
           </div>
           <div className="flex items-center gap-6 mt-3">
-            <div className="text-center">
-              <div className="bg-white border border-gray-200 rounded-lg p-2 inline-block">
-                <QRCodeSVG value={MPESA_MERCHANT_ID} size={70} />
-              </div>
-              <p className="text-[10px] text-gray-500 mt-1">M-Pesa: {MPESA_MERCHANT_ID}</p>
-            </div>
             <div className="text-center">
               <div className="bg-white border border-gray-200 rounded-lg p-2 inline-block">
                 <QRCodeSVG value={SELCOM_ACCOUNT} size={70} />
