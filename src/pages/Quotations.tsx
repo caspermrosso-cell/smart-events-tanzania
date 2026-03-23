@@ -234,7 +234,7 @@ const Quotations = () => {
         subtotal: doc.amount_paid, vatEnabled: false, vatAmount: 0,
         discountType: 'fixed', discountValue: 0, discountAmount: 0,
         grandTotal: doc.amount_paid, amountInWords: doc.amount_in_words,
-        paymentMethod: doc.payment_method === 'mpesa' ? 'M-Pesa' : doc.payment_method === 'bank' ? 'Bank Transfer' : 'Cash',
+        paymentMethod: doc.payment_method === 'selcom' ? 'Selcom Pesa' : doc.payment_method === 'bank' ? 'Bank Transfer' : doc.payment_method === 'mpesa' ? 'M-Pesa' : 'Cash',
         remarks: doc.remarks, invoiceRef: inv.invoice_number,
       };
     }
