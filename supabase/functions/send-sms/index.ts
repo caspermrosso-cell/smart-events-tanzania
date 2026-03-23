@@ -63,7 +63,7 @@ serve(async (req) => {
       });
     }
 
-    const sourceAddr = senderID || 'SmartEvent';
+    const sourceAddr = senderID || 'SmartEvents';
 
     // Build Beem recipients array
     const beemRecipients = recipients.map((r: any, index: number) => {
