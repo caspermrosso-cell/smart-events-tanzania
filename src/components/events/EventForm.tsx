@@ -118,10 +118,14 @@ const EventForm = ({ event, onSuccess }: EventFormProps) => {
         <Textarea id="description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Maelezo ya tukio..." rows={3} />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         <div>
           <Label htmlFor="max_guests">Wageni (Max)</Label>
           <Input id="max_guests" type="number" value={form.max_guests} onChange={(e) => setForm({ ...form, max_guests: e.target.value })} placeholder="500" />
+        </div>
+        <div>
+          <Label htmlFor="sms_allocation">SMS Allocation</Label>
+          <Input id="sms_allocation" type="number" value={form.sms_allocation} onChange={(e) => setForm({ ...form, sms_allocation: e.target.value })} placeholder="1000" />
         </div>
         <div>
           <Label htmlFor="budget">Bajeti (TZS)</Label>
