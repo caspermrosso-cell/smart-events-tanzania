@@ -47,7 +47,7 @@ const Quotations = () => {
   // Receipt form
   const [showReceiptForm, setShowReceiptForm] = useState(false);
   const [receiptInvoiceId, setReceiptInvoiceId] = useState('');
-  const [receiptPaymentMethod, setReceiptPaymentMethod] = useState('mpesa');
+  const [receiptPaymentMethod, setReceiptPaymentMethod] = useState('selcom');
   const [receiptAmountInWords, setReceiptAmountInWords] = useState('');
 
   const { data: events = [] } = useQuery({
