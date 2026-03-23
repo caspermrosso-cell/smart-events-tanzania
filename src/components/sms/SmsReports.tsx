@@ -234,6 +234,7 @@ const SmsReports = () => {
     try {
       const summaryData: any[][] = [
         ['Smart Events - Ripoti ya SMS'],
+        ['Tukio', selectedEventTitle],
         ['Tarehe ya Ripoti', new Date().toLocaleDateString('sw-TZ')],
         [],
         ['Muhtasari'],
