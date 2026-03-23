@@ -553,6 +553,59 @@ export type Database = {
           },
         ]
       }
+      sms_logs: {
+        Row: {
+          beem_response: Json | null
+          created_at: string
+          event_id: string | null
+          id: string
+          message: string
+          recipient_name: string | null
+          recipient_phone: string
+          scheduled_at: string | null
+          sent_at: string | null
+          sms_count: number
+          status: string
+          user_id: string
+        }
+        Insert: {
+          beem_response?: Json | null
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          message: string
+          recipient_name?: string | null
+          recipient_phone: string
+          scheduled_at?: string | null
+          sent_at?: string | null
+          sms_count?: number
+          status?: string
+          user_id: string
+        }
+        Update: {
+          beem_response?: Json | null
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          message?: string
+          recipient_name?: string | null
+          recipient_phone?: string
+          scheduled_at?: string | null
+          sent_at?: string | null
+          sms_count?: number
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sms_logs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
