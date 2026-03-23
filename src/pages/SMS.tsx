@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Wallet } from 'lucide-react';
+import { Wallet, MessageSquare } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -24,7 +24,41 @@ const SMS = () => {
     staleTime: 30000,
   });
 
+  // Fetch events with their SMS allocation and usage
+  const { data: eventsWithSms = [] } = useQuery({
+    queryKey: ['events-sms-allocation'],
+    queryFn: async () => {
+      const { data: events, error: evError } = await supabase
+        .from('events')
+        .select('id, title, sms_allocation')
+        .order('event_date', { ascending: false });
+      if (evError) throw evError;
+
+      // Get SMS usage counts per event
+      const { data: logs, error: logError } = await supabase
+        .from('sms_logs')
+        .select('event_id, sms_count')
+        .eq('status', 'sent');
+      if (logError) throw logError;
+
+      const usageMap: Record<string, number> = {};
+      (logs || []).forEach((log: any) => {
+        if (log.event_id) {
+          usageMap[log.event_id] = (usageMap[log.event_id] || 0) + (log.sms_count || 1);
+        }
+      });
+
+      return (events || []).map((ev: any) => ({
+        ...ev,
+        sms_used: usageMap[ev.id] || 0,
+        sms_remaining: Math.max((ev.sms_allocation || 0) - (usageMap[ev.id] || 0), 0),
+      }));
+    },
+    staleTime: 30000,
+  });
+
   const creditBalance = Number(balance?.credit_balance || 0);
+  const eventsWithAllocation = eventsWithSms.filter((e: any) => e.sms_allocation > 0);
 
   return (
     <DashboardLayout>
@@ -41,6 +75,50 @@ const SMS = () => {
           </motion.div>
         )}
       </div>
+
+      {/* Per-Event SMS Allocation Cards */}
+      {eventsWithAllocation.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+          {eventsWithAllocation.map((ev: any) => {
+            const usedPercent = ev.sms_allocation > 0 ? Math.round((ev.sms_used / ev.sms_allocation) * 100) : 0;
+            const isLow = ev.sms_remaining < ev.sms_allocation * 0.2;
+            return (
+              <motion.div
+                key={ev.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="glass-card rounded-xl p-4"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <MessageSquare className="w-4 h-4 text-primary" />
+                  <h4 className="font-semibold text-foreground text-sm truncate">{ev.title}</h4>
+                </div>
+                <div className="flex items-end justify-between mb-2">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Zimebaki</p>
+                    <p className={`text-xl font-bold ${isLow ? 'text-destructive' : 'text-primary'}`}>
+                      {ev.sms_remaining.toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-muted-foreground">Zimetumika / Zote</p>
+                    <p className="text-sm font-medium text-foreground">
+                      {ev.sms_used.toLocaleString()} / {ev.sms_allocation.toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+                <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${isLow ? 'bg-destructive' : 'bg-primary'}`}
+                    style={{ width: `${Math.min(usedPercent, 100)}%` }}
+                  />
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-1 text-right">{usedPercent}% zimetumika</p>
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
 
       <Tabs defaultValue="compose" className="space-y-4">
         <TabsList className="grid grid-cols-4 w-full max-w-lg">
