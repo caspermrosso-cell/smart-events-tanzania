@@ -31,7 +31,7 @@ const SMS = () => {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2 glass-card rounded-lg px-4 py-2">
             <Wallet className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium text-foreground">
-              Salio: TZS {Number(balance?.credit_balance || 0).toLocaleString()}
+              Salio: SMS ~{Math.floor(Number(balance?.credit_balance || 0) / 25).toLocaleString()}
             </span>
           </motion.div>
         )}

@@ -238,7 +238,7 @@ const SmsCompose = () => {
           </div>
         )}
 
-        <Button onClick={handleSend} disabled={sending || sent || !message || totalRecipients === 0} className="w-full gap-2">
+        <Button type="button" onClick={handleSend} disabled={sending || sent} className="w-full gap-2">
           {sent ? <><CheckCircle className="w-4 h-4" /> Zimetumwa!</> :
            sending ? 'Inatuma kupitia Beem Africa...' :
            scheduleEnabled ? <><Clock className="w-4 h-4" /> Panga SMS {totalRecipients}</> :
