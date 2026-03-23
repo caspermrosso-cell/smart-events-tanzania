@@ -28,6 +28,7 @@ const EventForm = ({ event, onSuccess }: EventFormProps) => {
     status: event?.status || 'draft',
     max_guests: event?.max_guests?.toString() || '',
     budget: event?.budget?.toString() || '',
+    sms_allocation: event?.sms_allocation?.toString() || '0',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
