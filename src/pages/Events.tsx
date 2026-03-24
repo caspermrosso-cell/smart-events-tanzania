@@ -177,6 +177,31 @@ const Events = () => {
                     <span>Max {event.max_guests} wageni</span>
                   </div>
                 )}
+                {event.sms_allocation > 0 && (() => {
+                  const used = smsUsageMap[event.id] || 0;
+                  const remaining = Math.max(event.sms_allocation - used, 0);
+                  const pct = Math.round((used / event.sms_allocation) * 100);
+                  const isLow = remaining < event.sms_allocation * 0.2;
+                  return (
+                    <div className="mt-2 pt-2 border-t border-border">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-1.5">
+                          <MessageSquare className="w-3.5 h-3.5 text-primary" />
+                          <span className="text-xs font-medium text-foreground">SMS</span>
+                        </div>
+                        <span className={`text-xs font-semibold ${isLow ? 'text-destructive' : 'text-primary'}`}>
+                          {remaining}/{event.sms_allocation}
+                        </span>
+                      </div>
+                      <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${isLow ? 'bg-destructive' : 'bg-primary'}`}
+                          style={{ width: `${Math.min(pct, 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             </motion.div>
           ))}
