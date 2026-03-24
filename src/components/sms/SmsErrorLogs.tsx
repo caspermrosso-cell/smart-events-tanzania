@@ -174,12 +174,26 @@ const SmsErrorLogs = () => {
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-heading font-semibold text-foreground text-lg flex items-center gap-2">
             <XCircle className="w-5 h-5 text-destructive" />
-            SMS Zilizoshindikana
+            SMS Zilizoshindikana ({failedLogs.length})
           </h3>
-          <Button variant="ghost" size="sm" onClick={() => refetch()} disabled={isLoading}>
-            <RefreshCw className={`w-4 h-4 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            {selectedIds.size > 0 && (
+              <Button variant="destructive" size="sm" onClick={handleDeleteSelected} disabled={deleteMutation.isPending}>
+                <Trash2 className="w-4 h-4 mr-1" />
+                Futa ({selectedIds.size})
+              </Button>
+            )}
+            {failedLogs.length > 0 && selectedIds.size === 0 && (
+              <Button variant="outline" size="sm" className="text-destructive border-destructive/30 hover:bg-destructive/10" onClick={handleDeleteAll} disabled={deleteMutation.isPending}>
+                <Trash2 className="w-4 h-4 mr-1" />
+                Futa Zote
+              </Button>
+            )}
+            <Button variant="ghost" size="sm" onClick={() => refetch()} disabled={isLoading}>
+              <RefreshCw className={`w-4 h-4 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          </div>
         </div>
 
         {failedLogs.length === 0 ? (
