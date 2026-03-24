@@ -48,6 +48,25 @@ const Events = () => {
     },
   });
 
+  const { data: smsUsageMap = {} } = useQuery({
+    queryKey: ['events-sms-usage'],
+    queryFn: async () => {
+      const { data: logs, error } = await supabase
+        .from('sms_logs')
+        .select('event_id, sms_count')
+        .eq('status', 'sent');
+      if (error) throw error;
+      const map: Record<string, number> = {};
+      (logs || []).forEach((log: any) => {
+        if (log.event_id) {
+          map[log.event_id] = (map[log.event_id] || 0) + (log.sms_count || 1);
+        }
+      });
+      return map;
+    },
+    staleTime: 30000,
+  });
+
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from('events').delete().eq('id', id);
