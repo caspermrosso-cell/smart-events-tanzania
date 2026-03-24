@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Calendar, MapPin, Users, MoreVertical, Pencil, Trash2, Eye } from 'lucide-react';
+import { Plus, Calendar, MapPin, Users, MoreVertical, Pencil, Trash2, Eye, MessageSquare } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
