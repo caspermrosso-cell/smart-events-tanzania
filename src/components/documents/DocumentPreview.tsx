@@ -1,7 +1,7 @@
 import { forwardRef } from 'react';
 import smartEventsLogo from '@/assets/smart-events-logo.png';
 
-import { QRCodeSVG } from 'qrcode.react';
+import { QRCodeCanvas } from 'qrcode.react';
 
 const SELCOM_ACCOUNT = '5525100337337';
 
