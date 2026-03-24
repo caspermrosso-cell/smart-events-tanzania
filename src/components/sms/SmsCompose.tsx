@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Send, CheckCircle, Clock, Plus, X, Phone, MessageSquare } from 'lucide-react';
+import { Send, CheckCircle, Clock, Plus, X, Phone, MessageSquare, Upload, FileSpreadsheet } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -41,6 +42,52 @@ const SmsCompose = () => {
   const [manualRecipients, setManualRecipients] = useState<ManualRecipient[]>([]);
   const [newPhone, setNewPhone] = useState('');
   const [newName, setNewName] = useState('');
+  const bulkFileRef = useRef<HTMLInputElement>(null);
+
+  const handleBulkFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const data = new Uint8Array(evt.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows: any[] = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+        
+        const imported: ManualRecipient[] = [];
+        rows.forEach((row, i) => {
+          const name = String(row['Jina'] || row['Name'] || row['jina'] || row['name'] || '').trim();
+          const phone = String(row['Simu'] || row['Phone'] || row['simu'] || row['phone'] || row['Namba'] || row['namba'] || '').trim();
+          if (phone.length >= 9) {
+            imported.push({ id: `bulk-${Date.now()}-${i}`, name: name || 'Mgeni', phone });
+          }
+        });
+
+        if (imported.length === 0) {
+          toast.error('Hakuna namba sahihi zilizopatikana. Hakikisha safu wima zina "Jina" na "Simu".');
+          return;
+        }
+        setManualRecipients(prev => [...prev, ...imported]);
+        toast.success(`Wapokeaji ${imported.length} wameongezwa kutoka kwenye faili`);
+      } catch {
+        toast.error('Imeshindikana kusoma faili. Jaribu tena.');
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    if (bulkFileRef.current) bulkFileRef.current.value = '';
+  };
+
+  const downloadBulkTemplate = () => {
+    const ws = XLSX.utils.aoa_to_sheet([
+      ['Jina', 'Simu'],
+      ['Ali Mohamed', '0712345678'],
+      ['Fatma Hassan', '0654321098'],
+    ]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Wapokeaji');
+    XLSX.writeFile(wb, 'sms_wapokeaji_template.xlsx');
+  };
 
   const { data: events = [] } = useQuery({
     queryKey: ['events'],
@@ -310,6 +357,45 @@ const SmsCompose = () => {
             variant="outline"
             size="sm"
           />
+        </div>
+
+        {/* Bulk upload from Excel/CSV */}
+        <div className="space-y-2 p-3 rounded-lg border border-dashed border-border">
+          <div className="flex items-center gap-2 mb-1">
+            <FileSpreadsheet className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium text-foreground">Pakia Orodha (Excel/CSV)</span>
+          </div>
+          <p className="text-xs text-muted-foreground mb-2">
+            Faili lazima iwe na safu wima mbili: <strong>Jina</strong> na <strong>Namba ya Simu</strong>
+          </p>
+          <div className="flex gap-2">
+            <input
+              ref={bulkFileRef}
+              type="file"
+              accept=".xlsx,.xls,.csv"
+              onChange={handleBulkFileUpload}
+              className="hidden"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => bulkFileRef.current?.click()}
+            >
+              <Upload className="w-4 h-4" />
+              Pakia Faili
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-xs"
+              onClick={downloadBulkTemplate}
+            >
+              Pakua Template
+            </Button>
+          </div>
         </div>
 
         {/* Manual recipients list */}
