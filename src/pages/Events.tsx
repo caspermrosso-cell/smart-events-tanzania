@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Calendar, MapPin, Users, MoreVertical, Pencil, Trash2, Eye } from 'lucide-react';
+import { Plus, Calendar, MapPin, Users, MoreVertical, Pencil, Trash2, Eye, MessageSquare } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -46,6 +46,25 @@ const Events = () => {
       if (error) throw error;
       return data;
     },
+  });
+
+  const { data: smsUsageMap = {} } = useQuery({
+    queryKey: ['events-sms-usage'],
+    queryFn: async () => {
+      const { data: logs, error } = await supabase
+        .from('sms_logs')
+        .select('event_id, sms_count')
+        .eq('status', 'sent');
+      if (error) throw error;
+      const map: Record<string, number> = {};
+      (logs || []).forEach((log: any) => {
+        if (log.event_id) {
+          map[log.event_id] = (map[log.event_id] || 0) + (log.sms_count || 1);
+        }
+      });
+      return map;
+    },
+    staleTime: 30000,
   });
 
   const deleteMutation = useMutation({
@@ -158,6 +177,31 @@ const Events = () => {
                     <span>Max {event.max_guests} wageni</span>
                   </div>
                 )}
+                {event.sms_allocation > 0 && (() => {
+                  const used = smsUsageMap[event.id] || 0;
+                  const remaining = Math.max(event.sms_allocation - used, 0);
+                  const pct = Math.round((used / event.sms_allocation) * 100);
+                  const isLow = remaining < event.sms_allocation * 0.2;
+                  return (
+                    <div className="mt-2 pt-2 border-t border-border">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-1.5">
+                          <MessageSquare className="w-3.5 h-3.5 text-primary" />
+                          <span className="text-xs font-medium text-foreground">SMS</span>
+                        </div>
+                        <span className={`text-xs font-semibold ${isLow ? 'text-destructive' : 'text-primary'}`}>
+                          {remaining}/{event.sms_allocation}
+                        </span>
+                      </div>
+                      <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${isLow ? 'bg-destructive' : 'bg-primary'}`}
+                          style={{ width: `${Math.min(pct, 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             </motion.div>
           ))}
