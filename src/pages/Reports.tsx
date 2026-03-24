@@ -42,21 +42,47 @@ const exportToExcel = (data: any[], filename: string) => {
   XLSX.writeFile(wb, `${filename}.xlsx`);
 };
 
+import smartEventsLogo from '@/assets/smart-events-logo.png';
+
 const exportToPDF = (title: string, headers: string[], rows: string[][]) => {
   const printWindow = window.open('', '_blank');
   if (!printWindow) return;
   const tableRows = rows.map(r => `<tr>${r.map(c => `<td style="border:1px solid #ddd;padding:8px;font-size:12px">${c}</td>`).join('')}</tr>`).join('');
   printWindow.document.write(`
     <html><head><title>${title}</title><style>
-      body{font-family:Arial,sans-serif;padding:20px}
+      @page { margin: 20mm 15mm 20mm 15mm; }
+      body{font-family:Arial,sans-serif;padding:0;margin:0}
+      .header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #333;padding-bottom:10px;margin-bottom:16px}
+      .header img{height:40px}
+      .header .address{text-align:right;font-size:10px;color:#555;line-height:1.5}
       h1{font-size:18px;margin-bottom:4px}
-      p{color:#666;font-size:12px;margin-bottom:16px}
+      p.date{color:#666;font-size:12px;margin-bottom:16px}
       table{border-collapse:collapse;width:100%}
       th{border:1px solid #333;padding:8px;background:#f5f5f5;font-size:12px;text-align:left}
+      @media print {
+        .footer{position:fixed;bottom:0;left:0;right:0;text-align:center;font-size:10px;color:#888;padding:8px 0;border-top:1px solid #ddd}
+      }
     </style></head><body>
+    <div class="header">
+      <img src="${smartEventsLogo}" alt="Smart Events" />
+      <div class="address">
+        Plot No. 22, Mbezi Beach A, Kinondoni<br/>
+        Dar es Salaam, Tanzania<br/>
+        info@smartevents.co.tz | www.smartevents.co.tz
+      </div>
+    </div>
     <h1>${title}</h1>
-    <p>Tarehe: ${format(new Date(), 'dd/MM/yyyy HH:mm')}</p>
+    <p class="date">Tarehe: ${format(new Date(), 'dd/MM/yyyy HH:mm')}</p>
     <table><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${tableRows}</tbody></table>
+    <div class="footer">
+      <script>
+        document.currentScript.parentElement.textContent = 'Smart Events Platform | Ukurasa ' + (window.performance ? '1' : '1');
+      </script>
+    </div>
+    <script>
+      // Add page numbers via print
+      window.onafterprint = function() { window.close(); };
+    </script>
     </body></html>
   `);
   printWindow.document.close();
