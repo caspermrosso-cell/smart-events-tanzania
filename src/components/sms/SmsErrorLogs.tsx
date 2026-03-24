@@ -33,6 +33,8 @@ const BEEM_ERROR_CODES: Record<number, { label: string; description: string; fix
 };
 
 const SmsErrorLogs = () => {
+  const queryClient = useQueryClient();
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const { data: failedLogs = [], refetch, isLoading } = useQuery({
     queryKey: ['sms-error-logs'],
     queryFn: async () => {
