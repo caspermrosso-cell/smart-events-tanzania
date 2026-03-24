@@ -176,13 +176,23 @@ const SmsCompose = () => {
       return;
     }
 
-    // Check SMS allocation for the selected event
-    if (selectedEvent && eventAllocation > 0) {
-      const smsNeeded = totalRecipients * smsCount;
-      if (smsNeeded > eventSmsRemaining) {
-        toast.error(`SMS hazitoshi! Unahitaji ${smsNeeded} lakini zimebaki ${eventSmsRemaining} tu kwa tukio hili.`);
-        return;
-      }
+    // Must select an event
+    if (!selectedEvent) {
+      toast.error('Tafadhali chagua tukio kwanza kabla ya kutuma SMS.');
+      return;
+    }
+
+    // Event must have SMS allocation
+    if (eventAllocation <= 0) {
+      toast.error('Tukio hili halina SMS zilizotengwa. Tafadhali tenga SMS kwanza kwenye tukio.');
+      return;
+    }
+
+    // Check remaining SMS allocation
+    const smsNeeded = totalRecipients * smsCount;
+    if (smsNeeded > eventSmsRemaining) {
+      toast.error(`SMS hazitoshi! Unahitaji ${smsNeeded} lakini zimebaki ${eventSmsRemaining} tu kwa tukio hili.`);
+      return;
     }
 
     setSending(true);
@@ -326,8 +336,11 @@ const SmsCompose = () => {
           </div>
         )}
 
-        <Button type="button" onClick={handleSend} disabled={sending || sent} className="w-full gap-2">
+        <Button type="button" onClick={handleSend} disabled={sending || sent || !selectedEvent || eventAllocation <= 0 || eventSmsRemaining <= 0} className="w-full gap-2">
           {sent ? <><CheckCircle className="w-4 h-4" /> Zimetumwa!</> :
+           !selectedEvent ? 'Chagua tukio kwanza' :
+           eventAllocation <= 0 ? 'Hakuna SMS zilizotengwa' :
+           eventSmsRemaining <= 0 ? 'SMS zimetumika zote' :
            sending ? 'Inatuma kupitia Beem Africa...' :
            scheduleEnabled ? <><Clock className="w-4 h-4" /> Panga SMS {totalRecipients}</> :
            <><Send className="w-4 h-4" /> Tuma kwa Wapokeaji {totalRecipients}</>}
