@@ -176,13 +176,24 @@ const SmsCompose = () => {
       return;
     }
 
-    // Check SMS allocation for the selected event
-    if (selectedEvent && eventAllocation > 0) {
-      const smsNeeded = totalRecipients * smsCount;
-      if (smsNeeded > eventSmsRemaining) {
-        toast.error(`SMS hazitoshi! Unahitaji ${smsNeeded} lakini zimebaki ${eventSmsRemaining} tu kwa tukio hili.`);
-        return;
-      }
+    // Must select an event
+    if (!selectedEvent) {
+      toast.error('Tafadhali chagua tukio kwanza kabla ya kutuma SMS.');
+      return;
+    }
+
+    // Event must have SMS allocation
+    if (eventAllocation <= 0) {
+      toast.error('Tukio hili halina SMS zilizotengwa. Tafadhali tenga SMS kwanza kwenye tukio.');
+      return;
+    }
+
+    // Check remaining SMS allocation
+    const smsNeeded = totalRecipients * smsCount;
+    if (smsNeeded > eventSmsRemaining) {
+      toast.error(`SMS hazitoshi! Unahitaji ${smsNeeded} lakini zimebaki ${eventSmsRemaining} tu kwa tukio hili.`);
+      return;
+    }
     }
 
     setSending(true);
