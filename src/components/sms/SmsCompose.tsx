@@ -313,6 +313,45 @@ const SmsCompose = () => {
           />
         </div>
 
+        {/* Bulk upload from Excel/CSV */}
+        <div className="space-y-2 p-3 rounded-lg border border-dashed border-border">
+          <div className="flex items-center gap-2 mb-1">
+            <FileSpreadsheet className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium text-foreground">Pakia Orodha (Excel/CSV)</span>
+          </div>
+          <p className="text-xs text-muted-foreground mb-2">
+            Faili lazima iwe na safu wima mbili: <strong>Jina</strong> na <strong>Namba ya Simu</strong>
+          </p>
+          <div className="flex gap-2">
+            <input
+              ref={bulkFileRef}
+              type="file"
+              accept=".xlsx,.xls,.csv"
+              onChange={handleBulkFileUpload}
+              className="hidden"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => bulkFileRef.current?.click()}
+            >
+              <Upload className="w-4 h-4" />
+              Pakia Faili
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-xs"
+              onClick={downloadBulkTemplate}
+            >
+              Pakua Template
+            </Button>
+          </div>
+        </div>
+
         {/* Manual recipients list */}
         {manualRecipients.length > 0 && (
           <div className="space-y-1">
