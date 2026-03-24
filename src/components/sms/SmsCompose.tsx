@@ -1,6 +1,6 @@
-import { useState, useRef } from 'react';
-import { motion } from 'framer-motion';
-import { Send, CheckCircle, Clock, Plus, X, Phone, MessageSquare, Upload, FileSpreadsheet } from 'lucide-react';
+import { useState, useRef, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Send, CheckCircle, Clock, Plus, X, Phone, MessageSquare, Upload, FileSpreadsheet, AlertTriangle, ShieldCheck } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -264,6 +264,107 @@ const SmsCompose = () => {
   const charCount = message.length;
   const smsCount = charCount <= 160 ? 1 : Math.ceil(charCount / 153);
 
+  // --- SMS Validation ---
+  const validationErrors = useMemo(() => {
+    const errors: { type: 'error' | 'warning'; message: string }[] = [];
+
+    // Message validation
+    if (message.length === 0) {
+      errors.push({ type: 'error', message: 'Ujumbe haujaandikwa' });
+    } else if (message.trim().length === 0) {
+      errors.push({ type: 'error', message: 'Ujumbe una nafasi tupu tu — andika ujumbe halisi' });
+    }
+
+    if (message.length > 918) {
+      errors.push({ type: 'error', message: `Ujumbe ni mrefu sana (${message.length}/918 herufi max). Beem inaruhusu SMS 6 tu kwa ujumbe mmoja.` });
+    } else if (smsCount > 3) {
+      errors.push({ type: 'warning', message: `Ujumbe utagawanywa kuwa SMS ${smsCount} — hii itatumia vitengo vingi zaidi` });
+    }
+
+    // Check for non-GSM characters that may cause encoding issues
+    const nonGsmChars = message.match(/[^\x20-\x7E\n\r]/g);
+    if (nonGsmChars) {
+      const unique = [...new Set(nonGsmChars)].slice(0, 5).join(' ');
+      errors.push({ type: 'warning', message: `Ujumbe una herufi maalum (${unique}) — hii inaweza kupunguza idadi ya herufi kwa SMS hadi 70` });
+    }
+
+    // Placeholders without event
+    if ((message.includes('{event}') || message.includes('{date}')) && !selectedEvent) {
+      errors.push({ type: 'warning', message: 'Ujumbe una {event}/{date} lakini hukuchagua tukio — vitabadilishwa kuwa tupu' });
+    }
+
+    // Recipients validation
+    if (totalRecipients === 0) {
+      errors.push({ type: 'error', message: 'Hakuna wapokeaji — ongeza angalau mpokeaji mmoja' });
+    }
+
+    // Validate phone numbers
+    const allPhones = [
+      ...guests.filter((g: any) => selectedGuests.includes(g.id)).map((g: any) => ({ name: g.full_name, phone: g.phone })),
+      ...manualRecipients.map(r => ({ name: r.name, phone: r.phone })),
+    ];
+
+    const invalidPhones: string[] = [];
+    const duplicatePhones: string[] = [];
+    const seenPhones = new Set<string>();
+
+    allPhones.forEach(r => {
+      let phone = r.phone.replace(/[^0-9]/g, '');
+      if (phone.startsWith('0')) phone = '255' + phone.substring(1);
+      if (!phone.startsWith('255')) phone = '255' + phone;
+
+      if (phone.length < 12 || phone.length > 12) {
+        invalidPhones.push(`${r.name} (${r.phone})`);
+      }
+
+      if (seenPhones.has(phone)) {
+        duplicatePhones.push(`${r.name} (${r.phone})`);
+      }
+      seenPhones.add(phone);
+    });
+
+    if (invalidPhones.length > 0) {
+      errors.push({ type: 'error', message: `Namba zisizo sahihi: ${invalidPhones.slice(0, 3).join(', ')}${invalidPhones.length > 3 ? ` na ${invalidPhones.length - 3} zaidi` : ''}` });
+    }
+
+    if (duplicatePhones.length > 0) {
+      errors.push({ type: 'warning', message: `Namba zilizojirudia: ${duplicatePhones.slice(0, 3).join(', ')}${duplicatePhones.length > 3 ? ` na ${duplicatePhones.length - 3} zaidi` : ''}` });
+    }
+
+    // Event & allocation
+    if (!selectedEvent) {
+      errors.push({ type: 'error', message: 'Hujachagua tukio — SMS haziwezi kutumwa bila tukio' });
+    } else if (eventAllocation <= 0) {
+      errors.push({ type: 'error', message: 'Tukio hili halina SMS zilizotengwa' });
+    } else if (totalRecipients > 0) {
+      const smsNeeded = totalRecipients * smsCount;
+      if (smsNeeded > eventSmsRemaining) {
+        errors.push({ type: 'error', message: `SMS hazitoshi! Unahitaji ${smsNeeded} lakini zimebaki ${eventSmsRemaining} tu` });
+      }
+    }
+
+    // Schedule validation
+    if (scheduleEnabled) {
+      if (!scheduleDate || !scheduleTime) {
+        errors.push({ type: 'error', message: 'Umewasha ratiba lakini hukuweka tarehe au saa' });
+      } else {
+        const scheduleDt = new Date(`${scheduleDate}T${scheduleTime}`);
+        if (scheduleDt <= new Date()) {
+          errors.push({ type: 'error', message: 'Muda uliopangwa umeshapita — weka muda ujao' });
+        }
+      }
+    }
+
+    // Sender ID length
+    // Beem requires source_addr max 11 characters
+    // Currently hardcoded to 'SmartEvents' (11 chars) so this is fine
+
+    return errors;
+  }, [message, selectedEvent, selectedGuests, manualRecipients, guests, totalRecipients, smsCount, eventAllocation, eventSmsRemaining, scheduleEnabled, scheduleDate, scheduleTime]);
+
+  const hasErrors = validationErrors.some(e => e.type === 'error');
+  const hasWarnings = validationErrors.some(e => e.type === 'warning');
+
   return (
     <div className="grid lg:grid-cols-2 gap-6">
       {/* Compose */}
@@ -336,11 +437,41 @@ const SmsCompose = () => {
           </div>
         )}
 
-        <Button type="button" onClick={handleSend} disabled={sending || sent || !selectedEvent || eventAllocation <= 0 || eventSmsRemaining <= 0} className="w-full gap-2">
+        {/* Validation Panel */}
+        <AnimatePresence>
+          {validationErrors.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="rounded-lg border border-border overflow-hidden"
+            >
+              <div className={`flex items-center gap-2 px-3 py-2 text-xs font-semibold ${hasErrors ? 'bg-destructive/10 text-destructive' : 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400'}`}>
+                {hasErrors ? <AlertTriangle className="w-3.5 h-3.5" /> : <ShieldCheck className="w-3.5 h-3.5" />}
+                {hasErrors ? `Makosa ${validationErrors.filter(e => e.type === 'error').length} — rekebisha kabla ya kutuma` : `Tahadhari ${validationErrors.length}`}
+              </div>
+              <div className="divide-y divide-border max-h-40 overflow-y-auto">
+                {validationErrors.map((err, i) => (
+                  <div key={i} className={`flex items-start gap-2 px-3 py-2 text-xs ${err.type === 'error' ? 'text-destructive' : 'text-yellow-600 dark:text-yellow-400'}`}>
+                    <span className="mt-0.5 shrink-0">{err.type === 'error' ? '✕' : '⚠'}</span>
+                    <span>{err.message}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {!hasErrors && totalRecipients > 0 && message.trim().length > 0 && selectedEvent && (
+          <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>SMS zote zimethibitishwa — tayari kutumwa</span>
+          </div>
+        )}
+
+        <Button type="button" onClick={handleSend} disabled={sending || sent || hasErrors} className="w-full gap-2">
           {sent ? <><CheckCircle className="w-4 h-4" /> Zimetumwa!</> :
-           !selectedEvent ? 'Chagua tukio kwanza' :
-           eventAllocation <= 0 ? 'Hakuna SMS zilizotengwa' :
-           eventSmsRemaining <= 0 ? 'SMS zimetumika zote' :
+           hasErrors ? 'Rekebisha makosa kwanza' :
            sending ? 'Inatuma kupitia Beem Africa...' :
            scheduleEnabled ? <><Clock className="w-4 h-4" /> Panga SMS {totalRecipients}</> :
            <><Send className="w-4 h-4" /> Tuma kwa Wapokeaji {totalRecipients}</>}
