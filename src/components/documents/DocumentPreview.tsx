@@ -1,7 +1,7 @@
 import { forwardRef } from 'react';
 import smartEventsLogo from '@/assets/smart-events-logo.png';
 
-import { QRCodeSVG } from 'qrcode.react';
+import { QRCodeCanvas } from 'qrcode.react';
 
 const SELCOM_ACCOUNT = '5525100337337';
 
@@ -155,7 +155,7 @@ const DocumentPreview = forwardRef<HTMLDivElement, { data: DocumentData }>(({ da
           <div className="flex items-center gap-6 mt-3">
             <div className="text-center">
               <div className="bg-white border border-gray-200 rounded-lg p-2 inline-block">
-                <QRCodeSVG value={SELCOM_ACCOUNT} size={70} />
+                <QRCodeCanvas value={SELCOM_ACCOUNT} size={70} />
               </div>
               <p className="text-[10px] text-gray-500 mt-1">Selcom: {SELCOM_ACCOUNT}</p>
             </div>
