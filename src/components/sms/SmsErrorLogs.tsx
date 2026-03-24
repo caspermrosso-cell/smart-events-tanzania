@@ -206,11 +206,13 @@ const SmsErrorLogs = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10">
+                    <Checkbox checked={selectedIds.size === failedLogs.length && failedLogs.length > 0} onCheckedChange={toggleAll} />
+                  </TableHead>
                   <TableHead>Mpokeaji</TableHead>
                   <TableHead>Namba</TableHead>
                   <TableHead>Error Code</TableHead>
                   <TableHead>Sababu</TableHead>
-                  <TableHead>Suluhisho</TableHead>
                   <TableHead>Tarehe</TableHead>
                 </TableRow>
               </TableHeader>
@@ -218,14 +220,16 @@ const SmsErrorLogs = () => {
                 {failedLogs.map((log: any) => {
                   const errorInfo = getErrorInfo(log);
                   return (
-                    <TableRow key={log.id}>
+                    <TableRow key={log.id} className={selectedIds.has(log.id) ? 'bg-destructive/5' : ''}>
+                      <TableCell>
+                        <Checkbox checked={selectedIds.has(log.id)} onCheckedChange={() => toggleSelect(log.id)} />
+                      </TableCell>
                       <TableCell className="font-medium text-foreground">{log.recipient_name || '-'}</TableCell>
                       <TableCell className="text-muted-foreground text-sm font-mono">{log.recipient_phone}</TableCell>
                       <TableCell>
                         <Badge variant="destructive" className="font-mono">{errorInfo.code}</Badge>
                       </TableCell>
                       <TableCell className="text-sm text-destructive max-w-[200px]">{errorInfo.description}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground max-w-[200px]">{errorInfo.fix}</TableCell>
                       <TableCell className="text-xs text-muted-foreground">
                         {new Date(log.created_at).toLocaleDateString('sw-TZ', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                       </TableCell>
