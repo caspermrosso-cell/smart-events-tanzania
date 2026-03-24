@@ -194,7 +194,6 @@ const SmsCompose = () => {
       toast.error(`SMS hazitoshi! Unahitaji ${smsNeeded} lakini zimebaki ${eventSmsRemaining} tu kwa tukio hili.`);
       return;
     }
-    }
 
     setSending(true);
     try {
