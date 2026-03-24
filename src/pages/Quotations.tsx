@@ -291,6 +291,21 @@ const Quotations = () => {
     }
   };
 
+  const handleDownloadJPG = async () => {
+    if (!previewRef.current) return;
+    toast.info('Inaandaa picha...');
+    try {
+      const canvas = await html2canvas(previewRef.current, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      const link = document.createElement('a');
+      link.download = `${previewDoc?.docNumber || 'document'}.jpg`;
+      link.href = canvas.toDataURL('image/jpeg', 0.95);
+      link.click();
+      toast.success('Picha imepakuliwa!');
+    } catch {
+      toast.error('Imeshindikana kutengeneza picha');
+    }
+  };
+
   const deleteMutation = useMutation({
     mutationFn: async ({ table, id }: { table: string; id: string }) => {
       const { error } = await supabase.from(table as any).delete().eq('id', id);
