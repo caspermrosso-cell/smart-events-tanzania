@@ -9,6 +9,48 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 import * as XLSX from 'xlsx';
+import smartEventsLogo from '@/assets/smart-events-logo.png';
+
+const COMPANY_ADDRESS = 'Plot No. 22, Mbezi Beach A, Kinondoni\nDar es Salaam, Tanzania\ninfo@smartevents.co.tz | www.smartevents.co.tz';
+
+const loadLogoAsBase64 = (): Promise<string> => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = () => resolve('');
+    img.src = smartEventsLogo;
+  });
+};
+
+const addPdfHeader = (doc: jsPDF, logoBase64: string) => {
+  if (logoBase64) {
+    doc.addImage(logoBase64, 'PNG', 14, 8, 40, 14);
+  }
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100);
+  doc.text('Plot No. 22, Mbezi Beach A, Kinondoni', 196, 10, { align: 'right' });
+  doc.text('Dar es Salaam, Tanzania', 196, 14, { align: 'right' });
+  doc.text('info@smartevents.co.tz | www.smartevents.co.tz', 196, 18, { align: 'right' });
+  doc.setTextColor(0);
+  doc.line(14, 24, 196, 24);
+};
+
+const addPdfFooter = (doc: jsPDF, pageNum: number, totalPages: number) => {
+  doc.setFontSize(8);
+  doc.setTextColor(130);
+  doc.text(`Smart Events Platform`, 14, 290);
+  doc.text(`Ukurasa ${pageNum} / ${totalPages}`, 196, 290, { align: 'right' });
+  doc.setTextColor(0);
+};
 
 // Tanzania mobile network prefixes
 const NETWORK_PREFIXES: Record<string, { prefixes: string[]; color: string; bg: string }> = {
@@ -155,43 +197,58 @@ const SmsReports = () => {
     setExporting('pdf');
     try {
       const doc = new jsPDF();
+      const logoBase64 = await loadLogoAsBase64();
       const now = new Date().toLocaleDateString('sw-TZ', { day: '2-digit', month: 'long', year: 'numeric' });
 
-      doc.setFontSize(18);
-      doc.text(`Smart Events - Ripoti ya SMS`, 14, 20);
+      // Header
+      addPdfHeader(doc, logoBase64);
+
+      let y = 32;
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Ripoti ya SMS', 14, y);
+      y += 8;
       doc.setFontSize(11);
-      doc.text(`Tukio: ${selectedEventTitle}`, 14, 28);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Tukio: ${selectedEventTitle}`, 14, y);
+      y += 6;
       doc.setFontSize(10);
-      doc.text(`Tarehe ya Ripoti: ${now}`, 14, 35);
-      doc.line(14, 38, 196, 38);
+      doc.text(`Tarehe ya Ripoti: ${now}`, 14, y);
+      y += 10;
 
       doc.setFontSize(12);
-      doc.text('Muhtasari', 14, 47);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Muhtasari', 14, y);
+      y += 8;
       doc.setFontSize(10);
-      doc.text(`SMS Zimetumwa: ${totalSent}`, 14, 55);
-      doc.text(`SMS Zimeshindikana: ${totalFailed}`, 14, 62);
-      doc.text(`SMS Zimepangwa: ${totalScheduled}`, 14, 69);
-      doc.text(`Jumla SMS Units: ${totalSmsUnits}`, 14, 76);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`SMS Zimetumwa: ${totalSent}`, 14, y); y += 7;
+      doc.text(`SMS Zimeshindikana: ${totalFailed}`, 14, y); y += 7;
+      doc.text(`SMS Zimepangwa: ${totalScheduled}`, 14, y); y += 7;
+      doc.text(`Jumla SMS Units: ${totalSmsUnits}`, 14, y); y += 10;
 
-      let y = 89;
       if (balance) {
         const creditBal = Number(balance?.credit_balance || 0);
-        doc.text(`Salio: TZS ${creditBal.toLocaleString()}`, 14, 83);
-        y = 96;
+        doc.text(`Salio: TZS ${creditBal.toLocaleString()}`, 14, y);
+        y += 10;
       }
 
-      // Network breakdown in PDF
+      // Network breakdown
       doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
       doc.text('Mgawanyo wa Mitandao', 14, y);
       y += 8;
       doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
       sortedNetworks.forEach(([network, data]) => {
+        if (y > 275) { doc.addPage(); addPdfHeader(doc, logoBase64); y = 32; }
         doc.text(`${network}: ${data.total} SMS (Zimetumwa: ${data.sent}, Zimeshindikana: ${data.failed})`, 14, y);
         y += 6;
       });
 
-      y += 4;
+      y += 6;
       doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
       doc.text('Historia ya SMS', 14, y);
       y += 8;
 
@@ -208,7 +265,7 @@ const SmsReports = () => {
 
       doc.setFont('helvetica', 'normal');
       logs.forEach((log: any) => {
-        if (y > 275) { doc.addPage(); y = 20; }
+        if (y > 275) { doc.addPage(); addPdfHeader(doc, logoBase64); y = 32; }
         doc.text((log.recipient_name || '-').substring(0, 18), 14, y);
         doc.text(log.recipient_phone || '', 50, y);
         doc.text(detectNetwork(log.recipient_phone || ''), 85, y);
@@ -218,8 +275,13 @@ const SmsReports = () => {
         y += 6;
       });
 
-      doc.setFontSize(8);
-      doc.text('info@smartevents.co.tz | Smart Events Platform', 14, 290);
+      // Add footers with page numbers to all pages
+      const totalPages = doc.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        addPdfFooter(doc, i, totalPages);
+      }
+
       doc.save(`SMS_Ripoti_${new Date().toISOString().split('T')[0]}.pdf`);
       toast.success('PDF imepakuwa!');
     } catch (err) {
