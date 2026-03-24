@@ -639,7 +639,10 @@ const Quotations = () => {
         <DialogContent className="max-w-3xl max-h-[95vh] overflow-y-auto p-0">
           <div className="sticky top-0 z-10 flex items-center justify-between p-4 bg-background border-b border-border">
             <h3 className="font-semibold text-foreground">{previewDoc?.docNumber}</h3>
-            <Button onClick={handleDownloadPDF} size="sm" className="gap-2"><Download className="w-4 h-4" /> Download PDF</Button>
+            <div className="flex gap-2">
+              <Button onClick={handleDownloadJPG} size="sm" variant="outline" className="gap-2"><ImageDown className="w-4 h-4" /> JPG</Button>
+              <Button onClick={handleDownloadPDF} size="sm" className="gap-2"><Download className="w-4 h-4" /> PDF</Button>
+            </div>
           </div>
           {previewDoc && <DocumentPreview ref={previewRef} data={previewDoc} />}
         </DialogContent>
