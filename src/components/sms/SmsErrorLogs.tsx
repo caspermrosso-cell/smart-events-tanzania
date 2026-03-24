@@ -76,6 +76,47 @@ const SmsErrorLogs = () => {
     return acc;
   }, {});
 
+  const deleteMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase.from('sms_logs').delete().in('id', ids);
+      if (error) throw error;
+    },
+    onSuccess: (_, ids) => {
+      queryClient.invalidateQueries({ queryKey: ['sms-error-logs'] });
+      queryClient.invalidateQueries({ queryKey: ['sms-logs'] });
+      queryClient.invalidateQueries({ queryKey: ['events-sms-allocation'] });
+      setSelectedIds(new Set());
+      toast.success(`SMS ${ids.length} zilizoshindikana zimefutwa`);
+    },
+    onError: () => toast.error('Imeshindikana kufuta SMS'),
+  });
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    if (selectedIds.size === failedLogs.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(failedLogs.map((l: any) => l.id)));
+    }
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedIds.size === 0) return;
+    deleteMutation.mutate(Array.from(selectedIds));
+  };
+
+  const handleDeleteAll = () => {
+    if (failedLogs.length === 0) return;
+    deleteMutation.mutate(failedLogs.map((l: any) => l.id));
+  };
+
   return (
     <div className="space-y-6">
       {/* Error Summary */}
