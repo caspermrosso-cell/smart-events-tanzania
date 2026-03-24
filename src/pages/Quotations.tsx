@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Plus, Download, Eye, ArrowRight, Trash2, Receipt, Contact } from 'lucide-react';
+import { FileText, Plus, Download, Eye, ArrowRight, Trash2, Receipt, Contact, ImageDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -288,6 +288,21 @@ const Quotations = () => {
       toast.success('PDF imepakuliwa!');
     } catch {
       toast.error('Imeshindikana kutengeneza PDF');
+    }
+  };
+
+  const handleDownloadJPG = async () => {
+    if (!previewRef.current) return;
+    toast.info('Inaandaa picha...');
+    try {
+      const canvas = await html2canvas(previewRef.current, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      const link = document.createElement('a');
+      link.download = `${previewDoc?.docNumber || 'document'}.jpg`;
+      link.href = canvas.toDataURL('image/jpeg', 0.95);
+      link.click();
+      toast.success('Picha imepakuliwa!');
+    } catch {
+      toast.error('Imeshindikana kutengeneza picha');
     }
   };
 
@@ -624,7 +639,10 @@ const Quotations = () => {
         <DialogContent className="max-w-3xl max-h-[95vh] overflow-y-auto p-0">
           <div className="sticky top-0 z-10 flex items-center justify-between p-4 bg-background border-b border-border">
             <h3 className="font-semibold text-foreground">{previewDoc?.docNumber}</h3>
-            <Button onClick={handleDownloadPDF} size="sm" className="gap-2"><Download className="w-4 h-4" /> Download PDF</Button>
+            <div className="flex gap-2">
+              <Button onClick={handleDownloadJPG} size="sm" variant="outline" className="gap-2"><ImageDown className="w-4 h-4" /> JPG</Button>
+              <Button onClick={handleDownloadPDF} size="sm" className="gap-2"><Download className="w-4 h-4" /> PDF</Button>
+            </div>
           </div>
           {previewDoc && <DocumentPreview ref={previewRef} data={previewDoc} />}
         </DialogContent>
