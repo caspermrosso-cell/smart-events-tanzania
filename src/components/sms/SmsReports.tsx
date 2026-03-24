@@ -9,6 +9,48 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 import * as XLSX from 'xlsx';
+import smartEventsLogo from '@/assets/smart-events-logo.png';
+
+const COMPANY_ADDRESS = 'Plot No. 22, Mbezi Beach A, Kinondoni\nDar es Salaam, Tanzania\ninfo@smartevents.co.tz | www.smartevents.co.tz';
+
+const loadLogoAsBase64 = (): Promise<string> => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = () => resolve('');
+    img.src = smartEventsLogo;
+  });
+};
+
+const addPdfHeader = (doc: jsPDF, logoBase64: string) => {
+  if (logoBase64) {
+    doc.addImage(logoBase64, 'PNG', 14, 8, 40, 14);
+  }
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100);
+  doc.text('Plot No. 22, Mbezi Beach A, Kinondoni', 196, 10, { align: 'right' });
+  doc.text('Dar es Salaam, Tanzania', 196, 14, { align: 'right' });
+  doc.text('info@smartevents.co.tz | www.smartevents.co.tz', 196, 18, { align: 'right' });
+  doc.setTextColor(0);
+  doc.line(14, 24, 196, 24);
+};
+
+const addPdfFooter = (doc: jsPDF, pageNum: number, totalPages: number) => {
+  doc.setFontSize(8);
+  doc.setTextColor(130);
+  doc.text(`Smart Events Platform`, 14, 290);
+  doc.text(`Ukurasa ${pageNum} / ${totalPages}`, 196, 290, { align: 'right' });
+  doc.setTextColor(0);
+};
 
 // Tanzania mobile network prefixes
 const NETWORK_PREFIXES: Record<string, { prefixes: string[]; color: string; bg: string }> = {
