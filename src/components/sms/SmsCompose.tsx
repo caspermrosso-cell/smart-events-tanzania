@@ -264,6 +264,107 @@ const SmsCompose = () => {
   const charCount = message.length;
   const smsCount = charCount <= 160 ? 1 : Math.ceil(charCount / 153);
 
+  // --- SMS Validation ---
+  const validationErrors = useMemo(() => {
+    const errors: { type: 'error' | 'warning'; message: string }[] = [];
+
+    // Message validation
+    if (message.length === 0) {
+      errors.push({ type: 'error', message: 'Ujumbe haujaandikwa' });
+    } else if (message.trim().length === 0) {
+      errors.push({ type: 'error', message: 'Ujumbe una nafasi tupu tu — andika ujumbe halisi' });
+    }
+
+    if (message.length > 918) {
+      errors.push({ type: 'error', message: `Ujumbe ni mrefu sana (${message.length}/918 herufi max). Beem inaruhusu SMS 6 tu kwa ujumbe mmoja.` });
+    } else if (smsCount > 3) {
+      errors.push({ type: 'warning', message: `Ujumbe utagawanywa kuwa SMS ${smsCount} — hii itatumia vitengo vingi zaidi` });
+    }
+
+    // Check for non-GSM characters that may cause encoding issues
+    const nonGsmChars = message.match(/[^\x20-\x7E\n\r]/g);
+    if (nonGsmChars) {
+      const unique = [...new Set(nonGsmChars)].slice(0, 5).join(' ');
+      errors.push({ type: 'warning', message: `Ujumbe una herufi maalum (${unique}) — hii inaweza kupunguza idadi ya herufi kwa SMS hadi 70` });
+    }
+
+    // Placeholders without event
+    if ((message.includes('{event}') || message.includes('{date}')) && !selectedEvent) {
+      errors.push({ type: 'warning', message: 'Ujumbe una {event}/{date} lakini hukuchagua tukio — vitabadilishwa kuwa tupu' });
+    }
+
+    // Recipients validation
+    if (totalRecipients === 0) {
+      errors.push({ type: 'error', message: 'Hakuna wapokeaji — ongeza angalau mpokeaji mmoja' });
+    }
+
+    // Validate phone numbers
+    const allPhones = [
+      ...guests.filter((g: any) => selectedGuests.includes(g.id)).map((g: any) => ({ name: g.full_name, phone: g.phone })),
+      ...manualRecipients.map(r => ({ name: r.name, phone: r.phone })),
+    ];
+
+    const invalidPhones: string[] = [];
+    const duplicatePhones: string[] = [];
+    const seenPhones = new Set<string>();
+
+    allPhones.forEach(r => {
+      let phone = r.phone.replace(/[^0-9]/g, '');
+      if (phone.startsWith('0')) phone = '255' + phone.substring(1);
+      if (!phone.startsWith('255')) phone = '255' + phone;
+
+      if (phone.length < 12 || phone.length > 12) {
+        invalidPhones.push(`${r.name} (${r.phone})`);
+      }
+
+      if (seenPhones.has(phone)) {
+        duplicatePhones.push(`${r.name} (${r.phone})`);
+      }
+      seenPhones.add(phone);
+    });
+
+    if (invalidPhones.length > 0) {
+      errors.push({ type: 'error', message: `Namba zisizo sahihi: ${invalidPhones.slice(0, 3).join(', ')}${invalidPhones.length > 3 ? ` na ${invalidPhones.length - 3} zaidi` : ''}` });
+    }
+
+    if (duplicatePhones.length > 0) {
+      errors.push({ type: 'warning', message: `Namba zilizojirudia: ${duplicatePhones.slice(0, 3).join(', ')}${duplicatePhones.length > 3 ? ` na ${duplicatePhones.length - 3} zaidi` : ''}` });
+    }
+
+    // Event & allocation
+    if (!selectedEvent) {
+      errors.push({ type: 'error', message: 'Hujachagua tukio — SMS haziwezi kutumwa bila tukio' });
+    } else if (eventAllocation <= 0) {
+      errors.push({ type: 'error', message: 'Tukio hili halina SMS zilizotengwa' });
+    } else if (totalRecipients > 0) {
+      const smsNeeded = totalRecipients * smsCount;
+      if (smsNeeded > eventSmsRemaining) {
+        errors.push({ type: 'error', message: `SMS hazitoshi! Unahitaji ${smsNeeded} lakini zimebaki ${eventSmsRemaining} tu` });
+      }
+    }
+
+    // Schedule validation
+    if (scheduleEnabled) {
+      if (!scheduleDate || !scheduleTime) {
+        errors.push({ type: 'error', message: 'Umewasha ratiba lakini hukuweka tarehe au saa' });
+      } else {
+        const scheduleDt = new Date(`${scheduleDate}T${scheduleTime}`);
+        if (scheduleDt <= new Date()) {
+          errors.push({ type: 'error', message: 'Muda uliopangwa umeshapita — weka muda ujao' });
+        }
+      }
+    }
+
+    // Sender ID length
+    // Beem requires source_addr max 11 characters
+    // Currently hardcoded to 'SmartEvents' (11 chars) so this is fine
+
+    return errors;
+  }, [message, selectedEvent, selectedGuests, manualRecipients, guests, totalRecipients, smsCount, eventAllocation, eventSmsRemaining, scheduleEnabled, scheduleDate, scheduleTime]);
+
+  const hasErrors = validationErrors.some(e => e.type === 'error');
+  const hasWarnings = validationErrors.some(e => e.type === 'warning');
+
   return (
     <div className="grid lg:grid-cols-2 gap-6">
       {/* Compose */}
