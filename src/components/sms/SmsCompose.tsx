@@ -437,11 +437,41 @@ const SmsCompose = () => {
           </div>
         )}
 
-        <Button type="button" onClick={handleSend} disabled={sending || sent || !selectedEvent || eventAllocation <= 0 || eventSmsRemaining <= 0} className="w-full gap-2">
+        {/* Validation Panel */}
+        <AnimatePresence>
+          {validationErrors.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="rounded-lg border border-border overflow-hidden"
+            >
+              <div className={`flex items-center gap-2 px-3 py-2 text-xs font-semibold ${hasErrors ? 'bg-destructive/10 text-destructive' : 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400'}`}>
+                {hasErrors ? <AlertTriangle className="w-3.5 h-3.5" /> : <ShieldCheck className="w-3.5 h-3.5" />}
+                {hasErrors ? `Makosa ${validationErrors.filter(e => e.type === 'error').length} — rekebisha kabla ya kutuma` : `Tahadhari ${validationErrors.length}`}
+              </div>
+              <div className="divide-y divide-border max-h-40 overflow-y-auto">
+                {validationErrors.map((err, i) => (
+                  <div key={i} className={`flex items-start gap-2 px-3 py-2 text-xs ${err.type === 'error' ? 'text-destructive' : 'text-yellow-600 dark:text-yellow-400'}`}>
+                    <span className="mt-0.5 shrink-0">{err.type === 'error' ? '✕' : '⚠'}</span>
+                    <span>{err.message}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {!hasErrors && totalRecipients > 0 && message.trim().length > 0 && selectedEvent && (
+          <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>SMS zote zimethibitishwa — tayari kutumwa</span>
+          </div>
+        )}
+
+        <Button type="button" onClick={handleSend} disabled={sending || sent || hasErrors} className="w-full gap-2">
           {sent ? <><CheckCircle className="w-4 h-4" /> Zimetumwa!</> :
-           !selectedEvent ? 'Chagua tukio kwanza' :
-           eventAllocation <= 0 ? 'Hakuna SMS zilizotengwa' :
-           eventSmsRemaining <= 0 ? 'SMS zimetumika zote' :
+           hasErrors ? 'Rekebisha makosa kwanza' :
            sending ? 'Inatuma kupitia Beem Africa...' :
            scheduleEnabled ? <><Clock className="w-4 h-4" /> Panga SMS {totalRecipients}</> :
            <><Send className="w-4 h-4" /> Tuma kwa Wapokeaji {totalRecipients}</>}
