@@ -1,8 +1,11 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { AlertTriangle, RefreshCw, XCircle, Info } from 'lucide-react';
+import { AlertTriangle, RefreshCw, XCircle, Info, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { toast } from 'sonner';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -30,6 +33,8 @@ const BEEM_ERROR_CODES: Record<number, { label: string; description: string; fix
 };
 
 const SmsErrorLogs = () => {
+  const queryClient = useQueryClient();
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const { data: failedLogs = [], refetch, isLoading } = useQuery({
     queryKey: ['sms-error-logs'],
     queryFn: async () => {
@@ -70,6 +75,47 @@ const SmsErrorLogs = () => {
     acc[key] = (acc[key] || 0) + 1;
     return acc;
   }, {});
+
+  const deleteMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase.from('sms_logs').delete().in('id', ids);
+      if (error) throw error;
+    },
+    onSuccess: (_, ids) => {
+      queryClient.invalidateQueries({ queryKey: ['sms-error-logs'] });
+      queryClient.invalidateQueries({ queryKey: ['sms-logs'] });
+      queryClient.invalidateQueries({ queryKey: ['events-sms-allocation'] });
+      setSelectedIds(new Set());
+      toast.success(`SMS ${ids.length} zilizoshindikana zimefutwa`);
+    },
+    onError: () => toast.error('Imeshindikana kufuta SMS'),
+  });
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    if (selectedIds.size === failedLogs.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(failedLogs.map((l: any) => l.id)));
+    }
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedIds.size === 0) return;
+    deleteMutation.mutate(Array.from(selectedIds));
+  };
+
+  const handleDeleteAll = () => {
+    if (failedLogs.length === 0) return;
+    deleteMutation.mutate(failedLogs.map((l: any) => l.id));
+  };
 
   return (
     <div className="space-y-6">
@@ -128,12 +174,26 @@ const SmsErrorLogs = () => {
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-heading font-semibold text-foreground text-lg flex items-center gap-2">
             <XCircle className="w-5 h-5 text-destructive" />
-            SMS Zilizoshindikana
+            SMS Zilizoshindikana ({failedLogs.length})
           </h3>
-          <Button variant="ghost" size="sm" onClick={() => refetch()} disabled={isLoading}>
-            <RefreshCw className={`w-4 h-4 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            {selectedIds.size > 0 && (
+              <Button variant="destructive" size="sm" onClick={handleDeleteSelected} disabled={deleteMutation.isPending}>
+                <Trash2 className="w-4 h-4 mr-1" />
+                Futa ({selectedIds.size})
+              </Button>
+            )}
+            {failedLogs.length > 0 && selectedIds.size === 0 && (
+              <Button variant="outline" size="sm" className="text-destructive border-destructive/30 hover:bg-destructive/10" onClick={handleDeleteAll} disabled={deleteMutation.isPending}>
+                <Trash2 className="w-4 h-4 mr-1" />
+                Futa Zote
+              </Button>
+            )}
+            <Button variant="ghost" size="sm" onClick={() => refetch()} disabled={isLoading}>
+              <RefreshCw className={`w-4 h-4 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          </div>
         </div>
 
         {failedLogs.length === 0 ? (
@@ -146,11 +206,13 @@ const SmsErrorLogs = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10">
+                    <Checkbox checked={selectedIds.size === failedLogs.length && failedLogs.length > 0} onCheckedChange={toggleAll} />
+                  </TableHead>
                   <TableHead>Mpokeaji</TableHead>
                   <TableHead>Namba</TableHead>
                   <TableHead>Error Code</TableHead>
                   <TableHead>Sababu</TableHead>
-                  <TableHead>Suluhisho</TableHead>
                   <TableHead>Tarehe</TableHead>
                 </TableRow>
               </TableHeader>
@@ -158,14 +220,16 @@ const SmsErrorLogs = () => {
                 {failedLogs.map((log: any) => {
                   const errorInfo = getErrorInfo(log);
                   return (
-                    <TableRow key={log.id}>
+                    <TableRow key={log.id} className={selectedIds.has(log.id) ? 'bg-destructive/5' : ''}>
+                      <TableCell>
+                        <Checkbox checked={selectedIds.has(log.id)} onCheckedChange={() => toggleSelect(log.id)} />
+                      </TableCell>
                       <TableCell className="font-medium text-foreground">{log.recipient_name || '-'}</TableCell>
                       <TableCell className="text-muted-foreground text-sm font-mono">{log.recipient_phone}</TableCell>
                       <TableCell>
                         <Badge variant="destructive" className="font-mono">{errorInfo.code}</Badge>
                       </TableCell>
                       <TableCell className="text-sm text-destructive max-w-[200px]">{errorInfo.description}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground max-w-[200px]">{errorInfo.fix}</TableCell>
                       <TableCell className="text-xs text-muted-foreground">
                         {new Date(log.created_at).toLocaleDateString('sw-TZ', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                       </TableCell>
