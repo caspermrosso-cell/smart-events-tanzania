@@ -1,9 +1,14 @@
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
-import Services from '@/components/Services';
+import ProblemSection from '@/components/ProblemSection';
+import SolutionSection from '@/components/SolutionSection';
+import CoreFeatures from '@/components/CoreFeatures';
+import HowItWorks from '@/components/HowItWorks';
+import UseCases from '@/components/UseCases';
+import SocialProof from '@/components/SocialProof';
 import Pricing from '@/components/Pricing';
-import HowToPay from '@/components/HowToPay';
+import CtaSection from '@/components/CtaSection';
 import ContactForm from '@/components/ContactForm';
 import Footer from '@/components/Footer';
 
@@ -13,9 +18,14 @@ const Index = () => {
       <div className="min-h-screen">
         <Navbar />
         <Hero />
-        <Services />
+        <ProblemSection />
+        <SolutionSection />
+        <CoreFeatures />
+        <HowItWorks />
+        <UseCases />
+        <SocialProof />
         <Pricing />
-        <HowToPay />
+        <CtaSection />
         <ContactForm />
         <Footer />
       </div>

@@ -1,34 +1,56 @@
 import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import smartEventsLogo from '@/assets/smart-events-logo.png';
 
 const Navbar = () => {
-  const { t, language, setLanguage } = useLanguage();
+  const { language, setLanguage } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+  const isEn = language === 'en';
+  const isHome = location.pathname === '/';
 
   const scrollTo = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+    if (isHome) {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      window.location.href = `/#${id}`;
+    }
     setIsOpen(false);
   };
+
+  const navLinks = [
+    { label: isEn ? 'About' : 'Kuhusu', to: '/about' },
+    { label: isEn ? 'Features' : 'Vipengele', to: '/features' },
+    { label: isEn ? 'Use Cases' : 'Matumizi', to: '/use-cases' },
+    { label: isEn ? 'How It Works' : 'Inavyofanya Kazi', to: '/how-it-works' },
+    { label: isEn ? 'Pricing' : 'Bei', action: () => scrollTo('pricing') },
+    { label: isEn ? 'Contact' : 'Wasiliana', to: '/contact' },
+  ];
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50" style={{ backgroundColor: '#2b2219' }}>
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        <button onClick={() => scrollTo('hero')} className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2">
           <img src={smartEventsLogo} alt="Smart Events" className="w-32 h-auto" />
           <span className="font-heading text-xl font-bold text-white">Smart Events</span>
-        </button>
+        </Link>
 
         {/* Desktop */}
-        <div className="hidden md:flex items-center gap-6">
-          <button onClick={() => scrollTo('services')} className="text-sm font-medium text-white/80 hover:text-gold transition-colors">{t('nav.services')}</button>
-          <button onClick={() => scrollTo('pricing')} className="text-sm font-medium text-white/80 hover:text-gold transition-colors">{t('nav.pricing')}</button>
-          <button onClick={() => scrollTo('howtopay')} className="text-sm font-medium text-white/80 hover:text-gold transition-colors">{language === 'en' ? 'How to Pay' : 'Jinsi ya Kulipa'}</button>
-          <button onClick={() => scrollTo('contact')} className="text-sm font-medium text-white/80 hover:text-gold transition-colors">{t('nav.contact')}</button>
-          
+        <div className="hidden lg:flex items-center gap-5">
+          {navLinks.map((link, i) =>
+            link.to ? (
+              <Link key={i} to={link.to} className="text-sm font-medium text-white/80 hover:text-gold transition-colors">
+                {link.label}
+              </Link>
+            ) : (
+              <button key={i} onClick={link.action} className="text-sm font-medium text-white/80 hover:text-gold transition-colors">
+                {link.label}
+              </button>
+            )
+          )}
           <button
             onClick={() => setLanguage(language === 'en' ? 'sw' : 'en')}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary text-secondary-foreground text-sm font-medium hover:bg-primary hover:text-primary-foreground transition-colors"
@@ -36,14 +58,13 @@ const Navbar = () => {
             <Globe className="w-4 h-4" />
             {language === 'en' ? 'SW' : 'EN'}
           </button>
-
           <Link to="/login" className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-accent transition-colors">
-            {t('nav.login')}
+            {isEn ? 'Admin Login' : 'Ingia Admin'}
           </Link>
         </div>
 
         {/* Mobile toggle */}
-        <div className="flex md:hidden items-center gap-2">
+        <div className="flex lg:hidden items-center gap-2">
           <button
             onClick={() => setLanguage(language === 'en' ? 'sw' : 'en')}
             className="flex items-center gap-1 px-2 py-1 rounded-full bg-secondary text-secondary-foreground text-xs font-medium"
@@ -64,15 +85,23 @@ const Navbar = () => {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="md:hidden overflow-hidden border-t border-white/10"
+            className="lg:hidden overflow-hidden border-t border-white/10"
             style={{ backgroundColor: '#2b2219' }}
           >
             <div className="px-4 py-4 flex flex-col gap-3">
-              <button onClick={() => scrollTo('services')} className="text-sm py-2 text-white/80">{t('nav.services')}</button>
-              <button onClick={() => scrollTo('pricing')} className="text-sm py-2 text-white/80">{t('nav.pricing')}</button>
-              <button onClick={() => scrollTo('contact')} className="text-sm py-2 text-white/80">{t('nav.contact')}</button>
+              {navLinks.map((link, i) =>
+                link.to ? (
+                  <Link key={i} to={link.to} className="text-sm py-2 text-white/80" onClick={() => setIsOpen(false)}>
+                    {link.label}
+                  </Link>
+                ) : (
+                  <button key={i} onClick={link.action} className="text-sm py-2 text-white/80 text-left">
+                    {link.label}
+                  </button>
+                )
+              )}
               <Link to="/login" className="text-sm py-2 text-center rounded-lg bg-primary text-primary-foreground font-medium" onClick={() => setIsOpen(false)}>
-                {t('nav.login')}
+                {isEn ? 'Admin Login' : 'Ingia Admin'}
               </Link>
             </div>
           </motion.div>
