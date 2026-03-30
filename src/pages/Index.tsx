@@ -3,10 +3,13 @@ import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
 import ProblemSection from '@/components/ProblemSection';
 import SolutionSection from '@/components/SolutionSection';
-import CoreFeatures from '@/components/CoreFeatures';
+import Benefits from '@/components/Benefits';
 import HowItWorks from '@/components/HowItWorks';
-import UseCases from '@/components/UseCases';
+import ProductSnapshot from '@/components/ProductSnapshot';
 import SocialProof from '@/components/SocialProof';
+import UseCases from '@/components/UseCases';
+import Differentiation from '@/components/Differentiation';
+import ObjectionHandling from '@/components/ObjectionHandling';
 import Pricing from '@/components/Pricing';
 import CtaSection from '@/components/CtaSection';
 import ContactForm from '@/components/ContactForm';
@@ -20,10 +23,13 @@ const Index = () => {
         <Hero />
         <ProblemSection />
         <SolutionSection />
-        <CoreFeatures />
+        <Benefits />
         <HowItWorks />
-        <UseCases />
+        <ProductSnapshot />
         <SocialProof />
+        <UseCases />
+        <Differentiation />
+        <ObjectionHandling />
         <Pricing />
         <CtaSection />
         <ContactForm />

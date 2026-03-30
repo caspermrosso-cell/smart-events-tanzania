@@ -19,19 +19,19 @@ const CtaSection = () => {
           className="max-w-2xl mx-auto"
         >
           <h2 className="font-heading text-3xl md:text-5xl font-bold text-white mb-4">
-            {isEn ? 'Ready to Run Better Events?' : 'Uko Tayari Kuendesha Matukio Bora?'}
+            {isEn ? 'Stop Guessing. Start Running Better Events.' : 'Acha Kubahatisha. Anza Kuendesha Matukio Bora.'}
           </h2>
           <p className="text-white/75 text-lg mb-10">
             {isEn
-              ? 'Stop guessing. Start managing your events with data.'
-              : 'Acha kubahatisha. Anza kusimamia matukio yako kwa data.'}
+              ? 'If attendance, coordination, and visibility matter — Smart Events is built for you.'
+              : 'Kama mahudhurio, uratibu, na mwonekano ni muhimu — Smart Events imejengwa kwa ajili yako.'}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
               onClick={() => scrollTo('contact')}
               className="px-8 py-4 rounded-lg bg-white text-foreground font-semibold text-lg hover:bg-white/90 transition-all shadow-warm"
             >
-              {isEn ? 'Request Demo' : 'Omba Demo'}
+              {isEn ? '👉 Book a Demo' : '👉 Omba Demo'}
             </button>
             <button
               onClick={() => scrollTo('contact')}
