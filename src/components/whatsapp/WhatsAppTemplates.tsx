@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { RefreshCw, FileText, Send, Filter, Loader2 } from 'lucide-react';
+import { RefreshCw, FileText, Send, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 
@@ -21,16 +21,21 @@ const statusColors: Record<string, string> = {
   failed: 'destructive',
 };
 
+const emptyTemplatesResponse = {
+  data: [],
+  pagination: {},
+  warning: '',
+};
+
 const WhatsAppTemplates = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const [filterCategory, setFilterCategory] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
+  const [filterCategory, setFilterCategory] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Send template dialog state
   const [sendingTemplateId, setSendingTemplateId] = useState<number | null>(null);
   const [sendTemplateName, setSendTemplateName] = useState('');
   const [sendFromAddr, setSendFromAddr] = useState('');
@@ -39,35 +44,54 @@ const WhatsAppTemplates = () => {
   const [sendMediaUrl, setSendMediaUrl] = useState('');
   const [sending, setSending] = useState(false);
 
+  const normalizedCategory = filterCategory === 'all' ? undefined : filterCategory;
+  const normalizedStatus = filterStatus === 'all' ? undefined : filterStatus;
+
   const { data: templatesData, isLoading, refetch } = useQuery({
-    queryKey: ['whatsapp-templates', filterCategory, filterStatus, searchQuery],
+    queryKey: ['whatsapp-templates', normalizedCategory, normalizedStatus, searchQuery],
     queryFn: async () => {
       const { data, error } = await supabase.functions.invoke('send-whatsapp', {
         body: {
           action: 'templates',
-          category: filterCategory || undefined,
-          status: filterStatus || undefined,
+          category: normalizedCategory,
+          status: normalizedStatus,
           q: searchQuery || undefined,
         },
       });
-      if (error) throw error;
-      return data?.data;
+
+      if (error) {
+        return {
+          ...emptyTemplatesResponse,
+          warning: error.message,
+        };
+      }
+
+      return {
+        data: data?.data?.data || [],
+        pagination: data?.data?.pagination || {},
+        warning: data?.warning || '',
+      };
     },
     staleTime: 60000,
+    retry: false,
   });
 
   const templates = templatesData?.data || [];
   const pagination = templatesData?.pagination || {};
+  const warning = templatesData?.warning || '';
 
   const handleSendTemplate = async () => {
     if (!sendingTemplateId || !sendFromAddr || !sendPhones.trim()) return;
     setSending(true);
-    try {
-      const phones = sendPhones.split(',').map(p => p.trim()).filter(Boolean);
-      const paramsList = sendParams ? sendParams.split(',').map(p => p.trim()) : [];
 
-      const destination_addr = phones.map(phone => ({
-        phoneNumber: phone.replace(/[^0-9]/g, '').startsWith('0') ? '255' + phone.replace(/[^0-9]/g, '').substring(1) : phone.replace(/[^0-9]/g, ''),
+    try {
+      const phones = sendPhones.split(',').map((p) => p.trim()).filter(Boolean);
+      const paramsList = sendParams ? sendParams.split(',').map((p) => p.trim()) : [];
+
+      const destination_addr = phones.map((phone) => ({
+        phoneNumber: phone.replace(/[^0-9]/g, '').startsWith('0')
+          ? '255' + phone.replace(/[^0-9]/g, '').substring(1)
+          : phone.replace(/[^0-9]/g, ''),
         params: paramsList,
       }));
 
@@ -83,6 +107,7 @@ const WhatsAppTemplates = () => {
           userId: user?.id,
         },
       });
+
       if (error) throw error;
 
       const valid = data?.data?.validation?.validCounts || 0;
@@ -110,7 +135,12 @@ const WhatsAppTemplates = () => {
         </Button>
       </div>
 
-      {/* Filters */}
+      {warning && (
+        <div className="rounded-lg border border-border bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
+          {warning}
+        </div>
+      )}
+
       <Card>
         <CardContent className="pt-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -140,13 +170,12 @@ const WhatsAppTemplates = () => {
             </div>
             <div>
               <Label>Search</Label>
-              <Input placeholder="Search templates..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+              <Input placeholder="Search templates..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Templates Table */}
       {isLoading ? (
         <div className="text-center py-10 text-muted-foreground"><Loader2 className="w-6 h-6 mx-auto animate-spin" /></div>
       ) : templates.length === 0 ? (
@@ -198,20 +227,20 @@ const WhatsAppTemplates = () => {
                             )}
                             <div>
                               <Label>From (WhatsApp Business Number)</Label>
-                              <Input value={sendFromAddr} onChange={e => setSendFromAddr(e.target.value)} placeholder="255701000000" />
+                              <Input value={sendFromAddr} onChange={(e) => setSendFromAddr(e.target.value)} placeholder="255701000000" />
                             </div>
                             <div>
                               <Label>Phone Numbers (comma separated)</Label>
-                              <Input value={sendPhones} onChange={e => setSendPhones(e.target.value)} placeholder="255701000001, 255701000002" />
+                              <Input value={sendPhones} onChange={(e) => setSendPhones(e.target.value)} placeholder="255701000001, 255701000002" />
                             </div>
                             <div>
                               <Label>Parameters (comma separated, for {'{{1}}, {{2}}'} etc.)</Label>
-                              <Input value={sendParams} onChange={e => setSendParams(e.target.value)} placeholder="John, Event Name" />
+                              <Input value={sendParams} onChange={(e) => setSendParams(e.target.value)} placeholder="John, Event Name" />
                             </div>
                             {tpl.mediaUrl && (
                               <div>
                                 <Label>Media URL (optional)</Label>
-                                <Input value={sendMediaUrl} onChange={e => setSendMediaUrl(e.target.value)} placeholder="https://..." />
+                                <Input value={sendMediaUrl} onChange={(e) => setSendMediaUrl(e.target.value)} placeholder="https://..." />
                               </div>
                             )}
                             <Button onClick={handleSendTemplate} disabled={sending || !sendFromAddr || !sendPhones.trim()} className="w-full">
