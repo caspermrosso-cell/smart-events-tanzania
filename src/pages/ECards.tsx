@@ -108,13 +108,13 @@ const ECards = () => {
   const buildQRData = () => {
     if (!selectedEventData) return '';
     const lines = [
-      `📌 ${selectedEventData.title}`,
-      `📅 ${new Date(selectedEventData.event_date).toLocaleDateString('sw-TZ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`,
-      `⏰ ${new Date(selectedEventData.event_date).toLocaleTimeString('sw-TZ', { hour: '2-digit', minute: '2-digit' })}`,
+      `${selectedEventData.title}`,
+      `${new Date(selectedEventData.event_date).toLocaleDateString('sw-TZ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`,
+      `${new Date(selectedEventData.event_date).toLocaleTimeString('sw-TZ', { hour: '2-digit', minute: '2-digit' })}`,
     ];
     if (venue) {
-      lines.push(`📍 ${venue}`);
-      lines.push(`🗺️ ${getGoogleMapsUrl(venue)}`);
+      lines.push(venue);
+      lines.push(getGoogleMapsUrl(venue));
     }
     return lines.join('\n');
   };

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { AlertTriangle, RefreshCw, XCircle, Info, Trash2 } from 'lucide-react';
+import { AlertTriangle, RefreshCw, XCircle, Info, Trash2, Lightbulb } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -159,7 +159,7 @@ const SmsErrorLogs = () => {
                     <div>
                       <p className="text-sm font-medium text-foreground">{info.label}</p>
                       <p className="text-xs text-muted-foreground">{info.description}</p>
-                      <p className="text-xs text-primary mt-0.5">💡 {info.fix}</p>
+                      <p className="text-xs text-primary mt-0.5 flex items-center gap-1"><Lightbulb className="w-3 h-3" /> {info.fix}</p>
                     </div>
                   </div>
                 ))}

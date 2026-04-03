@@ -51,7 +51,7 @@ const CheckIn = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['checkin-guests'] });
-      toast.success('Mgeni ameingia! ✅');
+      toast.success('Mgeni ameingia!');
     },
     onError: () => toast.error('Imeshindikana ku-check in'),
   });

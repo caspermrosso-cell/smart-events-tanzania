@@ -1,5 +1,6 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import { motion } from 'framer-motion';
+import { ArrowRight } from 'lucide-react';
 import heroImage from '@/assets/hero-events.jpg';
 
 const Hero = () => {
@@ -39,13 +40,15 @@ const Hero = () => {
               onClick={() => scrollTo('contact')}
               className="px-8 py-4 rounded-lg bg-primary text-primary-foreground font-semibold text-lg hover:bg-accent transition-all shadow-warm"
             >
-              {isEn ? '👉 Book a Demo' : '👉 Omba Demo'}
+              <ArrowRight className="w-5 h-5 inline-block mr-2" />
+              {isEn ? 'Book a Demo' : 'Omba Demo'}
             </button>
             <button
               onClick={() => scrollTo('howitworks')}
               className="px-8 py-4 rounded-lg border-2 border-white/30 text-white font-semibold text-lg hover:bg-white/10 transition-all"
             >
-              {isEn ? '👉 See How It Works' : '👉 Jinsi Inavyofanya Kazi'}
+              <ArrowRight className="w-5 h-5 inline-block mr-2" />
+              {isEn ? 'See How It Works' : 'Jinsi Inavyofanya Kazi'}
             </button>
           </div>
           <p className="text-white/50 text-sm">

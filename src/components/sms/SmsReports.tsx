@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { BarChart3, CheckCircle, XCircle, Clock, TrendingUp, FileText, FileSpreadsheet, Signal, CalendarDays } from 'lucide-react';
+import { BarChart3, CheckCircle, XCircle, Clock, TrendingUp, FileText, FileSpreadsheet, Signal, CalendarDays, PartyPopper, ClipboardList } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
@@ -355,11 +355,11 @@ const SmsReports = () => {
               <SelectValue placeholder="Chagua Tukio" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">📊 Matukio Yote</SelectItem>
-              <SelectItem value="no-event">📝 Bila Tukio</SelectItem>
+              <SelectItem value="all"><span className="flex items-center gap-1.5"><BarChart3 className="w-3.5 h-3.5" /> Matukio Yote</span></SelectItem>
+              <SelectItem value="no-event"><span className="flex items-center gap-1.5"><ClipboardList className="w-3.5 h-3.5" /> Bila Tukio</span></SelectItem>
               {events.map((event: any) => (
                 <SelectItem key={event.id} value={event.id}>
-                  🎉 {event.title}
+                  <span className="flex items-center gap-1.5"><PartyPopper className="w-3.5 h-3.5" /> {event.title}</span>
                 </SelectItem>
               ))}
             </SelectContent>
