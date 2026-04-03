@@ -108,6 +108,7 @@ export const translations = {
     'admin.guests': 'Guests',
     'admin.pledges': 'Contributions',
     'admin.sms': 'SMS',
+    'admin.whatsapp': 'WhatsApp',
     'admin.ecards': 'E-Cards',
     'admin.checkin': 'Check-In',
     'admin.payments': 'Payments',
