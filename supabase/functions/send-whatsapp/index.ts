@@ -8,7 +8,7 @@ const corsHeaders = {
 
 const CHAT_API_URL = 'https://apichatcore.beem.africa/v1/chatapi';
 const ACTIVE_SESSIONS_URL = 'https://apichatcore.beem.africa/v1/chatapi/active-users';
-const TEMPLATES_URL = 'https://apichatcore.beem.africa/v1/message-templates/list';
+const TEMPLATES_URL = 'https://apibroadcast.beem.africa/v1/message-templates/list';
 const BROADCAST_TEMPLATE_URL = 'https://apibroadcast.beem.africa/v1/broadcast/template/api-send';
 
 function getAuthHeader(): string {
