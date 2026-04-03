@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { BarChart3, CheckCircle, XCircle, Clock, TrendingUp, FileText, FileSpreadsheet, Signal, CalendarDays } from 'lucide-react';
+import { BarChart3, CheckCircle, XCircle, Clock, TrendingUp, FileText, FileSpreadsheet, Signal, CalendarDays, PartyPopper, ClipboardList } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
