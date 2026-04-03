@@ -1,5 +1,6 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import { motion } from 'framer-motion';
+import { ArrowRight } from 'lucide-react';
 
 const CtaSection = () => {
   const { language } = useLanguage();
