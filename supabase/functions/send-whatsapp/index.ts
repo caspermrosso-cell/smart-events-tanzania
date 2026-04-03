@@ -3,13 +3,21 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 const CHAT_API_URL = 'https://apichatcore.beem.africa/v1/chatapi';
 const ACTIVE_SESSIONS_URL = 'https://apichatcore.beem.africa/v1/chatapi/active-users';
 const TEMPLATES_URL = 'https://apibroadcast.beem.africa/v1/message-templates/list';
 const BROADCAST_TEMPLATE_URL = 'https://apibroadcast.beem.africa/v1/broadcast/template/api-send';
+
+type BeemRequestResult = {
+  ok: boolean;
+  status: number;
+  data: any | null;
+  contentType: string;
+  rawText: string;
+};
 
 function getAuthHeader(): string {
   const apiKey = Deno.env.get('BEEM_API_KEY');
@@ -26,45 +34,89 @@ function getSupabaseClient() {
   return createClient(url, key);
 }
 
-async function safeJson(response: Response): Promise<any> {
-  const text = await response.text();
-  try {
-    return JSON.parse(text);
-  } catch {
-    console.error('Beem returned non-JSON:', response.status, text.substring(0, 500));
-    throw new Error(`Beem API returned non-JSON response (HTTP ${response.status}). This usually means invalid credentials or wrong API URL.`);
+async function makeBeemRequest(url: string, init: RequestInit): Promise<BeemRequestResult> {
+  const response = await fetch(url, init);
+  const contentType = response.headers.get('content-type') ?? '';
+  const rawText = await response.text();
+
+  let data: any | null = null;
+  if (rawText) {
+    try {
+      data = JSON.parse(rawText);
+    } catch {
+      data = null;
+    }
   }
+
+  if (!response.ok) {
+    console.error('Beem request failed:', JSON.stringify({
+      url,
+      status: response.status,
+      contentType,
+      body: rawText.substring(0, 500),
+    }));
+  }
+
+  return {
+    ok: response.ok,
+    status: response.status,
+    data,
+    contentType,
+    rawText,
+  };
+}
+
+function getBeemErrorMessage(result: BeemRequestResult, fallback: string): string {
+  if (result.data?.message) {
+    return `${fallback} (HTTP ${result.status}): ${result.data.message}`;
+  }
+
+  if (result.data) {
+    return `${fallback} (HTTP ${result.status}): ${JSON.stringify(result.data)}`;
+  }
+
+  const cleanText = result.rawText.replace(/\s+/g, ' ').trim().slice(0, 240);
+  return `${fallback} (HTTP ${result.status})${result.contentType ? ` [${result.contentType}]` : ''}: ${cleanText || 'No response body'}`;
 }
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
     const authHeader = getAuthHeader();
-    const body = await req.json();
+
+    let body: any;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(JSON.stringify({ error: 'Invalid JSON payload received.' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { action } = body;
 
-    // ========== GET ACTIVE SESSIONS ==========
     if (action === 'active-sessions') {
-      const response = await fetch(ACTIVE_SESSIONS_URL, {
+      const result = await makeBeemRequest(ACTIVE_SESSIONS_URL, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': authHeader,
         },
       });
-      const data = await safeJson(response);
-      if (!response.ok) {
-        throw new Error(`Active sessions failed [${response.status}]: ${JSON.stringify(data)}`);
+
+      if (!result.ok || !result.data) {
+        throw new Error(getBeemErrorMessage(result, 'Active sessions failed'));
       }
-      return new Response(JSON.stringify({ success: true, data }), {
+
+      return new Response(JSON.stringify({ success: true, data: result.data }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // ========== FETCH WHATSAPP TEMPLATES ==========
     if (action === 'templates') {
       const params = new URLSearchParams();
       if (body.name) params.set('name', body.name);
@@ -74,23 +126,36 @@ serve(async (req) => {
 
       const url = `${TEMPLATES_URL}${params.toString() ? '?' + params.toString() : ''}`;
       console.log('Fetching templates from:', url);
-      const response = await fetch(url, {
+
+      const result = await makeBeemRequest(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': authHeader,
         },
       });
-      const data = await safeJson(response);
-      if (!response.ok) {
-        throw new Error(`Templates fetch failed [${response.status}]: ${JSON.stringify(data)}`);
+
+      if (!result.ok || !result.data) {
+        return new Response(JSON.stringify({
+          success: false,
+          data: {
+            data: [],
+            pagination: {},
+          },
+          warning: result.status === 500
+            ? 'Beem templates service is returning an upstream error. Confirm your Beem account has WhatsApp Broadcast/Templates enabled.'
+            : getBeemErrorMessage(result, 'Templates fetch failed'),
+        }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
       }
-      return new Response(JSON.stringify({ success: true, data }), {
+
+      return new Response(JSON.stringify({ success: true, data: result.data }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // ========== SEND TEMPLATE MESSAGE (BROADCAST) ==========
     if (action === 'send-template') {
       const { from_addr, destination_addr, channel, content, messageTemplateData, userId, eventId } = body;
 
@@ -101,7 +166,7 @@ serve(async (req) => {
         });
       }
 
-      const response = await fetch(BROADCAST_TEMPLATE_URL, {
+      const result = await makeBeemRequest(BROADCAST_TEMPLATE_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -116,9 +181,8 @@ serve(async (req) => {
         }),
       });
 
-      const data = await safeJson(response);
+      const data = result.data ?? { error: getBeemErrorMessage(result, 'Template send failed') };
 
-      // Log to database
       if (userId) {
         const supabase = getSupabaseClient();
         const logEntries = destination_addr.map((dest: any) => ({
@@ -129,14 +193,14 @@ serve(async (req) => {
           message_type: 'template',
           template_id: messageTemplateData.id,
           template_name: body.templateName || null,
-          status: response.ok ? 'sent' : 'failed',
+          status: result.ok ? 'sent' : 'failed',
           beem_response: data,
         }));
         await supabase.from('whatsapp_logs').insert(logEntries);
       }
 
-      if (!response.ok) {
-        throw new Error(`Template send failed [${response.status}]: ${JSON.stringify(data)}`);
+      if (!result.ok || !result.data) {
+        throw new Error(getBeemErrorMessage(result, 'Template send failed'));
       }
 
       return new Response(JSON.stringify({ success: true, data }), {
@@ -144,7 +208,6 @@ serve(async (req) => {
       });
     }
 
-    // ========== SEND CHAT MESSAGE ==========
     if (action === 'send-message') {
       const { from, to, channel, callback_url, message_type, transaction_id, text, image, document, audio, video, location, quick_reply, list_reply, userId, eventId, recipientName } = body;
 
@@ -173,7 +236,7 @@ serve(async (req) => {
       if (quick_reply) messagePayload.quick_reply = quick_reply;
       if (list_reply) messagePayload.list_reply = list_reply;
 
-      const response = await fetch(CHAT_API_URL, {
+      const result = await makeBeemRequest(CHAT_API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -182,7 +245,7 @@ serve(async (req) => {
         body: JSON.stringify(messagePayload),
       });
 
-      const data = await safeJson(response);
+      const data = result.data ?? { error: getBeemErrorMessage(result, 'Message send failed') };
 
       if (userId) {
         const supabase = getSupabaseClient();
@@ -195,13 +258,13 @@ serve(async (req) => {
           message_type,
           message_content: text || null,
           media_url: image?.url || document?.url || video?.url || null,
-          status: response.ok ? 'sent' : 'failed',
+          status: result.ok ? 'sent' : 'failed',
           beem_response: data,
         });
       }
 
-      if (!response.ok) {
-        throw new Error(`Message send failed [${response.status}]: ${JSON.stringify(data)}`);
+      if (!result.ok || !result.data) {
+        throw new Error(getBeemErrorMessage(result, 'Message send failed'));
       }
 
       return new Response(JSON.stringify({ success: true, data }), {
@@ -209,7 +272,6 @@ serve(async (req) => {
       });
     }
 
-    // ========== SEND BULK MESSAGES ==========
     if (action === 'send-bulk') {
       const { from, recipients, channel, message_type, text, image, document, video, location, quick_reply, list_reply, userId, eventId } = body;
 
@@ -248,7 +310,7 @@ serve(async (req) => {
         if (list_reply) messagePayload.list_reply = list_reply;
 
         try {
-          const response = await fetch(CHAT_API_URL, {
+          const result = await makeBeemRequest(CHAT_API_URL, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -257,9 +319,9 @@ serve(async (req) => {
             body: JSON.stringify(messagePayload),
           });
 
-          const data = await safeJson(response);
-          const status = response.ok ? 'sent' : 'failed';
-          results.push({ phone, name: recipient.name, status, response: data });
+          const responseData = result.data ?? { error: getBeemErrorMessage(result, 'Bulk message send failed') };
+          const status = result.ok && result.data ? 'sent' : 'failed';
+          results.push({ phone, name: recipient.name, status, response: responseData });
 
           if (supabase) {
             await supabase.from('whatsapp_logs').insert({
@@ -272,11 +334,12 @@ serve(async (req) => {
               message_content: personalizedText || null,
               media_url: image?.url || document?.url || video?.url || null,
               status,
-              beem_response: data,
+              beem_response: responseData,
             });
           }
         } catch (err) {
-          results.push({ phone, name: recipient.name, status: 'failed', error: err.message });
+          const message = err instanceof Error ? err.message : 'Unknown error';
+          results.push({ phone, name: recipient.name, status: 'failed', error: message });
           if (supabase) {
             await supabase.from('whatsapp_logs').insert({
               user_id: userId,
@@ -287,7 +350,7 @@ serve(async (req) => {
               message_type,
               message_content: personalizedText || null,
               status: 'failed',
-              beem_response: { error: err.message },
+              beem_response: { error: message },
             });
           }
         }
@@ -302,10 +365,9 @@ serve(async (req) => {
       status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-
   } catch (error) {
     console.error('WhatsApp Error:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'An unexpected error occurred.' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
