@@ -627,6 +627,68 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_logs: {
+        Row: {
+          beem_response: Json | null
+          channel: string
+          created_at: string
+          event_id: string | null
+          id: string
+          media_url: string | null
+          message_content: string | null
+          message_type: string
+          recipient_name: string | null
+          recipient_phone: string
+          status: string
+          template_id: number | null
+          template_name: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          beem_response?: Json | null
+          channel?: string
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          media_url?: string | null
+          message_content?: string | null
+          message_type?: string
+          recipient_name?: string | null
+          recipient_phone: string
+          status?: string
+          template_id?: number | null
+          template_name?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          beem_response?: Json | null
+          channel?: string
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          media_url?: string | null
+          message_content?: string | null
+          message_type?: string
+          recipient_name?: string | null
+          recipient_phone?: string
+          status?: string
+          template_id?: number | null
+          template_name?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_logs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
