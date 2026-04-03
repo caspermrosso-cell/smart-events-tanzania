@@ -152,8 +152,8 @@ const Packages = () => {
                       ))}
                     </ul>
                   </TableCell>
-                  <TableCell>{pkg.is_popular ? '⭐' : '—'}</TableCell>
-                  <TableCell>{pkg.is_active ? '✅' : '❌'}</TableCell>
+                  <TableCell>{pkg.is_popular ? <Star className="w-4 h-4 text-primary" /> : '—'}</TableCell>
+                  <TableCell>{pkg.is_active ? <CheckCircle className="w-4 h-4 text-green-600" /> : <XCircle className="w-4 h-4 text-destructive" />}</TableCell>
                   <TableCell className="text-right space-x-1">
                     <Button variant="ghost" size="icon" onClick={() => openEdit(pkg)}>
                       <Pencil className="w-4 h-4" />

@@ -32,7 +32,8 @@ const CtaSection = () => {
               onClick={() => scrollTo('contact')}
               className="px-8 py-4 rounded-lg bg-white text-foreground font-semibold text-lg hover:bg-white/90 transition-all shadow-warm"
             >
-              {isEn ? '👉 Book a Demo' : '👉 Omba Demo'}
+              <ArrowRight className="w-5 h-5 inline-block mr-2" />
+              {isEn ? 'Book a Demo' : 'Omba Demo'}
             </button>
             <button
               onClick={() => scrollTo('contact')}
