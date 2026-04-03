@@ -26,6 +26,16 @@ function getSupabaseClient() {
   return createClient(url, key);
 }
 
+async function safeJson(response: Response): Promise<any> {
+  const text = await response.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    console.error('Beem returned non-JSON:', response.status, text.substring(0, 500));
+    throw new Error(`Beem API returned non-JSON response (HTTP ${response.status}). This usually means invalid credentials or wrong API URL.`);
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -45,7 +55,7 @@ serve(async (req) => {
           'Authorization': authHeader,
         },
       });
-      const data = await response.json();
+      const data = await safeJson(response);
       if (!response.ok) {
         throw new Error(`Active sessions failed [${response.status}]: ${JSON.stringify(data)}`);
       }
@@ -63,6 +73,7 @@ serve(async (req) => {
       if (body.q) params.set('q', body.q);
 
       const url = `${TEMPLATES_URL}${params.toString() ? '?' + params.toString() : ''}`;
+      console.log('Fetching templates from:', url);
       const response = await fetch(url, {
         method: 'GET',
         headers: {
@@ -70,7 +81,7 @@ serve(async (req) => {
           'Authorization': authHeader,
         },
       });
-      const data = await response.json();
+      const data = await safeJson(response);
       if (!response.ok) {
         throw new Error(`Templates fetch failed [${response.status}]: ${JSON.stringify(data)}`);
       }
@@ -105,7 +116,7 @@ serve(async (req) => {
         }),
       });
 
-      const data = await response.json();
+      const data = await safeJson(response);
 
       // Log to database
       if (userId) {
@@ -133,7 +144,7 @@ serve(async (req) => {
       });
     }
 
-    // ========== SEND CHAT MESSAGE (text, image, document, video, location, quick_reply, list) ==========
+    // ========== SEND CHAT MESSAGE ==========
     if (action === 'send-message') {
       const { from, to, channel, callback_url, message_type, transaction_id, text, image, document, audio, video, location, quick_reply, list_reply, userId, eventId, recipientName } = body;
 
@@ -171,9 +182,8 @@ serve(async (req) => {
         body: JSON.stringify(messagePayload),
       });
 
-      const data = await response.json();
+      const data = await safeJson(response);
 
-      // Log to database
       if (userId) {
         const supabase = getSupabaseClient();
         await supabase.from('whatsapp_logs').insert({
@@ -225,7 +235,6 @@ serve(async (req) => {
           message_type,
         };
 
-        // Personalize text with placeholders
         let personalizedText = text || '';
         if (personalizedText.includes('{name}')) {
           personalizedText = personalizedText.replace(/\{name\}/g, recipient.name || '');
@@ -248,7 +257,7 @@ serve(async (req) => {
             body: JSON.stringify(messagePayload),
           });
 
-          const data = await response.json();
+          const data = await safeJson(response);
           const status = response.ok ? 'sent' : 'failed';
           results.push({ phone, name: recipient.name, status, response: data });
 
