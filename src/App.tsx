@@ -18,6 +18,7 @@ import Guests from "./pages/Guests";
 import Pledges from "./pages/Pledges";
 import SMS from "./pages/SMS";
 import ECards from "./pages/ECards";
+import WhatsApp from "./pages/WhatsApp";
 import CheckIn from "./pages/CheckIn";
 import Reports from "./pages/Reports";
 import Payments from "./pages/Payments";
