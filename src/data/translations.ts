@@ -224,6 +224,7 @@ export const translations = {
     'admin.guests': 'Wageni',
     'admin.pledges': 'Michango',
     'admin.sms': 'SMS',
+    'admin.whatsapp': 'WhatsApp',
     'admin.ecards': 'E-Cards',
     'admin.checkin': 'Ukaguzi',
     'admin.payments': 'Malipo',

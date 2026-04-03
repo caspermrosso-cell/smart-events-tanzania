@@ -14,6 +14,7 @@ const navItems: { labelKey: TranslationKey; icon: any; href: string }[] = [
   { labelKey: 'admin.guests', icon: Users, href: '/guests' },
   { labelKey: 'admin.pledges', icon: CreditCard, href: '/pledges' },
   { labelKey: 'admin.sms', icon: MessageSquare, href: '/sms' },
+  { labelKey: 'admin.whatsapp', icon: MessageCircle, href: '/whatsapp' },
   { labelKey: 'admin.ecards', icon: Mail, href: '/ecards' },
   { labelKey: 'admin.checkin', icon: QrCode, href: '/checkin' },
   { labelKey: 'admin.payments', icon: Wallet, href: '/payments' },
