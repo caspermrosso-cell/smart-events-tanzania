@@ -239,7 +239,19 @@ const ECards = () => {
         {/* Preview / Recipients */}
         <div className="space-y-6">
           {previewMode && selectedEventData && (
-            <ECardPreview
+            activeCustom ? (
+              <CustomTemplateRenderer
+                template={activeCustom}
+                title={selectedEventData.title}
+                hostNames={hostNames}
+                customMessage={customMessage}
+                venue={venue}
+                eventDate={selectedEventData.event_date}
+                qrData={buildQRData()}
+                getMapsUrl={getGoogleMapsUrl}
+              />
+            ) : (
+              <ECardPreview
                 template={selectedTemplate}
                 title={selectedEventData.title}
                 hostNames={hostNames}
@@ -249,7 +261,8 @@ const ECards = () => {
                 eventPhoto={eventPhoto}
                 qrData={buildQRData()}
                 getMapsUrl={getGoogleMapsUrl}
-            />
+              />
+            )
           )}
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-card rounded-xl p-6">
