@@ -12,18 +12,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { QRCodeSVG } from 'qrcode.react';
 import DashboardLayout from '@/components/DashboardLayout';
-
-const CARD_TEMPLATES = [
-  { id: 'elegant', name: 'Kifahari', bg: 'from-primary to-accent', textColor: 'text-primary-foreground' },
-  { id: 'gold', name: 'Dhahabu', bg: 'from-yellow-600 to-amber-800', textColor: 'text-white' },
-  { id: 'floral', name: 'Maua', bg: 'from-pink-500 to-rose-700', textColor: 'text-white' },
-  { id: 'modern', name: 'Kisasa', bg: 'from-slate-800 to-slate-950', textColor: 'text-white' },
-];
+import ECardPreview, { CARD_TEMPLATES } from '@/components/ecards/ECardPreview';
 
 const ECards = () => {
   const { user } = useAuth();
   const [selectedEvent, setSelectedEvent] = useState('');
-  const [selectedTemplate, setSelectedTemplate] = useState('elegant');
+  const [selectedTemplate, setSelectedTemplate] = useState('royal-emerald');
   const [customMessage, setCustomMessage] = useState('Unaalikwa kwa heshima kubwa kushiriki nasi katika tukio letu maalum.');
   const [hostNames, setHostNames] = useState('');
   const [venue, setVenue] = useState('');
@@ -54,7 +48,6 @@ const ECards = () => {
   });
 
   const selectedEventData = events.find((e: any) => e.id === selectedEvent);
-  const template = CARD_TEMPLATES.find(t => t.id === selectedTemplate)!;
 
   const toggleGuest = (id: string) => {
     setSelectedGuests(prev => prev.includes(id) ? prev.filter(g => g !== id) : [...prev, id]);
@@ -144,7 +137,7 @@ const ECards = () => {
 
           <div>
             <Label>Muundo wa Kadi</Label>
-            <div className="grid grid-cols-2 gap-2 mt-1">
+            <div className="grid grid-cols-2 gap-2 mt-1 max-h-64 overflow-y-auto pr-1">
               {CARD_TEMPLATES.map(t => (
                 <button
                   key={t.id}
@@ -153,7 +146,7 @@ const ECards = () => {
                     selectedTemplate === t.id ? 'border-primary ring-2 ring-primary/30' : 'border-border hover:border-primary/50'
                   }`}
                 >
-                  <div className={`h-8 rounded bg-gradient-to-r ${t.bg} mb-1.5`} />
+                  <div className={`h-10 rounded bg-gradient-to-br ${t.preview} mb-1.5 shadow-sm`} />
                   {t.name}
                 </button>
               ))}
