@@ -52,6 +52,67 @@ const InfoRow = ({ icon: Icon, children }: any) => (
   </div>
 );
 
+// Template-aware overlay gradient that blends photo into card body
+const OVERLAYS: Record<string, string> = {
+  'royal-emerald': 'from-emerald-950/10 via-emerald-950/40 to-emerald-950',
+  'midnight-gold': 'from-neutral-950/10 via-neutral-950/50 to-neutral-950',
+  'rose-blush': 'from-rose-100/0 via-rose-100/30 to-rose-100',
+  'ocean-mist': 'from-cyan-900/10 via-blue-900/40 to-indigo-950',
+  'sahara-sunset': 'from-orange-500/0 via-red-700/30 to-purple-900',
+  'minimal-noir': 'from-neutral-950/10 via-neutral-950/50 to-neutral-950',
+  'platinum': 'from-slate-100/0 via-slate-100/30 to-slate-200',
+  'tropical-leaf': 'from-green-900/10 via-emerald-900/40 to-lime-950',
+};
+
+type PhotoHeaderProps = {
+  src?: string | null;
+  template: string;
+  title: string;
+  variant?: 'banner' | 'frame' | 'circle';
+};
+
+/**
+ * Photo header rendered inside each template.
+ * - banner: 16:9 hero with template-tinted gradient overlay (default)
+ * - frame:  bordered/inset photo with corner ornaments (royal/platinum)
+ * - circle: circular portrait centered (minimal/editorial)
+ */
+const PhotoHeader = ({ src, template, title, variant = 'banner' }: PhotoHeaderProps) => {
+  if (!src) return null;
+  const overlay = OVERLAYS[template] || 'from-black/0 via-black/30 to-black/70';
+
+  if (variant === 'circle') {
+    return (
+      <div className="flex justify-center mb-4">
+        <div className="relative w-28 h-28 rounded-full overflow-hidden ring-2 ring-white/30 shadow-xl">
+          <img src={src} alt={title} className="w-full h-full object-cover" loading="lazy" />
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 'frame') {
+    return (
+      <div className="relative mb-5 mx-auto">
+        <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl ring-1 ring-white/20 shadow-lg">
+          <img src={src} alt={title} className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+          <div className={`absolute inset-0 bg-gradient-to-b ${overlay} opacity-80`} />
+        </div>
+      </div>
+    );
+  }
+
+  // banner (default) — full-bleed 16:9 that blends into card body
+  return (
+    <div className="relative -mx-10 -mt-10 mb-6">
+      <div className="relative aspect-[16/9] w-full overflow-hidden">
+        <img src={src} alt={title} className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+        <div className={`absolute inset-0 bg-gradient-to-b ${overlay}`} />
+      </div>
+    </div>
+  );
+};
+
 export default function ECardPreview(props: Props) {
   const { template, title, hostNames, customMessage, venue, eventDate, eventPhoto, qrData, getMapsUrl } = props;
 
