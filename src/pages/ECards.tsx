@@ -13,6 +13,8 @@ import { toast } from 'sonner';
 import { QRCodeSVG } from 'qrcode.react';
 import DashboardLayout from '@/components/DashboardLayout';
 import ECardPreview, { CARD_TEMPLATES } from '@/components/ecards/ECardPreview';
+import CustomTemplateManager from '@/components/ecards/CustomTemplateManager';
+import CustomTemplateRenderer, { CustomTemplate } from '@/components/ecards/CustomTemplateRenderer';
 
 const ECards = () => {
   const { user } = useAuth();
@@ -35,6 +37,23 @@ const ECards = () => {
       return data;
     },
   });
+
+  const { data: customTemplates = [] } = useQuery({
+    queryKey: ['ecard-custom-templates'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('ecard_templates' as any)
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+  });
+
+  const activeCustom: CustomTemplate | null =
+    selectedTemplate.startsWith('custom:')
+      ? customTemplates.find((t: any) => `custom:${t.id}` === selectedTemplate) || null
+      : null;
 
   const { data: guests = [] } = useQuery({
     queryKey: ['ecard-guests', selectedEvent],
@@ -153,6 +172,12 @@ const ECards = () => {
             </div>
           </div>
 
+          <CustomTemplateManager
+            userId={user?.id}
+            selectedId={selectedTemplate}
+            onSelect={setSelectedTemplate}
+          />
+
           {/* Photo Upload */}
           <div>
             <Label>Picha ya Tukio</Label>
@@ -214,7 +239,19 @@ const ECards = () => {
         {/* Preview / Recipients */}
         <div className="space-y-6">
           {previewMode && selectedEventData && (
-            <ECardPreview
+            activeCustom ? (
+              <CustomTemplateRenderer
+                template={activeCustom}
+                title={selectedEventData.title}
+                hostNames={hostNames}
+                customMessage={customMessage}
+                venue={venue}
+                eventDate={selectedEventData.event_date}
+                qrData={buildQRData()}
+                getMapsUrl={getGoogleMapsUrl}
+              />
+            ) : (
+              <ECardPreview
                 template={selectedTemplate}
                 title={selectedEventData.title}
                 hostNames={hostNames}
@@ -224,7 +261,8 @@ const ECards = () => {
                 eventPhoto={eventPhoto}
                 qrData={buildQRData()}
                 getMapsUrl={getGoogleMapsUrl}
-            />
+              />
+            )
           )}
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-card rounded-xl p-6">
