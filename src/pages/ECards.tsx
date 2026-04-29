@@ -214,56 +214,25 @@ const ECards = () => {
         {/* Preview / Recipients */}
         <div className="space-y-6">
           {previewMode && selectedEventData && (
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="rounded-xl overflow-hidden shadow-warm">
-              {/* Event Photo */}
+            <div className="space-y-0 rounded-3xl overflow-hidden shadow-warm">
               {eventPhoto && (
-                <div className="relative h-48 overflow-hidden">
+                <div className="relative h-44 overflow-hidden rounded-t-3xl -mb-3">
                   <img src={eventPhoto} alt={selectedEventData.title} className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60" />
                 </div>
               )}
-              <div className={`bg-gradient-to-br ${template.bg} p-8 text-center ${template.textColor}`}>
-                <div className="border-2 border-white/30 rounded-xl p-6 backdrop-blur-sm">
-                  <p className="text-sm opacity-80 mb-2">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</p>
-                  <h3 className="font-heading text-3xl font-bold mb-4">{selectedEventData.title}</h3>
-                  {hostNames && <p className="text-lg mb-4 opacity-90">{hostNames}</p>}
-
-                  {/* Personalized guest name placeholder */}
-                  <p className="text-base font-semibold mb-3 opacity-90 italic">
-                    Ndugu: <span className="underline decoration-dotted">{'{ Jina la Mgeni }'}</span>
-                  </p>
-
-                  <div className="w-16 h-0.5 bg-white/40 mx-auto mb-4" />
-                  <p className="text-sm mb-4 leading-relaxed opacity-90">{customMessage}</p>
-                  <div className="space-y-1 text-sm">
-                    <p className="font-semibold">📅 {new Date(selectedEventData.event_date).toLocaleDateString('sw-TZ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                    <p className="font-semibold">⏰ Saa {new Date(selectedEventData.event_date).toLocaleTimeString('sw-TZ', { hour: '2-digit', minute: '2-digit' })}</p>
-                    {venue && (
-                      <p>
-                        📍{' '}
-                        <a href={getGoogleMapsUrl(venue)} target="_blank" rel="noopener noreferrer" className="underline hover:opacity-80">
-                          {venue}
-                        </a>
-                      </p>
-                    )}
-                  </div>
-
-                  {/* QR Code */}
-                  <div className="mt-6 flex flex-col items-center gap-2">
-                    <div className="bg-white rounded-lg p-3 inline-block">
-                      <QRCodeSVG value={buildQRData()} size={120} />
-                    </div>
-                    <p className="text-xs opacity-60 flex items-center gap-1">
-                      <QrCode className="w-3 h-3" /> Scan kupata taarifa na ramani
-                    </p>
-                  </div>
-
-                  <div className="mt-6 pt-4 border-t border-white/20">
-                    <p className="text-xs opacity-70">Powered by Smart Events</p>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
+              <ECardPreview
+                template={selectedTemplate}
+                title={selectedEventData.title}
+                hostNames={hostNames}
+                customMessage={customMessage}
+                venue={venue}
+                eventDate={selectedEventData.event_date}
+                eventPhoto={eventPhoto}
+                qrData={buildQRData()}
+                getMapsUrl={getGoogleMapsUrl}
+              />
+            </div>
           )}
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-card rounded-xl p-6">
