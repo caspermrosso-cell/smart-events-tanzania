@@ -52,6 +52,67 @@ const InfoRow = ({ icon: Icon, children }: any) => (
   </div>
 );
 
+// Template-aware overlay gradient that blends photo into card body
+const OVERLAYS: Record<string, string> = {
+  'royal-emerald': 'from-emerald-950/10 via-emerald-950/40 to-emerald-950',
+  'midnight-gold': 'from-neutral-950/10 via-neutral-950/50 to-neutral-950',
+  'rose-blush': 'from-rose-100/0 via-rose-100/30 to-rose-100',
+  'ocean-mist': 'from-cyan-900/10 via-blue-900/40 to-indigo-950',
+  'sahara-sunset': 'from-orange-500/0 via-red-700/30 to-purple-900',
+  'minimal-noir': 'from-neutral-950/10 via-neutral-950/50 to-neutral-950',
+  'platinum': 'from-slate-100/0 via-slate-100/30 to-slate-200',
+  'tropical-leaf': 'from-green-900/10 via-emerald-900/40 to-lime-950',
+};
+
+type PhotoHeaderProps = {
+  src?: string | null;
+  template: string;
+  title: string;
+  variant?: 'banner' | 'frame' | 'circle';
+};
+
+/**
+ * Photo header rendered inside each template.
+ * - banner: 16:9 hero with template-tinted gradient overlay (default)
+ * - frame:  bordered/inset photo with corner ornaments (royal/platinum)
+ * - circle: circular portrait centered (minimal/editorial)
+ */
+const PhotoHeader = ({ src, template, title, variant = 'banner' }: PhotoHeaderProps) => {
+  if (!src) return null;
+  const overlay = OVERLAYS[template] || 'from-black/0 via-black/30 to-black/70';
+
+  if (variant === 'circle') {
+    return (
+      <div className="flex justify-center mb-4">
+        <div className="relative w-28 h-28 rounded-full overflow-hidden ring-2 ring-white/30 shadow-xl">
+          <img src={src} alt={title} className="w-full h-full object-cover" loading="lazy" />
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === 'frame') {
+    return (
+      <div className="relative mb-5 mx-auto">
+        <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl ring-1 ring-white/20 shadow-lg">
+          <img src={src} alt={title} className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+          <div className={`absolute inset-0 bg-gradient-to-b ${overlay} opacity-80`} />
+        </div>
+      </div>
+    );
+  }
+
+  // banner (default) — full-bleed 16:9 that blends into card body
+  return (
+    <div className="relative -mx-10 -mt-10 mb-6">
+      <div className="relative aspect-[16/9] w-full overflow-hidden">
+        <img src={src} alt={title} className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+        <div className={`absolute inset-0 bg-gradient-to-b ${overlay}`} />
+      </div>
+    </div>
+  );
+};
+
 export default function ECardPreview(props: Props) {
   const { template, title, hostNames, customMessage, venue, eventDate, eventPhoto, qrData, getMapsUrl } = props;
 
@@ -90,6 +151,7 @@ export default function ECardPreview(props: Props) {
         <div className="absolute bottom-6 right-6 w-10 h-10 border-r-2 border-b-2 border-amber-400/60 rounded-br-xl" />
 
         <div className="relative pt-6">
+          <PhotoHeader src={eventPhoto} template="royal-emerald" title={title} variant="frame" />
           <Crown className="w-8 h-8 mx-auto text-amber-400 mb-3" />
           <p className="text-[10px] tracking-[0.5em] uppercase text-amber-300/80 mb-2">You are cordially invited</p>
           <div className="w-20 h-px bg-amber-400/60 mx-auto mb-4" />
@@ -117,6 +179,7 @@ export default function ECardPreview(props: Props) {
           backgroundImage: 'radial-gradient(circle at 20% 20%, rgba(251,191,36,0.4), transparent 40%), radial-gradient(circle at 80% 80%, rgba(251,191,36,0.3), transparent 40%)'
         }} />
         <div className="relative">
+          <PhotoHeader src={eventPhoto} template="midnight-gold" title={title} variant="banner" />
           <div className="flex items-center justify-center gap-2 mb-4">
             <div className="h-px w-12 bg-gradient-to-r from-transparent to-amber-400" />
             <Sparkles className="w-4 h-4 text-amber-400" />
@@ -147,6 +210,7 @@ export default function ECardPreview(props: Props) {
         <Flower2 className="absolute bottom-4 right-4 w-20 h-20 text-rose-400/40 rotate-45" />
         <Heart className="absolute top-1/2 right-8 w-6 h-6 text-rose-400/30" />
         <div className="relative">
+          <PhotoHeader src={eventPhoto} template="rose-blush" title={title} variant="banner" />
           <p className="text-[10px] tracking-[0.5em] uppercase text-rose-700/70 mb-3">Together with our families</p>
           <h3 className="text-4xl mb-4 text-rose-900" style={{ fontFamily: '"Brush Script MT", cursive' }}>
             {title}
@@ -175,6 +239,7 @@ export default function ECardPreview(props: Props) {
         <div className="absolute -top-20 -left-20 w-64 h-64 bg-cyan-400/20 rounded-full blur-3xl" />
         <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-indigo-500/30 rounded-full blur-3xl" />
         <div className="relative backdrop-blur-sm bg-white/5 border border-white/20 rounded-2xl p-6">
+          <PhotoHeader src={eventPhoto} template="ocean-mist" title={title} variant="frame" />
           <Gem className="w-8 h-8 mx-auto text-cyan-300 mb-3" />
           <p className="text-[10px] tracking-[0.5em] uppercase text-cyan-200 mb-2">Save the date</p>
           <h3 className="font-heading text-4xl font-bold mb-3">{title}</h3>
@@ -196,6 +261,7 @@ export default function ECardPreview(props: Props) {
       <div className="relative bg-gradient-to-br from-orange-500 via-red-600 to-purple-900 text-white p-10 text-center overflow-hidden">
         <div className="absolute top-10 right-10 w-32 h-32 rounded-full bg-yellow-300/30 blur-2xl" />
         <div className="relative">
+          <PhotoHeader src={eventPhoto} template="sahara-sunset" title={title} variant="banner" />
           <Star className="w-7 h-7 mx-auto text-yellow-200 mb-3 fill-yellow-200" />
           <p className="text-[10px] tracking-[0.5em] uppercase text-yellow-100 mb-2">A celebration awaits</p>
           <h3 className="font-heading text-5xl font-black mb-3 drop-shadow-lg">{title}</h3>
@@ -216,6 +282,11 @@ export default function ECardPreview(props: Props) {
     return wrap(
       <div className="relative bg-neutral-950 text-white p-12 text-left">
         <div className="border-l-2 border-white pl-6">
+          {eventPhoto && (
+            <div className="mb-6 -mr-12 aspect-[16/9] overflow-hidden">
+              <img src={eventPhoto} alt={title} className="w-full h-full object-cover grayscale contrast-110" loading="lazy" />
+            </div>
+          )}
           <p className="text-[10px] tracking-[0.6em] uppercase text-white/50 mb-6">Invitation · No.001</p>
           <h3 className="font-heading text-5xl font-light leading-tight mb-6">{title}</h3>
           <div className="w-12 h-px bg-white mb-6" />
@@ -248,6 +319,7 @@ export default function ECardPreview(props: Props) {
       <div className="relative bg-gradient-to-br from-slate-50 via-zinc-100 to-slate-200 text-slate-900 p-10 text-center overflow-hidden">
         <div className="absolute inset-6 border border-slate-400/40 rounded-2xl pointer-events-none" />
         <div className="relative">
+          <PhotoHeader src={eventPhoto} template="platinum" title={title} variant="frame" />
           <Sparkles className="w-7 h-7 mx-auto text-slate-700 mb-3" />
           <p className="text-[10px] tracking-[0.5em] uppercase text-slate-600 mb-2">Cordially invites you</p>
           <h3 className="font-heading text-4xl font-bold mb-3 text-slate-900" style={{ fontFamily: 'Georgia, serif' }}>{title}</h3>
@@ -271,6 +343,7 @@ export default function ECardPreview(props: Props) {
         <Flower2 className="absolute -top-6 -left-6 w-32 h-32 text-emerald-400/20 rotate-12" />
         <Flower2 className="absolute -bottom-6 -right-6 w-32 h-32 text-lime-300/20 -rotate-45" />
         <div className="relative">
+          <PhotoHeader src={eventPhoto} template="tropical-leaf" title={title} variant="banner" />
           <p className="text-[10px] tracking-[0.5em] uppercase text-lime-300 mb-3">A garden celebration</p>
           <h3 className="font-heading text-4xl font-bold mb-3">{title}</h3>
           <div className="flex items-center justify-center gap-3 mb-4">

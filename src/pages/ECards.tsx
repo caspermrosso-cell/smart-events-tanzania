@@ -214,14 +214,7 @@ const ECards = () => {
         {/* Preview / Recipients */}
         <div className="space-y-6">
           {previewMode && selectedEventData && (
-            <div className="space-y-0 rounded-3xl overflow-hidden shadow-warm">
-              {eventPhoto && (
-                <div className="relative h-44 overflow-hidden rounded-t-3xl -mb-3">
-                  <img src={eventPhoto} alt={selectedEventData.title} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60" />
-                </div>
-              )}
-              <ECardPreview
+            <ECardPreview
                 template={selectedTemplate}
                 title={selectedEventData.title}
                 hostNames={hostNames}
@@ -231,8 +224,7 @@ const ECards = () => {
                 eventPhoto={eventPhoto}
                 qrData={buildQRData()}
                 getMapsUrl={getGoogleMapsUrl}
-              />
-            </div>
+            />
           )}
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-card rounded-xl p-6">
