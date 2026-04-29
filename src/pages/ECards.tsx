@@ -12,18 +12,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { QRCodeSVG } from 'qrcode.react';
 import DashboardLayout from '@/components/DashboardLayout';
-
-const CARD_TEMPLATES = [
-  { id: 'elegant', name: 'Kifahari', bg: 'from-primary to-accent', textColor: 'text-primary-foreground' },
-  { id: 'gold', name: 'Dhahabu', bg: 'from-yellow-600 to-amber-800', textColor: 'text-white' },
-  { id: 'floral', name: 'Maua', bg: 'from-pink-500 to-rose-700', textColor: 'text-white' },
-  { id: 'modern', name: 'Kisasa', bg: 'from-slate-800 to-slate-950', textColor: 'text-white' },
-];
+import ECardPreview, { CARD_TEMPLATES } from '@/components/ecards/ECardPreview';
 
 const ECards = () => {
   const { user } = useAuth();
   const [selectedEvent, setSelectedEvent] = useState('');
-  const [selectedTemplate, setSelectedTemplate] = useState('elegant');
+  const [selectedTemplate, setSelectedTemplate] = useState('royal-emerald');
   const [customMessage, setCustomMessage] = useState('Unaalikwa kwa heshima kubwa kushiriki nasi katika tukio letu maalum.');
   const [hostNames, setHostNames] = useState('');
   const [venue, setVenue] = useState('');
@@ -54,7 +48,6 @@ const ECards = () => {
   });
 
   const selectedEventData = events.find((e: any) => e.id === selectedEvent);
-  const template = CARD_TEMPLATES.find(t => t.id === selectedTemplate)!;
 
   const toggleGuest = (id: string) => {
     setSelectedGuests(prev => prev.includes(id) ? prev.filter(g => g !== id) : [...prev, id]);
@@ -144,7 +137,7 @@ const ECards = () => {
 
           <div>
             <Label>Muundo wa Kadi</Label>
-            <div className="grid grid-cols-2 gap-2 mt-1">
+            <div className="grid grid-cols-2 gap-2 mt-1 max-h-64 overflow-y-auto pr-1">
               {CARD_TEMPLATES.map(t => (
                 <button
                   key={t.id}
@@ -153,7 +146,7 @@ const ECards = () => {
                     selectedTemplate === t.id ? 'border-primary ring-2 ring-primary/30' : 'border-border hover:border-primary/50'
                   }`}
                 >
-                  <div className={`h-8 rounded bg-gradient-to-r ${t.bg} mb-1.5`} />
+                  <div className={`h-10 rounded bg-gradient-to-br ${t.preview} mb-1.5 shadow-sm`} />
                   {t.name}
                 </button>
               ))}
@@ -221,56 +214,25 @@ const ECards = () => {
         {/* Preview / Recipients */}
         <div className="space-y-6">
           {previewMode && selectedEventData && (
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="rounded-xl overflow-hidden shadow-warm">
-              {/* Event Photo */}
+            <div className="space-y-0 rounded-3xl overflow-hidden shadow-warm">
               {eventPhoto && (
-                <div className="relative h-48 overflow-hidden">
+                <div className="relative h-44 overflow-hidden rounded-t-3xl -mb-3">
                   <img src={eventPhoto} alt={selectedEventData.title} className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60" />
                 </div>
               )}
-              <div className={`bg-gradient-to-br ${template.bg} p-8 text-center ${template.textColor}`}>
-                <div className="border-2 border-white/30 rounded-xl p-6 backdrop-blur-sm">
-                  <p className="text-sm opacity-80 mb-2">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</p>
-                  <h3 className="font-heading text-3xl font-bold mb-4">{selectedEventData.title}</h3>
-                  {hostNames && <p className="text-lg mb-4 opacity-90">{hostNames}</p>}
-
-                  {/* Personalized guest name placeholder */}
-                  <p className="text-base font-semibold mb-3 opacity-90 italic">
-                    Ndugu: <span className="underline decoration-dotted">{'{ Jina la Mgeni }'}</span>
-                  </p>
-
-                  <div className="w-16 h-0.5 bg-white/40 mx-auto mb-4" />
-                  <p className="text-sm mb-4 leading-relaxed opacity-90">{customMessage}</p>
-                  <div className="space-y-1 text-sm">
-                    <p className="font-semibold">📅 {new Date(selectedEventData.event_date).toLocaleDateString('sw-TZ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                    <p className="font-semibold">⏰ Saa {new Date(selectedEventData.event_date).toLocaleTimeString('sw-TZ', { hour: '2-digit', minute: '2-digit' })}</p>
-                    {venue && (
-                      <p>
-                        📍{' '}
-                        <a href={getGoogleMapsUrl(venue)} target="_blank" rel="noopener noreferrer" className="underline hover:opacity-80">
-                          {venue}
-                        </a>
-                      </p>
-                    )}
-                  </div>
-
-                  {/* QR Code */}
-                  <div className="mt-6 flex flex-col items-center gap-2">
-                    <div className="bg-white rounded-lg p-3 inline-block">
-                      <QRCodeSVG value={buildQRData()} size={120} />
-                    </div>
-                    <p className="text-xs opacity-60 flex items-center gap-1">
-                      <QrCode className="w-3 h-3" /> Scan kupata taarifa na ramani
-                    </p>
-                  </div>
-
-                  <div className="mt-6 pt-4 border-t border-white/20">
-                    <p className="text-xs opacity-70">Powered by Smart Events</p>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
+              <ECardPreview
+                template={selectedTemplate}
+                title={selectedEventData.title}
+                hostNames={hostNames}
+                customMessage={customMessage}
+                venue={venue}
+                eventDate={selectedEventData.event_date}
+                eventPhoto={eventPhoto}
+                qrData={buildQRData()}
+                getMapsUrl={getGoogleMapsUrl}
+              />
+            </div>
           )}
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-card rounded-xl p-6">
