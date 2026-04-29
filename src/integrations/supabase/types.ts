@@ -53,6 +53,42 @@ export type Database = {
         }
         Relationships: []
       }
+      ecard_templates: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string
+          is_global: boolean
+          name: string
+          overlay_style: string
+          text_color: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url: string
+          is_global?: boolean
+          name: string
+          overlay_style?: string
+          text_color?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string
+          is_global?: boolean
+          name?: string
+          overlay_style?: string
+          text_color?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           budget: number | null
