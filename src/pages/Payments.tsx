@@ -148,7 +148,7 @@ const Payments = () => {
         })}
       </div>
 
-      {/* Selcom QR Code + Total */}
+      {/* NBC Merchant QR Code + Total */}
       <div className="grid sm:grid-cols-2 gap-4 mb-6">
         <div className="glass-card rounded-xl p-4">
           <p className="text-sm text-muted-foreground">Jumla ya Malipo Yaliyopokelewa</p>
