@@ -22,7 +22,8 @@ const PACKAGE_LABELS: Record<string, string> = {
 };
 
 const METHOD_LABELS: Record<string, string> = {
-  selcom: 'Selcom Pesa',
+  nbc: 'NBC Merchant',
+  selcom: 'NBC Merchant', // legacy
   bank: 'Bank Transfer',
   cash: 'Cash',
   mpesa: 'M-Pesa', // legacy
@@ -162,10 +163,10 @@ const Reports = () => {
       const monthStr = format(month, 'yyyy-MM');
       const label = format(month, 'MMM yyyy');
       const monthPayments = payments.filter((p: any) => format(new Date(p.created_at), 'yyyy-MM') === monthStr);
-      const selcom = monthPayments.filter((p: any) => p.payment_method === 'selcom' || p.payment_method === 'mpesa').reduce((s: number, p: any) => s + Number(p.amount), 0);
+      const nbc = monthPayments.filter((p: any) => p.payment_method === 'nbc' || p.payment_method === 'selcom' || p.payment_method === 'mpesa').reduce((s: number, p: any) => s + Number(p.amount), 0);
       const bank = monthPayments.filter((p: any) => p.payment_method === 'bank').reduce((s: number, p: any) => s + Number(p.amount), 0);
       const cash = monthPayments.filter((p: any) => p.payment_method === 'cash').reduce((s: number, p: any) => s + Number(p.amount), 0);
-      return { name: label, 'Selcom': selcom, Bank: bank, Cash: cash, total: selcom + bank + cash };
+      return { name: label, 'NBC': nbc, Bank: bank, Cash: cash, total: nbc + bank + cash };
     });
   }, [payments]);
 
@@ -359,7 +360,7 @@ const Reports = () => {
                   <YAxis tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
                   <Tooltip formatter={(v: number) => `TZS ${v.toLocaleString()}`} contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8 }} />
                   <Legend />
-                  <Bar dataKey="Selcom" stackId="a" fill="#22c55e" radius={[0, 0, 0, 0]} />
+                  <Bar dataKey="NBC" stackId="a" fill="#22c55e" radius={[0, 0, 0, 0]} />
                   <Bar dataKey="Bank" stackId="a" fill="#3b82f6" />
                   <Bar dataKey="Cash" stackId="a" fill="#f59e0b" radius={[4, 4, 0, 0]} />
                 </BarChart>
@@ -426,7 +427,7 @@ const Reports = () => {
                       <TableCell>{p.events?.title || '-'}</TableCell>
                       <TableCell>
                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                          p.payment_method === 'selcom' || p.payment_method === 'mpesa' ? 'bg-green-100 text-green-700' :
+                          p.payment_method === 'nbc' || p.payment_method === 'selcom' || p.payment_method === 'mpesa' ? 'bg-green-100 text-green-700' :
                           p.payment_method === 'bank' ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700'
                         }`}>{METHOD_LABELS[p.payment_method] || p.payment_method}</span>
                       </TableCell>

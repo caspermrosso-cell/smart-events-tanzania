@@ -47,7 +47,7 @@ const Quotations = () => {
   // Receipt form
   const [showReceiptForm, setShowReceiptForm] = useState(false);
   const [receiptInvoiceId, setReceiptInvoiceId] = useState('');
-  const [receiptPaymentMethod, setReceiptPaymentMethod] = useState('selcom');
+  const [receiptPaymentMethod, setReceiptPaymentMethod] = useState('nbc');
   const [receiptAmountInWords, setReceiptAmountInWords] = useState('');
 
   const { data: events = [] } = useQuery({
@@ -234,7 +234,7 @@ const Quotations = () => {
         subtotal: doc.amount_paid, vatEnabled: false, vatAmount: 0,
         discountType: 'fixed', discountValue: 0, discountAmount: 0,
         grandTotal: doc.amount_paid, amountInWords: doc.amount_in_words,
-        paymentMethod: doc.payment_method === 'selcom' ? 'Selcom Pesa' : doc.payment_method === 'bank' ? 'Bank Transfer' : doc.payment_method === 'mpesa' ? 'M-Pesa' : 'Cash',
+        paymentMethod: doc.payment_method === 'nbc' || doc.payment_method === 'selcom' ? 'NBC Merchant (41048485)' : doc.payment_method === 'bank' ? 'Bank Transfer' : doc.payment_method === 'mpesa' ? 'M-Pesa' : 'Cash',
         remarks: doc.remarks, invoiceRef: inv.invoice_number,
       };
     }
@@ -617,7 +617,7 @@ const Quotations = () => {
               <Select value={receiptPaymentMethod} onValueChange={setReceiptPaymentMethod}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="selcom">Selcom Pesa</SelectItem>
+                  <SelectItem value="nbc">NBC Merchant (41048485)</SelectItem>
                   <SelectItem value="bank">Bank Transfer</SelectItem>
                   <SelectItem value="cash">Cash</SelectItem>
                 </SelectContent>
