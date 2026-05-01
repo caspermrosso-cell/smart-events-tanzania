@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { CreditCard, Banknote, Smartphone, Plus, Search } from 'lucide-react';
+import { CreditCard, Banknote, Store, Plus, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -8,12 +8,13 @@ import { supabase } from '@/integrations/supabase/client';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import selcomQr from '@/assets/selcom-qr.png';
+import { QRCodeSVG } from 'qrcode.react';
 
-const SELCOM_ACCOUNT = '5525100337337';
+const NBC_MERCHANT_ID = '41048485';
+const NBC_MERCHANT_NAME = 'Smart Events Tanzania';
 
 const paymentMethods = [
-  { value: 'selcom', label: 'Selcom Pesa', icon: Smartphone, desc: `Account: ${SELCOM_ACCOUNT}` },
+  { value: 'nbc', label: 'NBC Merchant', icon: Store, desc: `Merchant ID: ${NBC_MERCHANT_ID}` },
   { value: 'bank', label: 'Bank Transfer', icon: Banknote, desc: 'Lipa kupitia benki' },
   { value: 'cash', label: 'Cash', icon: CreditCard, desc: 'Malipo ya taslimu' },
 ];
@@ -98,14 +99,15 @@ const Payments = () => {
   const totalReceived = (payments || []).reduce((s, p) => s + Number(p.amount), 0);
 
   const getMethodLabel = (method: string) => {
-    if (method === 'selcom') return 'Selcom';
+    if (method === 'nbc') return 'NBC Merchant';
+    if (method === 'selcom') return 'NBC Merchant'; // legacy data
     if (method === 'bank') return 'Bank';
     if (method === 'mpesa') return 'M-Pesa'; // legacy support
     return method === 'cash' ? 'Cash' : method;
   };
 
   const getMethodColor = (method: string) => {
-    if (method === 'selcom') return 'bg-green-100 text-green-700';
+    if (method === 'nbc' || method === 'selcom') return 'bg-green-100 text-green-700';
     if (method === 'bank') return 'bg-blue-100 text-blue-700';
     return 'bg-yellow-100 text-yellow-700';
   };
@@ -154,12 +156,12 @@ const Payments = () => {
         </div>
         <div className="glass-card rounded-xl p-4 flex items-center gap-4">
           <div className="bg-white rounded-lg p-1.5 shrink-0">
-            <img src={selcomQr} alt="Selcom Pesa" className="w-[76px] h-[76px] object-contain" />
+            <QRCodeSVG value={NBC_MERCHANT_ID} size={76} />
           </div>
           <div>
-            <p className="text-sm font-semibold text-foreground">Selcom Pesa</p>
-            <p className="text-xl font-bold text-foreground">{SELCOM_ACCOUNT}</p>
-            <p className="text-xs text-muted-foreground">Scan QR code kulipa kupitia Selcom</p>
+            <p className="text-sm font-semibold text-foreground">NBC Merchant — {NBC_MERCHANT_NAME}</p>
+            <p className="text-xl font-bold text-foreground">{NBC_MERCHANT_ID}</p>
+            <p className="text-xs text-muted-foreground">Scan QR au tumia Merchant ID kulipa (Mobile Money au Benki)</p>
           </div>
         </div>
       </div>

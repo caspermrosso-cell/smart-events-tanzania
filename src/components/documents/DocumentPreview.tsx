@@ -3,7 +3,8 @@ import smartEventsLogo from '@/assets/smart-events-logo.png';
 
 import { QRCodeCanvas } from 'qrcode.react';
 
-const SELCOM_ACCOUNT = '5525100337337';
+const NBC_MERCHANT_ID = '41048485';
+const NBC_MERCHANT_NAME = 'Smart Events Tanzania';
 
 const COMPANY = {
   name: 'Smart Events Tanzania',
@@ -155,9 +156,10 @@ const DocumentPreview = forwardRef<HTMLDivElement, { data: DocumentData }>(({ da
           <div className="flex items-center gap-6 mt-3">
             <div className="text-center">
               <div className="bg-white border border-gray-200 rounded-lg p-2 inline-block">
-                <QRCodeCanvas value={SELCOM_ACCOUNT} size={70} />
+                <QRCodeCanvas value={NBC_MERCHANT_ID} size={70} />
               </div>
-              <p className="text-[10px] text-gray-500 mt-1">Selcom: {SELCOM_ACCOUNT}</p>
+              <p className="text-[10px] text-gray-500 mt-1">NBC Merchant ID: {NBC_MERCHANT_ID}</p>
+              <p className="text-[10px] text-gray-500">{NBC_MERCHANT_NAME}</p>
             </div>
           </div>
         </div>
