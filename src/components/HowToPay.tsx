@@ -50,7 +50,7 @@ const HowToPay = () => {
             <p className="font-semibold mb-1">{isEn ? 'Steps:' : 'Hatua:'}</p>
             <ol className="list-decimal list-inside space-y-0.5">
               <li>{isEn ? 'Open your Mobile Money or Bank app' : 'Fungua app ya Mobile Money au Benki yako'}</li>
-              <li>{isEn ? 'Select Lipa kwa Lipa No. and enter Lipa No.' : 'Chagua Lipa Mfanyabiashara kisha weka Lipa No.'}</li>
+              <li>{isEn ? 'Select Pay Merchant / Lipa Namba and enter the Lipa No.' : 'Chagua Lipa kwa Namba kisha weka Lipa No.'}</li>
               <li>{isEn ? 'Enter amount and confirm' : 'Weka kiasi na uthibitishe'}</li>
             </ol>
           </div>
