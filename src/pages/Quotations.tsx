@@ -234,7 +234,7 @@ const Quotations = () => {
         subtotal: doc.amount_paid, vatEnabled: false, vatAmount: 0,
         discountType: 'fixed', discountValue: 0, discountAmount: 0,
         grandTotal: doc.amount_paid, amountInWords: doc.amount_in_words,
-        paymentMethod: doc.payment_method === 'nbc' || doc.payment_method === 'selcom' ? 'NBC Merchant (41048485)' : doc.payment_method === 'bank' ? 'Bank Transfer' : doc.payment_method === 'mpesa' ? 'M-Pesa' : 'Cash',
+        paymentMethod: doc.payment_method === 'nbc' || doc.payment_method === 'selcom' ? 'NBC Lipa No. (41048485)' : doc.payment_method === 'bank' ? 'Bank Transfer' : doc.payment_method === 'mpesa' ? 'M-Pesa' : 'Cash',
         remarks: doc.remarks, invoiceRef: inv.invoice_number,
       };
     }
@@ -617,7 +617,7 @@ const Quotations = () => {
               <Select value={receiptPaymentMethod} onValueChange={setReceiptPaymentMethod}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="nbc">NBC Merchant (41048485)</SelectItem>
+                  <SelectItem value="nbc">NBC Lipa No. (41048485)</SelectItem>
                   <SelectItem value="bank">Bank Transfer</SelectItem>
                   <SelectItem value="cash">Cash</SelectItem>
                 </SelectContent>

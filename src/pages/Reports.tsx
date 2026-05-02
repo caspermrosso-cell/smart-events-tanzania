@@ -22,8 +22,8 @@ const PACKAGE_LABELS: Record<string, string> = {
 };
 
 const METHOD_LABELS: Record<string, string> = {
-  nbc: 'NBC Merchant',
-  selcom: 'NBC Merchant', // legacy
+  nbc: 'NBC Lipa No.',
+  selcom: 'NBC Lipa No.', // legacy
   bank: 'Bank Transfer',
   cash: 'Cash',
   mpesa: 'M-Pesa', // legacy
