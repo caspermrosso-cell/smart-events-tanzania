@@ -152,7 +152,7 @@ const DocumentPreview = forwardRef<HTMLDivElement, { data: DocumentData }>(({ da
             <p>• Payment Due: Ndani ya siku {data.paymentDueDays || 7}</p>
           </div>
           <div className="mt-3 text-xs text-gray-700">
-            <p><span className="font-semibold">NBC Merchant ID:</span> {NBC_MERCHANT_ID}</p>
+            <p><span className="font-semibold">NBC Lipa No.:</span> {NBC_MERCHANT_ID}</p>
             <p><span className="font-semibold">Name:</span> {NBC_MERCHANT_NAME}</p>
           </div>
         </div>

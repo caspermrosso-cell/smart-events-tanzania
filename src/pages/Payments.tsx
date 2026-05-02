@@ -14,7 +14,7 @@ const NBC_MERCHANT_ID = '41048485';
 const NBC_MERCHANT_NAME = 'Smart Events Tanzania';
 
 const paymentMethods = [
-  { value: 'nbc', label: 'NBC Merchant', icon: Store, desc: `Merchant ID: ${NBC_MERCHANT_ID}` },
+  { value: 'nbc', label: 'NBC Lipa No.', icon: Store, desc: `Lipa No.: ${NBC_MERCHANT_ID}` },
   { value: 'bank', label: 'Bank Transfer', icon: Banknote, desc: 'Lipa kupitia benki' },
   { value: 'cash', label: 'Cash', icon: CreditCard, desc: 'Malipo ya taslimu' },
 ];
@@ -99,8 +99,8 @@ const Payments = () => {
   const totalReceived = (payments || []).reduce((s, p) => s + Number(p.amount), 0);
 
   const getMethodLabel = (method: string) => {
-    if (method === 'nbc') return 'NBC Merchant';
-    if (method === 'selcom') return 'NBC Merchant'; // legacy data
+    if (method === 'nbc') return 'NBC Lipa No.';
+    if (method === 'selcom') return 'NBC Lipa No.'; // legacy data
     if (method === 'bank') return 'Bank';
     if (method === 'mpesa') return 'M-Pesa'; // legacy support
     return method === 'cash' ? 'Cash' : method;
@@ -148,7 +148,7 @@ const Payments = () => {
         })}
       </div>
 
-      {/* NBC Merchant QR Code + Total */}
+      {/* NBC Lipa No. QR Code + Total */}
       <div className="grid sm:grid-cols-2 gap-4 mb-6">
         <div className="glass-card rounded-xl p-4">
           <p className="text-sm text-muted-foreground">Jumla ya Malipo Yaliyopokelewa</p>
@@ -159,9 +159,9 @@ const Payments = () => {
             <QRCodeSVG value={NBC_MERCHANT_ID} size={76} />
           </div>
           <div>
-            <p className="text-sm font-semibold text-foreground">NBC Merchant — {NBC_MERCHANT_NAME}</p>
+            <p className="text-sm font-semibold text-foreground">NBC Lipa No. — {NBC_MERCHANT_NAME}</p>
             <p className="text-xl font-bold text-foreground">{NBC_MERCHANT_ID}</p>
-            <p className="text-xs text-muted-foreground">Scan QR au tumia Merchant ID kulipa (Mobile Money au Benki)</p>
+            <p className="text-xs text-muted-foreground">Scan QR au tumia Lipa No. kulipa (Mobile Money au Benki)</p>
           </div>
         </div>
       </div>
