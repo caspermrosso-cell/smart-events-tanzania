@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,96 +6,98 @@
 
 @layer base {
   :root {
-    /* Mocha Mousse 2026 - Warm, elegant palette */
-    --background: 30 25% 97%;
-    --foreground: 20 30% 12%;
+    /* Smart Events - Savanna Dusk palette (matches pitch deck) */
+    --background: 35 45% 95%;
+    --foreground: 22 40% 12%;
 
-    --card: 30 20% 95%;
-    --card-foreground: 20 30% 12%;
+    --card: 35 50% 97%;
+    --card-foreground: 22 40% 12%;
 
-    --popover: 30 25% 97%;
-    --popover-foreground: 20 30% 12%;
+    --popover: 35 45% 95%;
+    --popover-foreground: 22 40% 12%;
 
-    --primary: 18 24% 52%;
-    --primary-foreground: 30 40% 96%;
+    --primary: 22 47% 14%;
+    --primary-foreground: 38 60% 92%;
 
-    --secondary: 30 18% 88%;
-    --secondary-foreground: 20 25% 20%;
+    --secondary: 35 35% 88%;
+    --secondary-foreground: 22 40% 18%;
 
-    --muted: 30 15% 92%;
-    --muted-foreground: 20 10% 45%;
+    --muted: 35 25% 90%;
+    --muted-foreground: 22 15% 38%;
 
-    --accent: 25 35% 42%;
-    --accent-foreground: 30 40% 96%;
+    --accent: 38 72% 52%;
+    --accent-foreground: 22 40% 12%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 25 15% 85%;
-    --input: 25 15% 85%;
-    --ring: 18 24% 52%;
+    --border: 35 25% 82%;
+    --input: 35 25% 82%;
+    --ring: 38 72% 52%;
 
     --radius: 0.75rem;
 
     /* Custom tokens */
-    --gold: 40 60% 50%;
-    --gold-foreground: 40 10% 10%;
-    --warm-cream: 35 40% 95%;
-    --deep-brown: 18 35% 22%;
+    --gold: 38 72% 52%;
+    --gold-foreground: 22 40% 12%;
+    --warm-cream: 38 60% 92%;
+    --deep-brown: 22 47% 12%;
+    --sunset: 18 75% 48%;
 
-    --sidebar-background: 20 20% 95%;
-    --sidebar-foreground: 20 30% 12%;
-    --sidebar-primary: 18 24% 52%;
-    --sidebar-primary-foreground: 30 40% 96%;
-    --sidebar-accent: 30 18% 88%;
-    --sidebar-accent-foreground: 20 25% 20%;
-    --sidebar-border: 25 15% 85%;
-    --sidebar-ring: 18 24% 52%;
+    --sidebar-background: 22 47% 12%;
+    --sidebar-foreground: 38 60% 92%;
+    --sidebar-primary: 38 72% 52%;
+    --sidebar-primary-foreground: 22 47% 12%;
+    --sidebar-accent: 22 30% 20%;
+    --sidebar-accent-foreground: 38 60% 92%;
+    --sidebar-border: 22 30% 20%;
+    --sidebar-ring: 38 72% 52%;
 
-    --font-heading: 'Poppins', sans-serif;
+    --font-heading: 'Playfair Display', serif;
     --font-body: 'Poppins', sans-serif;
   }
 
   .dark {
-    --background: 20 20% 8%;
-    --foreground: 30 20% 92%;
+    --background: 22 47% 8%;
+    --foreground: 38 50% 92%;
 
-    --card: 20 18% 12%;
-    --card-foreground: 30 20% 92%;
+    --card: 22 40% 12%;
+    --card-foreground: 38 50% 92%;
 
-    --popover: 20 18% 12%;
-    --popover-foreground: 30 20% 92%;
+    --popover: 22 40% 12%;
+    --popover-foreground: 38 50% 92%;
 
-    --primary: 22 30% 58%;
-    --primary-foreground: 20 20% 8%;
+    --primary: 38 72% 56%;
+    --primary-foreground: 22 47% 8%;
 
-    --secondary: 20 15% 18%;
-    --secondary-foreground: 30 20% 88%;
+    --secondary: 22 30% 18%;
+    --secondary-foreground: 38 50% 90%;
 
-    --muted: 20 12% 16%;
-    --muted-foreground: 25 10% 55%;
+    --muted: 22 25% 16%;
+    --muted-foreground: 35 20% 70%;
 
-    --accent: 25 30% 48%;
-    --accent-foreground: 30 30% 95%;
+    --accent: 38 72% 56%;
+    --accent-foreground: 22 47% 8%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 20 12% 20%;
-    --input: 20 12% 20%;
-    --ring: 22 30% 58%;
+    --border: 22 25% 22%;
+    --input: 22 25% 22%;
+    --ring: 38 72% 56%;
 
-    --gold: 40 55% 55%;
-    --deep-brown: 18 20% 70%;
+    --gold: 38 72% 56%;
+    --deep-brown: 22 30% 70%;
+    --sunset: 18 75% 55%;
 
-    --sidebar-background: 20 18% 10%;
-    --sidebar-foreground: 30 20% 92%;
-    --sidebar-primary: 22 30% 58%;
-    --sidebar-primary-foreground: 20 20% 8%;
-    --sidebar-accent: 20 15% 18%;
-    --sidebar-accent-foreground: 30 20% 88%;
-    --sidebar-border: 20 12% 20%;
-    --sidebar-ring: 22 30% 58%;
+    --sidebar-background: 22 47% 8%;
+    --sidebar-foreground: 38 50% 92%;
+    --sidebar-primary: 38 72% 56%;
+    --sidebar-primary-foreground: 22 47% 8%;
+    --sidebar-accent: 22 30% 18%;
+    --sidebar-accent-foreground: 38 50% 90%;
+    --sidebar-border: 22 25% 22%;
+    --sidebar-ring: 38 72% 56%;
   }
 }
 
@@ -127,7 +129,7 @@
   }
 
   .bg-gradient-hero {
-    background: linear-gradient(180deg, hsl(var(--deep-brown)), hsl(var(--primary) / 0.9));
+    background: linear-gradient(180deg, hsl(var(--deep-brown)), hsl(var(--sunset) / 0.85));
   }
 
   .shadow-warm {
