@@ -16,8 +16,8 @@
     --popover: 35 45% 95%;
     --popover-foreground: 22 40% 12%;
 
-    --primary: 24 32% 32%;
-    --primary-foreground: 38 60% 95%;
+    --primary: 26 28% 48%;
+    --primary-foreground: 38 65% 97%;
 
     --secondary: 35 35% 88%;
     --secondary-foreground: 22 40% 18%;
@@ -38,20 +38,20 @@
     --radius: 0.75rem;
 
     /* Custom tokens */
-    --gold: 38 72% 55%;
+    --gold: 38 75% 58%;
     --gold-foreground: 24 35% 15%;
-    --warm-cream: 38 60% 94%;
-    --deep-brown: 24 32% 28%;
-    --sunset: 22 65% 52%;
+    --warm-cream: 38 60% 96%;
+    --deep-brown: 26 28% 42%;
+    --sunset: 22 60% 58%;
 
-    --sidebar-background: 24 32% 28%;
-    --sidebar-foreground: 38 60% 94%;
-    --sidebar-primary: 38 72% 55%;
+    --sidebar-background: 26 28% 42%;
+    --sidebar-foreground: 38 65% 96%;
+    --sidebar-primary: 38 75% 58%;
     --sidebar-primary-foreground: 24 35% 15%;
-    --sidebar-accent: 24 25% 36%;
-    --sidebar-accent-foreground: 38 60% 94%;
-    --sidebar-border: 24 25% 36%;
-    --sidebar-ring: 38 72% 55%;
+    --sidebar-accent: 26 22% 52%;
+    --sidebar-accent-foreground: 38 65% 96%;
+    --sidebar-border: 26 22% 52%;
+    --sidebar-ring: 38 75% 58%;
 
     --font-heading: 'Playfair Display', serif;
     --font-body: 'Poppins', sans-serif;
