@@ -1,0 +1,1 @@
+DELETE FROM public.sms_logs WHERE status = 'failed';
