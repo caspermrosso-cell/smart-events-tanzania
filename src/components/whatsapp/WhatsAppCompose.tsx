@@ -201,7 +201,15 @@ const WhatsAppCompose = () => {
           },
         });
         if (error) throw error;
-        toast({ title: 'Message sent successfully!' });
+        if (data?.success === false) {
+          toast({
+            title: data.code === 'WHATSAPP_SESSION_EXPIRED' ? 'WhatsApp session expired' : 'Send failed',
+            description: data.hint || data.error,
+            variant: 'destructive',
+          });
+        } else {
+          toast({ title: 'Message sent successfully!' });
+        }
       } else {
         // Bulk send
         const allRecipients = [

@@ -264,7 +264,21 @@ serve(async (req) => {
       }
 
       if (!result.ok || !result.data) {
-        throw new Error(getBeemErrorMessage(result, 'Message send failed'));
+        const errorMessage = getBeemErrorMessage(result, 'Message send failed');
+        const isSessionExpired = result.status === 404 && /session has expired/i.test(result.rawText);
+        return new Response(JSON.stringify({
+          success: false,
+          error: errorMessage,
+          code: isSessionExpired ? 'WHATSAPP_SESSION_EXPIRED' : 'WHATSAPP_SEND_FAILED',
+          hint: isSessionExpired
+            ? 'The WhatsApp session with this recipient has expired. WhatsApp only allows free-form messages within a 24-hour window after the user last messaged you. Send an approved template message instead, or ask the recipient to message your number first.'
+            : undefined,
+          status: result.status,
+          data,
+        }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
       }
 
       return new Response(JSON.stringify({ success: true, data }), {
