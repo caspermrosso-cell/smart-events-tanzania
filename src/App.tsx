@@ -24,6 +24,7 @@ import Reports from "./pages/Reports";
 import Payments from "./pages/Payments";
 import Quotations from "./pages/Quotations";
 import Packages from "./pages/Packages";
+import OAuthConsent from "./pages/OAuthConsent";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -57,6 +58,7 @@ const App = () => (
               <Route path="/payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
               <Route path="/quotations" element={<ProtectedRoute><Quotations /></ProtectedRoute>} />
               <Route path="/packages" element={<ProtectedRoute><Packages /></ProtectedRoute>} />
+              <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>
