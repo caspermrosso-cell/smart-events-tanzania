@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Lock, Fingerprint } from 'lucide-react';
 import { toast } from 'sonner';
@@ -14,9 +14,14 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const { signIn, user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const rawNext = searchParams.get('next') ?? '';
+  // Only allow same-origin relative paths.
+  const nextPath = rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : '/dashboard';
 
   if (user) {
-    navigate('/dashboard', { replace: true });
+    navigate(nextPath, { replace: true });
     return null;
   }
 
@@ -35,7 +40,7 @@ const Login = () => {
           toast.info('Unaweza kutumia biometric login siku zijazo!');
         } catch { /* ignore */ }
       }
-      navigate('/dashboard');
+      navigate(nextPath);
     }
     setLoading(false);
   };
@@ -79,7 +84,7 @@ const Login = () => {
           localStorage.removeItem(BIOMETRIC_KEY);
         } else {
           toast.success('Umeingia kwa biometric!');
-          navigate('/dashboard');
+          navigate(nextPath);
         }
       }
     } catch (err: any) {
