@@ -11,6 +11,48 @@ const ACTIVE_SESSIONS_URL = 'https://apichatcore.beem.africa/v1/chatapi/active-u
 const TEMPLATES_URL = 'https://apibroadcast.beem.africa/v1/message-templates/list';
 const BROADCAST_TEMPLATE_URL = 'https://apibroadcast.beem.africa/v1/broadcast/template/api-send';
 
+// ============ Meta WhatsApp Cloud API ============
+const META_GRAPH_BASE = 'https://graph.facebook.com';
+function metaVersion() {
+  return Deno.env.get('META_GRAPH_API_VERSION') || 'v21.0';
+}
+function metaConfig() {
+  const token = Deno.env.get('META_WHATSAPP_ACCESS_TOKEN');
+  const wabaId = Deno.env.get('META_WABA_ID');
+  const phoneId = Deno.env.get('META_PHONE_NUMBER_ID');
+  if (!token) throw new Error('META_WHATSAPP_ACCESS_TOKEN is not configured');
+  return { token, wabaId, phoneId, version: metaVersion() };
+}
+async function metaFetch(url: string, init: RequestInit & { token: string }) {
+  const { token, ...rest } = init;
+  const res = await fetch(url, {
+    ...rest,
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      ...(rest.headers || {}),
+    },
+  });
+  const text = await res.text();
+  let data: any = null;
+  try { data = text ? JSON.parse(text) : null; } catch { data = null; }
+  if (!res.ok) {
+    const msg = data?.error?.message || text || `HTTP ${res.status}`;
+    console.error('Meta API error:', res.status, msg);
+    const err: any = new Error(msg);
+    err.status = res.status;
+    err.details = data?.error || null;
+    throw err;
+  }
+  return data;
+}
+function normalizePhone(raw: string): string {
+  let p = String(raw || '').replace(/[^0-9]/g, '');
+  if (p.startsWith('0')) p = '255' + p.substring(1);
+  if (!p.startsWith('255') && p.length === 9) p = '255' + p;
+  return p;
+}
+
 type BeemRequestResult = {
   ok: boolean;
   status: number;
@@ -85,8 +127,6 @@ serve(async (req) => {
   }
 
   try {
-    const authHeader = getAuthHeader();
-
     let body: any;
     try {
       body = await req.json();
@@ -98,6 +138,151 @@ serve(async (req) => {
     }
 
     const { action } = body;
+
+    // ============ Meta Graph API actions ============
+    if (action === 'meta-list-templates') {
+      const { token, wabaId, version } = metaConfig();
+      if (!wabaId) throw new Error('META_WABA_ID is not configured');
+      const params = new URLSearchParams({
+        fields: 'id,name,status,category,language,components,quality_score,rejected_reason',
+        limit: String(body.limit || 100),
+      });
+      const url = `${META_GRAPH_BASE}/${version}/${wabaId}/message_templates?${params}`;
+      const data = await metaFetch(url, { method: 'GET', token });
+      return new Response(JSON.stringify({ success: true, data }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (action === 'meta-create-template') {
+      const { token, wabaId, version } = metaConfig();
+      if (!wabaId) throw new Error('META_WABA_ID is not configured');
+      const { name, language, category, components } = body;
+      if (!name || !language || !category || !Array.isArray(components)) {
+        return new Response(JSON.stringify({ success: false, error: 'name, language, category, components[] are required' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      const url = `${META_GRAPH_BASE}/${version}/${wabaId}/message_templates`;
+      const data = await metaFetch(url, {
+        method: 'POST',
+        token,
+        body: JSON.stringify({ name, language, category, components }),
+      });
+      return new Response(JSON.stringify({ success: true, data }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (action === 'meta-delete-template') {
+      const { token, wabaId, version } = metaConfig();
+      if (!wabaId) throw new Error('META_WABA_ID is not configured');
+      const { name, hsm_id } = body;
+      if (!name) {
+        return new Response(JSON.stringify({ success: false, error: 'name is required' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      const params = new URLSearchParams({ name });
+      if (hsm_id) params.set('hsm_id', hsm_id);
+      const url = `${META_GRAPH_BASE}/${version}/${wabaId}/message_templates?${params}`;
+      const data = await metaFetch(url, { method: 'DELETE', token });
+      return new Response(JSON.stringify({ success: true, data }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (action === 'meta-send-template') {
+      const { token, phoneId, version } = metaConfig();
+      if (!phoneId) throw new Error('META_PHONE_NUMBER_ID is not configured');
+      const { template_name, language_code, recipients, body_params, header_params, userId, eventId } = body;
+      if (!template_name || !language_code || !Array.isArray(recipients) || recipients.length === 0) {
+        return new Response(JSON.stringify({ success: false, error: 'template_name, language_code and recipients[] are required' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const components: any[] = [];
+      if (Array.isArray(header_params) && header_params.length > 0) {
+        components.push({
+          type: 'header',
+          parameters: header_params.map((t: string) => ({ type: 'text', text: String(t) })),
+        });
+      }
+
+      const url = `${META_GRAPH_BASE}/${version}/${phoneId}/messages`;
+      const supabase = userId ? getSupabaseClient() : null;
+      const results: any[] = [];
+
+      for (const r of recipients) {
+        const phone = normalizePhone(r.phone);
+        const perComponents = [...components];
+        // Per-recipient body params: merge {name} into first placeholder if provided
+        const bp = Array.isArray(r.body_params) ? r.body_params
+                 : Array.isArray(body_params) ? body_params.map((v: string) => (v === '{name}' ? (r.name || '') : v))
+                 : [];
+        if (bp.length > 0) {
+          perComponents.push({
+            type: 'body',
+            parameters: bp.map((t: string) => ({ type: 'text', text: String(t ?? '') })),
+          });
+        }
+
+        const payload = {
+          messaging_product: 'whatsapp',
+          to: phone,
+          type: 'template',
+          template: {
+            name: template_name,
+            language: { code: language_code },
+            ...(perComponents.length > 0 ? { components: perComponents } : {}),
+          },
+        };
+
+        try {
+          const data = await metaFetch(url, { method: 'POST', token, body: JSON.stringify(payload) });
+          results.push({ phone, name: r.name, status: 'sent', response: data });
+          if (supabase) {
+            await supabase.from('whatsapp_logs').insert({
+              user_id: userId,
+              event_id: eventId || null,
+              recipient_phone: phone,
+              recipient_name: r.name || null,
+              channel: 'whatsapp',
+              message_type: 'template',
+              template_name,
+              status: 'sent',
+              beem_response: data,
+            });
+          }
+        } catch (err: any) {
+          const errMsg = err?.message || 'Send failed';
+          results.push({ phone, name: r.name, status: 'failed', error: errMsg });
+          if (supabase) {
+            await supabase.from('whatsapp_logs').insert({
+              user_id: userId,
+              event_id: eventId || null,
+              recipient_phone: phone,
+              recipient_name: r.name || null,
+              channel: 'whatsapp',
+              message_type: 'template',
+              template_name,
+              status: 'failed',
+              beem_response: { error: errMsg, details: err?.details || null },
+            });
+          }
+        }
+      }
+
+      const sent = results.filter((r) => r.status === 'sent').length;
+      const failed = results.filter((r) => r.status === 'failed').length;
+      return new Response(JSON.stringify({ success: true, summary: { sent, failed, total: results.length }, results }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Beem-based actions below (kept for backward compatibility)
+    const authHeader = getAuthHeader();
 
     if (action === 'active-sessions') {
       const result = await makeBeemRequest(ACTIVE_SESSIONS_URL, {
