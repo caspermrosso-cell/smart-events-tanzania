@@ -43,7 +43,16 @@ const SmsCompose = () => {
   const [manualRecipients, setManualRecipients] = useState<ManualRecipient[]>([]);
   const [newPhone, setNewPhone] = useState('');
   const [newName, setNewName] = useState('');
+  const [newVars, setNewVars] = useState<Record<string, string>>({});
   const bulkFileRef = useRef<HTMLInputElement>(null);
+
+  // Detect custom {variable} tokens in message (excluding built-ins)
+  const BUILTIN_VARS = ['name', 'event', 'date'];
+  const detectedVars = useMemo(() => {
+    const matches = message.match(/\{([a-zA-Z0-9_]+)\}/g) || [];
+    const names = matches.map((m) => m.slice(1, -1));
+    return [...new Set(names)].filter((v) => !BUILTIN_VARS.includes(v));
+  }, [message]);
 
   const handleBulkFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
