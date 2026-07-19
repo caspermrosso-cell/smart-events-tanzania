@@ -61,7 +61,14 @@ const SmsCompose = () => {
           const name = String(row['Jina'] || row['Name'] || row['jina'] || row['name'] || '').trim();
           const phone = String(row['Simu'] || row['Phone'] || row['simu'] || row['phone'] || row['Namba'] || row['namba'] || '').trim();
           if (phone.length >= 9) {
-            imported.push({ id: `bulk-${Date.now()}-${i}`, name: name || 'Mgeni', phone });
+            const vars: Record<string, string> = {};
+            Object.keys(row).forEach((k) => {
+              const key = k.trim();
+              const lower = key.toLowerCase();
+              if (['jina', 'name', 'simu', 'phone', 'namba'].includes(lower)) return;
+              vars[key] = String(row[k] ?? '').trim();
+            });
+            imported.push({ id: `bulk-${Date.now()}-${i}`, name: name || 'Mgeni', phone, vars });
           }
         });
 
