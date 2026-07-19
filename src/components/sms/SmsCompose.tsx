@@ -167,9 +167,10 @@ const SmsCompose = () => {
       toast.error('Weka namba sahihi ya simu');
       return;
     }
-    setManualRecipients(prev => [...prev, { id: `manual-${Date.now()}`, name: newName || 'Mgeni', phone: newPhone }]);
+    setManualRecipients(prev => [...prev, { id: `manual-${Date.now()}`, name: newName || 'Mgeni', phone: newPhone, vars: { ...newVars } }]);
     setNewPhone('');
     setNewName('');
+    setNewVars({});
   };
 
   const removeManualRecipient = (id: string) => {
