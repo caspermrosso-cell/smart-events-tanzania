@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, CheckCircle, Clock, Plus, X, Phone, MessageSquare, Upload, FileSpreadsheet, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Send, CheckCircle, Clock, Plus, X, Phone, MessageSquare, Upload, FileSpreadsheet, AlertTriangle, ShieldCheck, Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -572,11 +572,12 @@ const SmsCompose = () => {
             </Button>
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               size="sm"
-              className="text-xs"
+              className="gap-2"
               onClick={downloadBulkTemplate}
             >
+              <Download className="w-4 h-4" />
               Pakua Template
             </Button>
           </div>
