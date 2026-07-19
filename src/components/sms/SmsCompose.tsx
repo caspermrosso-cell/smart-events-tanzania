@@ -25,6 +25,7 @@ interface ManualRecipient {
   id: string;
   name: string;
   phone: string;
+  vars?: Record<string, string>;
 }
 
 const SmsCompose = () => {
