@@ -520,6 +520,19 @@ const SmsCompose = () => {
             <Input placeholder="0712345678" value={newPhone} onChange={e => setNewPhone(e.target.value)} className="flex-1" />
             <Button size="icon" variant="outline" onClick={addManualRecipient}><Plus className="w-4 h-4" /></Button>
           </div>
+          {detectedVars.length > 0 && (
+            <div className="grid grid-cols-2 gap-2 pt-2">
+              {detectedVars.map((v) => (
+                <Input
+                  key={v}
+                  placeholder={`{${v}}`}
+                  value={newVars[v] || ''}
+                  onChange={(e) => setNewVars(prev => ({ ...prev, [v]: e.target.value }))}
+                  className="text-xs"
+                />
+              ))}
+            </div>
+          )}
           <ContactPicker
             onPick={(c) => handleContactImport([{ name: c.name || 'Mgeni', phone: c.phone || '' }])}
             onPickMultiple={(contacts) => handleContactImport(contacts.map(c => ({ name: c.name || 'Mgeni', phone: c.phone || '' })))}
