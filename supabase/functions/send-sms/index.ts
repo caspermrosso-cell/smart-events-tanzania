@@ -76,7 +76,7 @@ serve(async (req) => {
       };
     });
 
-    const hasPlaceholders = message.includes('{name}') || message.includes('{event}') || message.includes('{date}');
+    const hasPlaceholders = /\{[a-zA-Z0-9_]+\}/.test(message);
     const charCount = message.length;
     const smsCount = charCount <= 160 ? 1 : Math.ceil(charCount / 153);
 
