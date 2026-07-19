@@ -97,9 +97,9 @@ const SmsCompose = () => {
 
   const downloadBulkTemplate = () => {
     const ws = XLSX.utils.aoa_to_sheet([
-      ['Jina', 'Simu'],
-      ['Ali Mohamed', '0712345678'],
-      ['Fatma Hassan', '0654321098'],
+      ['Jina', 'Simu', 'amount', 'reference'],
+      ['Ali Mohamed', '0712345678', '50000', 'INV-001'],
+      ['Fatma Hassan', '0654321098', '25000', 'INV-002'],
     ]);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Wapokeaji');
@@ -550,7 +550,7 @@ const SmsCompose = () => {
             <span className="text-sm font-medium text-foreground">Pakia Orodha (Excel/CSV)</span>
           </div>
           <p className="text-xs text-muted-foreground mb-2">
-            Faili lazima iwe na safu wima mbili: <strong>Jina</strong> na <strong>Namba ya Simu</strong>
+            Safu wima za lazima: <strong>Jina</strong>, <strong>Simu</strong>. Safu wima nyingine (mfano <code>amount</code>, <code>reference</code>) zinakuwa <strong>variables</strong> — tumia <code>{'{amount}'}</code> kwenye ujumbe.
           </p>
           <div className="flex gap-2">
             <input
