@@ -432,6 +432,15 @@ const SmsCompose = () => {
             <span>{charCount} herufi • SMS {smsCount}</span>
             <span>Gharama: ~{totalRecipients * smsCount} SMS</span>
           </div>
+          {detectedVars.length > 0 && (
+            <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
+              <span className="text-muted-foreground">Variables:</span>
+              {detectedVars.map((v) => (
+                <span key={v} className="rounded-md bg-primary/10 text-primary px-2 py-0.5 font-mono">{`{${v}}`}</span>
+              ))}
+              <span className="text-muted-foreground ml-1">— jaza kwa kila mpokeaji au safu wima kwenye Excel</span>
+            </div>
+          )}
         </div>
 
         {/* Schedule */}
