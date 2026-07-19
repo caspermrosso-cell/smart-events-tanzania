@@ -221,7 +221,7 @@ const SmsCompose = () => {
 
       const allRecipients = [
         ...guestRecipients,
-        ...manualRecipients.map(r => ({ name: r.name, phone: r.phone })),
+        ...manualRecipients.map(r => ({ name: r.name, phone: r.phone, vars: r.vars || {} })),
       ];
 
       const eventData = events.find((e: any) => e.id === selectedEvent);
