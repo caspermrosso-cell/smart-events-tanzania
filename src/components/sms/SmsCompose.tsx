@@ -25,6 +25,7 @@ interface ManualRecipient {
   id: string;
   name: string;
   phone: string;
+  vars?: Record<string, string>;
 }
 
 const SmsCompose = () => {
@@ -42,7 +43,16 @@ const SmsCompose = () => {
   const [manualRecipients, setManualRecipients] = useState<ManualRecipient[]>([]);
   const [newPhone, setNewPhone] = useState('');
   const [newName, setNewName] = useState('');
+  const [newVars, setNewVars] = useState<Record<string, string>>({});
   const bulkFileRef = useRef<HTMLInputElement>(null);
+
+  // Detect custom {variable} tokens in message (excluding built-ins)
+  const BUILTIN_VARS = ['name', 'event', 'date'];
+  const detectedVars = useMemo(() => {
+    const matches = message.match(/\{([a-zA-Z0-9_]+)\}/g) || [];
+    const names = matches.map((m) => m.slice(1, -1));
+    return [...new Set(names)].filter((v) => !BUILTIN_VARS.includes(v));
+  }, [message]);
 
   const handleBulkFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -60,7 +70,14 @@ const SmsCompose = () => {
           const name = String(row['Jina'] || row['Name'] || row['jina'] || row['name'] || '').trim();
           const phone = String(row['Simu'] || row['Phone'] || row['simu'] || row['phone'] || row['Namba'] || row['namba'] || '').trim();
           if (phone.length >= 9) {
-            imported.push({ id: `bulk-${Date.now()}-${i}`, name: name || 'Mgeni', phone });
+            const vars: Record<string, string> = {};
+            Object.keys(row).forEach((k) => {
+              const key = k.trim();
+              const lower = key.toLowerCase();
+              if (['jina', 'name', 'simu', 'phone', 'namba'].includes(lower)) return;
+              vars[key] = String(row[k] ?? '').trim();
+            });
+            imported.push({ id: `bulk-${Date.now()}-${i}`, name: name || 'Mgeni', phone, vars });
           }
         });
 
@@ -80,9 +97,9 @@ const SmsCompose = () => {
 
   const downloadBulkTemplate = () => {
     const ws = XLSX.utils.aoa_to_sheet([
-      ['Jina', 'Simu'],
-      ['Ali Mohamed', '0712345678'],
-      ['Fatma Hassan', '0654321098'],
+      ['Jina', 'Simu', 'amount', 'reference'],
+      ['Ali Mohamed', '0712345678', '50000', 'INV-001'],
+      ['Fatma Hassan', '0654321098', '25000', 'INV-002'],
     ]);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Wapokeaji');
@@ -150,9 +167,10 @@ const SmsCompose = () => {
       toast.error('Weka namba sahihi ya simu');
       return;
     }
-    setManualRecipients(prev => [...prev, { id: `manual-${Date.now()}`, name: newName || 'Mgeni', phone: newPhone }]);
+    setManualRecipients(prev => [...prev, { id: `manual-${Date.now()}`, name: newName || 'Mgeni', phone: newPhone, vars: { ...newVars } }]);
     setNewPhone('');
     setNewName('');
+    setNewVars({});
   };
 
   const removeManualRecipient = (id: string) => {
@@ -203,7 +221,7 @@ const SmsCompose = () => {
 
       const allRecipients = [
         ...guestRecipients,
-        ...manualRecipients.map(r => ({ name: r.name, phone: r.phone })),
+        ...manualRecipients.map(r => ({ name: r.name, phone: r.phone, vars: r.vars || {} })),
       ];
 
       const eventData = events.find((e: any) => e.id === selectedEvent);
@@ -414,6 +432,15 @@ const SmsCompose = () => {
             <span>{charCount} herufi • SMS {smsCount}</span>
             <span>Gharama: ~{totalRecipients * smsCount} SMS</span>
           </div>
+          {detectedVars.length > 0 && (
+            <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
+              <span className="text-muted-foreground">Variables:</span>
+              {detectedVars.map((v) => (
+                <span key={v} className="rounded-md bg-primary/10 text-primary px-2 py-0.5 font-mono">{`{${v}}`}</span>
+              ))}
+              <span className="text-muted-foreground ml-1">— jaza kwa kila mpokeaji au safu wima kwenye Excel</span>
+            </div>
+          )}
         </div>
 
         {/* Schedule */}
@@ -493,6 +520,19 @@ const SmsCompose = () => {
             <Input placeholder="0712345678" value={newPhone} onChange={e => setNewPhone(e.target.value)} className="flex-1" />
             <Button size="icon" variant="outline" onClick={addManualRecipient}><Plus className="w-4 h-4" /></Button>
           </div>
+          {detectedVars.length > 0 && (
+            <div className="grid grid-cols-2 gap-2 pt-2">
+              {detectedVars.map((v) => (
+                <Input
+                  key={v}
+                  placeholder={`{${v}}`}
+                  value={newVars[v] || ''}
+                  onChange={(e) => setNewVars(prev => ({ ...prev, [v]: e.target.value }))}
+                  className="text-xs"
+                />
+              ))}
+            </div>
+          )}
           <ContactPicker
             onPick={(c) => handleContactImport([{ name: c.name || 'Mgeni', phone: c.phone || '' }])}
             onPickMultiple={(contacts) => handleContactImport(contacts.map(c => ({ name: c.name || 'Mgeni', phone: c.phone || '' })))}
@@ -510,7 +550,7 @@ const SmsCompose = () => {
             <span className="text-sm font-medium text-foreground">Pakia Orodha (Excel/CSV)</span>
           </div>
           <p className="text-xs text-muted-foreground mb-2">
-            Faili lazima iwe na safu wima mbili: <strong>Jina</strong> na <strong>Namba ya Simu</strong>
+            Safu wima za lazima: <strong>Jina</strong>, <strong>Simu</strong>. Safu wima nyingine (mfano <code>amount</code>, <code>reference</code>) zinakuwa <strong>variables</strong> — tumia <code>{'{amount}'}</code> kwenye ujumbe.
           </p>
           <div className="flex gap-2">
             <input

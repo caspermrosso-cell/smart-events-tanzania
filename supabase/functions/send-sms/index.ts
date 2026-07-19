@@ -76,7 +76,7 @@ serve(async (req) => {
       };
     });
 
-    const hasPlaceholders = message.includes('{name}') || message.includes('{event}') || message.includes('{date}');
+    const hasPlaceholders = /\{[a-zA-Z0-9_]+\}/.test(message);
     const charCount = message.length;
     const smsCount = charCount <= 160 ? 1 : Math.ceil(charCount / 153);
 
@@ -100,6 +100,16 @@ serve(async (req) => {
           .replace(/\{name\}/g, r.name || '')
           .replace(/\{event\}/g, eventTitle || '')
           .replace(/\{date\}/g, eventDate ? new Date(eventDate).toLocaleDateString('sw-TZ') : '');
+
+        // Replace any custom {variable} tokens from r.vars
+        if (r.vars && typeof r.vars === 'object') {
+          for (const [key, value] of Object.entries(r.vars)) {
+            const re = new RegExp(`\\{${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\}`, 'g');
+            personalizedMsg = personalizedMsg.replace(re, String(value ?? ''));
+          }
+        }
+        // Clean up any unresolved placeholders
+        personalizedMsg = personalizedMsg.replace(/\{[a-zA-Z0-9_]+\}/g, '');
 
         try {
           const response = await fetch(BEEM_API_URL, {
