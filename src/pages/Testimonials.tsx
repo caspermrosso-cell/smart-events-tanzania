@@ -12,6 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { Plus, Pencil, Trash2, Star, Upload, Loader2, User } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { resolvePhotoUrls, resolvePhotoUrl } from '@/lib/testimonialPhoto';
+import { useEffect, useState as useStateReact } from 'react';
 
 type Testimonial = {
   id: string;
@@ -24,6 +26,7 @@ type Testimonial = {
   rating: number;
   is_published: boolean;
   display_order: number;
+  resolved_photo_url?: string | null;
 };
 
 const EVENT_TYPES = ['wedding', 'birthday', 'corporate', 'fundraiser', 'memorial', 'other'];
@@ -59,7 +62,8 @@ const TestimonialsPage = () => {
         .order('display_order', { ascending: true })
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return (data || []) as Testimonial[];
+      const list = (data || []) as Testimonial[];
+      return await resolvePhotoUrls(list);
     },
   });
 
@@ -196,8 +200,8 @@ const TestimonialsPage = () => {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {testimonials.map((t) => (
               <div key={t.id} className="glass-card rounded-2xl overflow-hidden flex flex-col">
-                {t.photo_url ? (
-                  <img src={t.photo_url} alt={t.client_name} className="h-40 w-full object-cover" />
+                {t.resolved_photo_url ? (
+                  <img src={t.resolved_photo_url} alt={t.client_name} className="h-40 w-full object-cover" />
                 ) : (
                   <div className="h-40 bg-secondary/40 flex items-center justify-center">
                     <User className="w-10 h-10 text-primary/40" />
