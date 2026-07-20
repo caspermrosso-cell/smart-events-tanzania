@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Users, Search, Phone, Mail, CheckCircle, XCircle, Clock, Trash2, Pencil, Upload } from 'lucide-react';
+import { Plus, Users, Search, Phone, Mail, CheckCircle, XCircle, Clock, Trash2, Pencil, Upload, X, CreditCard } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -33,7 +33,12 @@ const Guests = () => {
   const [bulkData, setBulkData] = useState<any[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [form, setForm] = useState({ full_name: '', phone: '+255', email: '', event_id: '', rsvp_status: 'pending', table_number: '' });
+  const [form, setForm] = useState<{
+    full_name: string; phone: string; email: string; event_id: string;
+    rsvp_status: string; table_number: string; card_number: string;
+    custom_fields: Record<string, string>;
+  }>({ full_name: '', phone: '+255', email: '', event_id: '', rsvp_status: 'pending', table_number: '', card_number: '', custom_fields: {} });
+  const [newVarKey, setNewVarKey] = useState('');
 
   const { data: events = [] } = useQuery({
     queryKey: ['events'],
@@ -106,7 +111,8 @@ const Guests = () => {
   const handleClose = () => {
     setDialogOpen(false);
     setEditingGuest(null);
-    setForm({ full_name: '', phone: '+255', email: '', event_id: '', rsvp_status: 'pending', table_number: '' });
+    setForm({ full_name: '', phone: '+255', email: '', event_id: '', rsvp_status: 'pending', table_number: '', card_number: '', custom_fields: {} });
+    setNewVarKey('');
   };
 
   const handleEdit = (guest: any) => {
@@ -118,6 +124,8 @@ const Guests = () => {
       event_id: guest.event_id,
       rsvp_status: guest.rsvp_status,
       table_number: guest.table_number || '',
+      card_number: guest.card_number || '',
+      custom_fields: guest.custom_fields && typeof guest.custom_fields === 'object' ? { ...guest.custom_fields } : {},
     });
     setDialogOpen(true);
   };
@@ -128,7 +136,23 @@ const Guests = () => {
       toast.error('Jaza jina na tukio');
       return;
     }
-    saveMutation.mutate(form);
+    const payload: any = { ...form };
+    if (!payload.card_number) payload.card_number = null;
+    saveMutation.mutate(payload);
+  };
+
+  const addCustomField = () => {
+    const key = newVarKey.trim();
+    if (!key) return;
+    if (form.custom_fields[key] !== undefined) { toast.error('Variable ipo tayari'); return; }
+    setForm({ ...form, custom_fields: { ...form.custom_fields, [key]: '' } });
+    setNewVarKey('');
+  };
+
+  const removeCustomField = (key: string) => {
+    const next = { ...form.custom_fields };
+    delete next[key];
+    setForm({ ...form, custom_fields: next });
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -140,12 +164,21 @@ const Guests = () => {
         const wb = XLSX.read(evt.target?.result, { type: 'binary' });
         const ws = wb.Sheets[wb.SheetNames[0]];
         const data = XLSX.utils.sheet_to_json(ws);
-        const parsed = data.map((row: any) => ({
-          full_name: row['Jina'] || row['Name'] || row['full_name'] || '',
-          phone: row['Simu'] || row['Phone'] || row['phone'] || '',
-          email: row['Email'] || row['email'] || '',
-          table_number: row['Meza'] || row['Table'] || row['table_number'] || '',
-        })).filter(r => r.full_name);
+        const STANDARD = ['Jina','Name','full_name','Simu','Phone','phone','Email','email','Meza','Table','table_number','Kadi','Card','card_number'];
+        const parsed = data.map((row: any) => {
+          const custom: Record<string, string> = {};
+          Object.keys(row).forEach(k => {
+            if (!STANDARD.includes(k) && row[k] !== '' && row[k] != null) custom[k] = String(row[k]);
+          });
+          return {
+            full_name: row['Jina'] || row['Name'] || row['full_name'] || '',
+            phone: row['Simu'] || row['Phone'] || row['phone'] || '',
+            email: row['Email'] || row['email'] || '',
+            table_number: row['Meza'] || row['Table'] || row['table_number'] || '',
+            card_number: row['Kadi'] || row['Card'] || row['card_number'] || '',
+            custom_fields: custom,
+          };
+        }).filter(r => r.full_name);
         setBulkData(parsed);
         if (parsed.length === 0) toast.error('Hakuna data iliyopatikana kwenye faili');
       } catch {
@@ -161,7 +194,9 @@ const Guests = () => {
     if (bulkData.length === 0) { toast.error('Hakuna wageni'); return; }
     const rows = bulkData.map(r => ({
       ...r,
-      phone: r.phone ? (r.phone.startsWith('+255') ? r.phone : '+255' + r.phone.replace(/^0/, '')) : null,
+      phone: r.phone ? (String(r.phone).startsWith('+255') ? String(r.phone) : '+255' + String(r.phone).replace(/^0/, '')) : null,
+      card_number: r.card_number ? String(r.card_number).trim() : null,
+      custom_fields: r.custom_fields || {},
       event_id: bulkEventId,
       user_id: user!.id,
       rsvp_status: 'pending',
@@ -172,7 +207,8 @@ const Guests = () => {
   const filtered = guests.filter((g: any) =>
     g.full_name.toLowerCase().includes(search.toLowerCase()) ||
     (g.phone && g.phone.includes(search)) ||
-    (g.email && g.email.toLowerCase().includes(search.toLowerCase()))
+    (g.email && g.email.toLowerCase().includes(search.toLowerCase())) ||
+    (g.card_number && g.card_number.toLowerCase().includes(search.toLowerCase()))
   );
 
   return (
@@ -203,7 +239,7 @@ const Guests = () => {
                 </div>
                 <div>
                   <Label>Faili (Excel/CSV)</Label>
-                  <p className="text-xs text-muted-foreground mb-2">Safu: Jina, Simu, Email, Meza (au Name, Phone, Email, Table)</p>
+                  <p className="text-xs text-muted-foreground mb-2">Safu: Jina, Simu, Kadi (standard) + safu zingine zozote zitakuwa custom variables. Pia inasoma Name, Phone, Card.</p>
                   <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" onChange={handleFileUpload} className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
                 </div>
                 {bulkData.length > 0 && (
@@ -265,8 +301,8 @@ const Guests = () => {
                     />
                   </div>
                   <div>
-                    <Label>Email</Label>
-                    <Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="email@..." />
+                    <Label>Kadi Namba</Label>
+                    <Input value={form.card_number} onChange={(e) => setForm({ ...form, card_number: e.target.value })} placeholder="mfano: 001" />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
@@ -284,6 +320,37 @@ const Guests = () => {
                   <div>
                     <Label>Meza #</Label>
                     <Input value={form.table_number} onChange={(e) => setForm({ ...form, table_number: e.target.value })} placeholder="e.g. A1" />
+                  </div>
+                </div>
+                <div>
+                  <Label>Email</Label>
+                  <Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="email@..." />
+                </div>
+
+                <div className="rounded-lg border border-border p-3 space-y-3 bg-muted/30">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-semibold">Variables za Ziada</Label>
+                    <span className="text-xs text-muted-foreground">{Object.keys(form.custom_fields).length} field(s)</span>
+                  </div>
+                  {Object.entries(form.custom_fields).map(([k, v]) => (
+                    <div key={k} className="flex items-end gap-2">
+                      <div className="flex-1">
+                        <Label className="text-xs text-muted-foreground">{k}</Label>
+                        <Input value={v} onChange={(e) => setForm({ ...form, custom_fields: { ...form.custom_fields, [k]: e.target.value } })} placeholder={`Weka ${k}`} />
+                      </div>
+                      <Button type="button" variant="ghost" size="icon" onClick={() => removeCustomField(k)}>
+                        <X className="w-4 h-4 text-destructive" />
+                      </Button>
+                    </div>
+                  ))}
+                  <div className="flex gap-2">
+                    <Input
+                      value={newVarKey}
+                      onChange={(e) => setNewVarKey(e.target.value)}
+                      placeholder="Jina la variable (mfano: cheo)"
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustomField(); } }}
+                    />
+                    <Button type="button" variant="outline" onClick={addCustomField} className="gap-1"><Plus className="w-4 h-4" />Ongeza</Button>
                   </div>
                 </div>
                 <Button type="submit" className="w-full" disabled={saveMutation.isPending}>
@@ -328,6 +395,7 @@ const Guests = () => {
                 <TableHead>Jina</TableHead>
                 <TableHead className="hidden sm:table-cell">Tukio</TableHead>
                 <TableHead className="hidden md:table-cell">Simu</TableHead>
+                <TableHead className="hidden md:table-cell">Kadi</TableHead>
                 <TableHead>RSVP</TableHead>
                 <TableHead className="hidden md:table-cell">Meza</TableHead>
                 <TableHead className="w-20"></TableHead>
@@ -342,6 +410,13 @@ const Guests = () => {
                     <TableCell className="font-medium">{guest.full_name}</TableCell>
                     <TableCell className="hidden sm:table-cell text-muted-foreground text-sm">{guest.events?.title}</TableCell>
                     <TableCell className="hidden md:table-cell text-muted-foreground text-sm">{guest.phone || '-'}</TableCell>
+                    <TableCell className="hidden md:table-cell text-muted-foreground text-sm">
+                      {guest.card_number ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-accent/20 text-foreground font-mono text-xs">
+                          <CreditCard className="w-3 h-3" />{guest.card_number}
+                        </span>
+                      ) : '-'}
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1.5">
                         <RsvpIcon className={`w-4 h-4 ${rsvp.class}`} />
