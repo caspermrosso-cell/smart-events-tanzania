@@ -1,0 +1,9 @@
+{
+  "appId": "app.lovable.bd95c3e828b6474e89332dbf5e4be896",
+  "appName": "smart-events-tanzania",
+  "webDir": "dist",
+  "server": {
+    "url": "https://bd95c3e8-28b6-474e-8933-2dbf5e4be896.lovableproject.com?forceHideBadge=true",
+    "cleartext": true
+  }
+}
