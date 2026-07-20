@@ -58,7 +58,7 @@ const Navbar = () => {
             <Globe className="w-4 h-4" />
             {language === 'en' ? 'SW' : 'EN'}
           </button>
-          <Link to="/login" className="px-4 py-2 rounded-lg bg-accent text-accent-foreground text-sm font-medium hover:bg-deep-brown hover:text-primary-foreground transition-colors">
+          <Link to="/login" className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-deep-brown transition-colors">
             {isEn ? 'Admin Login' : 'Ingia Admin'}
           </Link>
         </div>
