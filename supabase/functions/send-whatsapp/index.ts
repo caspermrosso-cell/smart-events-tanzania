@@ -195,7 +195,7 @@ serve(async (req) => {
     if (action === 'meta-send-template') {
       const { token, phoneId, version } = metaConfig();
       if (!phoneId) throw new Error('META_PHONE_NUMBER_ID is not configured');
-      const { template_name, language_code, recipients, body_params, header_params, userId, eventId } = body;
+      const { template_name, language_code, recipients, body_params, header_params, header_media, userId, eventId } = body;
       if (!template_name || !language_code || !Array.isArray(recipients) || recipients.length === 0) {
         return new Response(JSON.stringify({ success: false, error: 'template_name, language_code and recipients[] are required' }), {
           status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -203,7 +203,15 @@ serve(async (req) => {
       }
 
       const components: any[] = [];
-      if (Array.isArray(header_params) && header_params.length > 0) {
+      // Media header (image/document/video) — provided as { type, url, filename? }
+      if (header_media && header_media.url && header_media.type) {
+        const mt = String(header_media.type).toLowerCase();
+        const param: any = { type: mt };
+        if (mt === 'image') param.image = { link: header_media.url };
+        else if (mt === 'video') param.video = { link: header_media.url };
+        else if (mt === 'document') param.document = { link: header_media.url, filename: header_media.filename || 'document.pdf' };
+        components.push({ type: 'header', parameters: [param] });
+      } else if (Array.isArray(header_params) && header_params.length > 0) {
         components.push({
           type: 'header',
           parameters: header_params.map((t: string) => ({ type: 'text', text: String(t) })),
