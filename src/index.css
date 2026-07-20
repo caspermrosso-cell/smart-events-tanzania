@@ -6,52 +6,52 @@
 
 @layer base {
   :root {
-    /* Smart Events - Savanna Dusk palette (matches pitch deck) */
-    --background: 35 45% 95%;
-    --foreground: 22 40% 12%;
+    /* Smart Events - Nude Rose palette (chocolate • mocha • tan • cream • ivory) */
+    --background: 38 55% 95%;      /* ivory #F6EBD4 */
+    --foreground: 22 45% 18%;      /* deep chocolate */
 
-    --card: 35 50% 97%;
-    --card-foreground: 22 40% 12%;
+    --card: 38 65% 97%;
+    --card-foreground: 22 45% 18%;
 
-    --popover: 35 45% 95%;
-    --popover-foreground: 22 40% 12%;
+    --popover: 38 55% 95%;
+    --popover-foreground: 22 45% 18%;
 
-    --primary: 26 28% 48%;
+    --primary: 24 35% 38%;         /* mocha #7D5A42 */
     --primary-foreground: 38 65% 97%;
 
-    --secondary: 35 35% 88%;
-    --secondary-foreground: 22 40% 18%;
+    --secondary: 32 40% 86%;       /* soft cream */
+    --secondary-foreground: 22 45% 18%;
 
-    --muted: 35 25% 90%;
-    --muted-foreground: 22 15% 38%;
+    --muted: 34 30% 90%;
+    --muted-foreground: 24 20% 35%;
 
-    --accent: 38 72% 52%;
-    --accent-foreground: 22 40% 12%;
+    --accent: 26 40% 60%;          /* tan/latte #B58968 */
+    --accent-foreground: 22 45% 15%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 35 25% 82%;
-    --input: 35 25% 82%;
-    --ring: 38 72% 52%;
+    --border: 32 28% 82%;
+    --input: 32 28% 82%;
+    --ring: 24 35% 45%;
 
     --radius: 0.75rem;
 
     /* Custom tokens */
-    --gold: 38 75% 58%;
-    --gold-foreground: 24 35% 15%;
+    --gold: 26 40% 60%;             /* tan/latte accent */
+    --gold-foreground: 22 45% 15%;
     --warm-cream: 38 60% 96%;
-    --deep-brown: 26 28% 42%;
-    --sunset: 22 60% 58%;
+    --deep-brown: 22 45% 22%;       /* chocolate #4A2E1E */
+    --sunset: 24 35% 38%;           /* mocha */
 
-    --sidebar-background: 26 28% 42%;
+    --sidebar-background: 22 45% 22%;
     --sidebar-foreground: 38 65% 96%;
-    --sidebar-primary: 38 75% 58%;
-    --sidebar-primary-foreground: 24 35% 15%;
-    --sidebar-accent: 26 22% 52%;
+    --sidebar-primary: 26 40% 60%;
+    --sidebar-primary-foreground: 22 45% 15%;
+    --sidebar-accent: 24 30% 32%;
     --sidebar-accent-foreground: 38 65% 96%;
-    --sidebar-border: 26 22% 52%;
-    --sidebar-ring: 38 75% 58%;
+    --sidebar-border: 24 30% 32%;
+    --sidebar-ring: 26 40% 60%;
 
     --font-heading: 'Playfair Display', serif;
     --font-body: 'Poppins', sans-serif;
