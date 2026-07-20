@@ -230,7 +230,7 @@ interface SendDialogProps {
   onClose: () => void;
 }
 
-interface Recipient { id: string; name: string; phone: string; }
+interface Recipient { id: string; name: string; phone: string; vars?: string[]; }
 
 const SendTemplateDialog = ({ template, onClose }: SendDialogProps) => {
   const { user } = useAuth();
@@ -239,6 +239,8 @@ const SendTemplateDialog = ({ template, onClose }: SendDialogProps) => {
 
   const bodyText = getBodyText(template.components || []);
   const headerText = getHeaderText(template.components || []);
+  const headerFormat = getHeaderFormat(template.components || []);
+  const isMediaHeader = ['IMAGE', 'DOCUMENT', 'VIDEO'].includes(headerFormat);
   const bodyPh = countPlaceholders(bodyText);
   const headerPh = countPlaceholders(headerText);
 
@@ -248,6 +250,10 @@ const SendTemplateDialog = ({ template, onClose }: SendDialogProps) => {
   const [selectedEventId, setSelectedEventId] = useState('');
   const [selectedGuests, setSelectedGuests] = useState<string[]>([]);
   const [sending, setSending] = useState(false);
+  const [headerMedia, setHeaderMedia] = useState<{ url: string; type: string; filename?: string } | null>(null);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [perRecipientVars, setPerRecipientVars] = useState(false);
+  const mediaInputRef = useRef<HTMLInputElement>(null);
 
   const { data: events = [] } = useQuery({
     queryKey: ['events-for-tpl'],
@@ -266,7 +272,7 @@ const SendTemplateDialog = ({ template, onClose }: SendDialogProps) => {
     enabled: !!selectedEventId,
   });
 
-  const addRow = () => setRecipients((p) => [...p, { id: `r-${Date.now()}`, name: '', phone: '' }]);
+  const addRow = () => setRecipients((p) => [...p, { id: `r-${Date.now()}`, name: '', phone: '', vars: Array(bodyPh).fill('') }]);
   const removeRow = (id: string) => setRecipients((p) => p.filter((r) => r.id !== id));
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -278,30 +284,91 @@ const SendTemplateDialog = ({ template, onClose }: SendDialogProps) => {
       const ws = wb.Sheets[wb.SheetNames[0]];
       const rows: any[] = XLSX.utils.sheet_to_json(ws);
       const imported: Recipient[] = rows
-        .map((r, i) => ({
-          id: `u-${Date.now()}-${i}`,
-          name: r.name || r.Name || r.jina || '',
-          phone: String(r.phone || r.Phone || r.simu || r.number || ''),
-        }))
+        .map((r, i) => {
+          const vars: string[] = [];
+          for (let n = 1; n <= bodyPh; n++) {
+            const key = `var${n}`;
+            const alt = `{{${n}}}`;
+            vars.push(String(r[key] ?? r[alt] ?? ''));
+          }
+          return {
+            id: `u-${Date.now()}-${i}`,
+            name: r.name || r.Name || r.jina || '',
+            phone: String(r.phone || r.Phone || r.simu || r.number || ''),
+            vars,
+          };
+        })
         .filter((r) => r.phone);
       setRecipients((p) => [...p, ...imported]);
       toast({ title: `${imported.length} contacts imported` });
+      if (bodyPh > 0) setPerRecipientVars(true);
     };
     reader.readAsBinaryString(file);
     e.target.value = '';
   };
 
+  const downloadRecipientTemplate = () => {
+    const headers: any = { name: 'Jina Mfano', phone: '2557XXXXXXXX' };
+    for (let i = 1; i <= bodyPh; i++) headers[`var${i}`] = `Thamani ya {{${i}}}`;
+    const ws = XLSX.utils.json_to_sheet([headers]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Recipients');
+    const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([buf], { type: 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `whatsapp_recipients_${template.name}.xlsx`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingMedia(true);
+    try {
+      const ext = file.name.split('.').pop() || 'bin';
+      const path = `${user?.id || 'anon'}/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from('whatsapp-media').upload(path, file, {
+        contentType: file.type, upsert: false,
+      });
+      if (error) throw error;
+      const { data } = supabase.storage.from('whatsapp-media').getPublicUrl(path);
+      const type = headerFormat === 'IMAGE' ? 'image' : headerFormat === 'VIDEO' ? 'video' : 'document';
+      setHeaderMedia({ url: data.publicUrl, type, filename: file.name });
+      toast({ title: 'Media uploaded' });
+    } catch (err: any) {
+      toast({ title: 'Upload failed', description: err.message, variant: 'destructive' });
+    } finally {
+      setUploadingMedia(false);
+      if (mediaInputRef.current) mediaInputRef.current.value = '';
+    }
+  };
+
   const send = async () => {
-    const allRecipients = [
-      ...guests.filter((g: any) => selectedGuests.includes(g.id)).map((g: any) => ({ name: g.full_name, phone: g.phone })),
-      ...recipients.filter((r) => r.phone.trim()),
-    ];
+    const guestRecipients = guests
+      .filter((g: any) => selectedGuests.includes(g.id))
+      .map((g: any) => ({ name: g.full_name, phone: g.phone, body_params: undefined as string[] | undefined }));
+    const manualRecipients = recipients
+      .filter((r) => r.phone.trim())
+      .map((r) => ({
+        name: r.name,
+        phone: r.phone,
+        body_params: perRecipientVars && bodyPh > 0
+          ? (r.vars || []).map((v, i) => (v && v.trim()) || bodyParams[i] || '')
+          : undefined,
+      }));
+    const allRecipients = [...guestRecipients, ...manualRecipients];
     if (allRecipients.length === 0) {
       toast({ title: 'Add at least one recipient', variant: 'destructive' });
       return;
     }
-    if (bodyPh > 0 && bodyParams.some((v) => !v.trim())) {
+    if (bodyPh > 0 && !perRecipientVars && bodyParams.some((v) => !v.trim())) {
       toast({ title: 'Fill all body parameters', variant: 'destructive' });
+      return;
+    }
+    if (isMediaHeader && !headerMedia) {
+      toast({ title: `Please upload ${headerFormat.toLowerCase()} for the header`, variant: 'destructive' });
       return;
     }
 
@@ -313,8 +380,9 @@ const SendTemplateDialog = ({ template, onClose }: SendDialogProps) => {
           template_name: template.name,
           language_code: template.language,
           recipients: allRecipients,
-          body_params: bodyParams,
+          body_params: perRecipientVars ? [] : bodyParams,
           header_params: headerParams,
+          header_media: headerMedia,
           userId: user?.id,
           eventId: selectedEventId || null,
         },
@@ -340,6 +408,33 @@ const SendTemplateDialog = ({ template, onClose }: SendDialogProps) => {
         </div>
       )}
 
+      {isMediaHeader && (
+        <div className="space-y-2 border rounded-lg p-3 bg-accent/5">
+          <Label className="flex items-center gap-2">
+            {headerFormat === 'IMAGE' ? <ImageIcon className="w-4 h-4" /> : <FileUp className="w-4 h-4" />}
+            Header {headerFormat.toLowerCase()} (required)
+          </Label>
+          <input
+            ref={mediaInputRef}
+            type="file"
+            className="hidden"
+            accept={headerFormat === 'IMAGE' ? 'image/*' : headerFormat === 'VIDEO' ? 'video/mp4' : '.pdf,.doc,.docx,.xls,.xlsx'}
+            onChange={handleMediaUpload}
+          />
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => mediaInputRef.current?.click()} disabled={uploadingMedia}>
+              {uploadingMedia ? <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Uploading...</> : <><Upload className="w-3 h-3 mr-1" /> Choose file</>}
+            </Button>
+            {headerMedia && (
+              <span className="text-xs text-muted-foreground truncate max-w-[300px]">{headerMedia.filename}</span>
+            )}
+          </div>
+          {headerMedia && headerFormat === 'IMAGE' && (
+            <img src={headerMedia.url} alt="header" className="mt-2 max-h-32 rounded" />
+          )}
+        </div>
+      )}
+
       {headerPh > 0 && (
         <div className="space-y-2">
           <Label>Header parameters</Label>
@@ -356,8 +451,14 @@ const SendTemplateDialog = ({ template, onClose }: SendDialogProps) => {
 
       {bodyPh > 0 && (
         <div className="space-y-2">
-          <Label>Body parameters</Label>
-          {bodyParams.map((v, i) => (
+          <div className="flex items-center justify-between">
+            <Label>Body variables ({bodyPh})</Label>
+            <label className="flex items-center gap-2 text-xs cursor-pointer">
+              <Checkbox checked={perRecipientVars} onCheckedChange={(v) => setPerRecipientVars(!!v)} />
+              Different values per recipient
+            </label>
+          </div>
+          {!perRecipientVars && bodyParams.map((v, i) => (
             <Input
               key={i}
               value={v}
@@ -366,7 +467,7 @@ const SendTemplateDialog = ({ template, onClose }: SendDialogProps) => {
             />
           ))}
           <p className="text-xs text-muted-foreground">
-            Tip: andika <code>{'{name}'}</code> katika parameter yoyote ili ibadilishwe na jina la mpokeaji.
+            Tip: andika <code>{'{name}'}</code> ibadilishwe na jina la mpokeaji. Au washa "Different values per recipient" kutuma thamani tofauti kwa kila mmoja.
           </p>
         </div>
       )}
@@ -404,19 +505,43 @@ const SendTemplateDialog = ({ template, onClose }: SendDialogProps) => {
         </div>
       )}
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <Button variant="outline" size="sm" onClick={addRow}><Plus className="w-3 h-3 mr-1" /> Add manually</Button>
         <label className="cursor-pointer">
           <Button variant="outline" size="sm" asChild><span><Upload className="w-3 h-3 mr-1" /> Upload Excel/CSV</span></Button>
           <input type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleUpload} />
         </label>
+        {bodyPh > 0 && (
+          <Button variant="ghost" size="sm" onClick={downloadRecipientTemplate}>
+            <Download className="w-3 h-3 mr-1" /> Pakua Template
+          </Button>
+        )}
       </div>
 
       {recipients.map((r) => (
-        <div key={r.id} className="flex items-center gap-2">
-          <Input placeholder="Name" value={r.name} onChange={(e) => setRecipients((p) => p.map((x) => (x.id === r.id ? { ...x, name: e.target.value } : x)))} />
-          <Input placeholder="Phone (255...)" value={r.phone} onChange={(e) => setRecipients((p) => p.map((x) => (x.id === r.id ? { ...x, phone: e.target.value } : x)))} />
-          <Button variant="ghost" size="icon" onClick={() => removeRow(r.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button>
+        <div key={r.id} className="space-y-2 border rounded-lg p-2">
+          <div className="flex items-center gap-2">
+            <Input placeholder="Name" value={r.name} onChange={(e) => setRecipients((p) => p.map((x) => (x.id === r.id ? { ...x, name: e.target.value } : x)))} />
+            <Input placeholder="Phone (255...)" value={r.phone} onChange={(e) => setRecipients((p) => p.map((x) => (x.id === r.id ? { ...x, phone: e.target.value } : x)))} />
+            <Button variant="ghost" size="icon" onClick={() => removeRow(r.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button>
+          </div>
+          {perRecipientVars && bodyPh > 0 && (
+            <div className="grid grid-cols-2 gap-2 pl-1">
+              {Array.from({ length: bodyPh }).map((_, i) => (
+                <Input
+                  key={i}
+                  placeholder={`{{${i + 1}}}`}
+                  value={r.vars?.[i] || ''}
+                  onChange={(e) => setRecipients((p) => p.map((x) => {
+                    if (x.id !== r.id) return x;
+                    const vars = [...(x.vars || Array(bodyPh).fill(''))];
+                    vars[i] = e.target.value;
+                    return { ...x, vars };
+                  }))}
+                />
+              ))}
+            </div>
+          )}
         </div>
       ))}
 
