@@ -134,8 +134,8 @@ const Events = () => {
               className="glass-card rounded-xl p-5 hover:shadow-warm transition-all group"
             >
               {event.photo_url && (
-                <div className="-mx-5 -mt-5 mb-4 overflow-hidden rounded-t-xl aspect-[3/4] bg-muted">
-                  <img src={event.photo_url} alt={event.title} className="w-full h-full object-contain" />
+                <div className="-mx-5 -mt-5 mb-4 overflow-hidden rounded-t-xl aspect-[12/4] bg-muted">
+                  <img src={event.photo_url} alt={event.title} className="w-full h-full object-cover" />
                 </div>
               )}
               <div className="flex items-start justify-between mb-3">
