@@ -161,6 +161,18 @@ const EventForm = ({ event, onSuccess }: EventFormProps) => {
         </div>
       </div>
 
+      <div className="flex items-center justify-between rounded-lg border border-border p-3 bg-muted/30">
+        <div className="space-y-0.5">
+          <Label htmlFor="show_on_website" className="text-sm font-medium">Onyesha kwenye website</Label>
+          <p className="text-xs text-muted-foreground">Tukio hili liwe testimonial kwenye ukurasa wa mbele</p>
+        </div>
+        <Switch
+          id="show_on_website"
+          checked={form.show_on_website}
+          onCheckedChange={(checked) => setForm({ ...form, show_on_website: checked })}
+        />
+      </div>
+
       <div>
         <Label htmlFor="event_date">Tarehe & Muda *</Label>
         <Input id="event_date" type="datetime-local" required value={form.event_date} onChange={(e) => setForm({ ...form, event_date: e.target.value })} />
