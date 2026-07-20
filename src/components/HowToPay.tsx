@@ -39,7 +39,7 @@ const HowToPay = () => {
           <p className="text-muted-foreground text-sm mb-4">
             {isEn ? 'Scan the QR code or use the Lipa No. below' : 'Scan QR code au tumia Lipa No. hapa chini'}
           </p>
-          <div className="bg-white rounded-xl p-4 inline-block mb-4 shadow-warm">
+          <div className="bg-card rounded-xl p-4 inline-block mb-4 shadow-warm">
             <QRCodeSVG value={NBC_MERCHANT_ID} size={160} />
           </div>
           <div className="mt-2">
