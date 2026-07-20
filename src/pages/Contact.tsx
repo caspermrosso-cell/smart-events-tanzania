@@ -27,7 +27,7 @@ const ContactContent = () => {
     }
   };
 
-  const inputClass = 'w-full px-4 py-3 rounded-lg bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all';
+  const inputClass = 'w-full px-4 py-3 rounded-lg bg-background border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all';
 
   return (
     <div className="min-h-screen">

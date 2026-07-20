@@ -65,7 +65,7 @@ const OAuthConsent = () => {
 
   if (error) {
     return (
-      <main className="min-h-screen flex items-center justify-center p-6 bg-gradient-warm">
+      <main className="min-h-screen flex items-center justify-center p-6 bg-warm-cream/40">
         <div className="max-w-md w-full glass-card rounded-2xl p-6">
           <h1 className="font-heading text-xl font-bold text-foreground mb-2">Authorization error</h1>
           <p className="text-sm text-muted-foreground">{error}</p>
@@ -76,7 +76,7 @@ const OAuthConsent = () => {
 
   if (!details) {
     return (
-      <main className="min-h-screen flex items-center justify-center p-6 bg-gradient-warm">
+      <main className="min-h-screen flex items-center justify-center p-6 bg-warm-cream/40">
         <p className="text-sm text-muted-foreground">Loading authorization…</p>
       </main>
     );
@@ -85,7 +85,7 @@ const OAuthConsent = () => {
   const clientName = details.client?.name ?? "an external app";
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-6 bg-gradient-warm">
+    <main className="min-h-screen flex items-center justify-center p-6 bg-warm-cream/40">
       <div className="max-w-md w-full glass-card rounded-2xl p-6 space-y-4">
         <h1 className="font-heading text-2xl font-bold text-foreground">
           Connect {clientName} to Smart Events?

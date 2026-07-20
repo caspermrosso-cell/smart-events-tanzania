@@ -31,7 +31,7 @@ const ContactForm = () => {
   const inputClass = "w-full px-4 py-3 rounded-lg bg-background border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-sm";
 
   return (
-    <section id="contact" className="py-24 bg-gradient-warm">
+    <section id="contact" className="py-24 bg-warm-cream/40">
       <div className="container mx-auto px-4 max-w-2xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
