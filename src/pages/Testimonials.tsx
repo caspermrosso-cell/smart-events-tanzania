@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -13,7 +13,6 @@ import { toast } from 'sonner';
 import { Plus, Pencil, Trash2, Star, Upload, Loader2, User } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { resolvePhotoUrls, resolvePhotoUrl } from '@/lib/testimonialPhoto';
-import { useEffect, useState as useStateReact } from 'react';
 
 type Testimonial = {
   id: string;
@@ -52,6 +51,14 @@ const TestimonialsPage = () => {
   const [form, setForm] = useState({ ...emptyForm });
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [formPhotoPreview, setFormPhotoPreview] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!form.photo_url) { setFormPhotoPreview(null); return; }
+    resolvePhotoUrl(form.photo_url).then((url) => { if (!cancelled) setFormPhotoPreview(url); });
+    return () => { cancelled = true; };
+  }, [form.photo_url]);
 
   const { data: testimonials = [], isLoading } = useQuery({
     queryKey: ['admin-testimonials'],
