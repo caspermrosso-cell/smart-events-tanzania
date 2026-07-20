@@ -13,6 +13,8 @@ import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import ContactPicker from '@/components/ContactPicker';
+import SmsTemplateManager from '@/components/sms/SmsTemplateManager';
+import SmsPreviewDialog, { PreviewRecipient } from '@/components/sms/SmsPreviewDialog';
 
 const SMS_TEMPLATES = [
   { id: 'invite', label: 'Mwaliko', template: 'Habari {name}, unaalikwa kwenye {event} tarehe {date}. Karibu sana!' },
@@ -45,6 +47,7 @@ const SmsCompose = () => {
   const [newName, setNewName] = useState('');
   const [newVars, setNewVars] = useState<Record<string, string>>({});
   const bulkFileRef = useRef<HTMLInputElement>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   // Detect custom {variable} tokens in message (excluding built-ins)
   const BUILTIN_VARS = ['name', 'event', 'date'];
@@ -205,31 +208,28 @@ const SmsCompose = () => {
 
   const totalRecipients = selectedGuests.length + manualRecipients.length;
 
-  const handleSend = async () => {
+  const openPreview = () => {
     if (!message || totalRecipients === 0) {
       toast.error('Andika ujumbe na uchague wapokeaji');
       return;
     }
-
-    // Must select an event
     if (!selectedEvent) {
       toast.error('Tafadhali chagua tukio kwanza kabla ya kutuma SMS.');
       return;
     }
-
-    // Event must have SMS allocation
     if (eventAllocation <= 0) {
       toast.error('Tukio hili halina SMS zilizotengwa. Tafadhali tenga SMS kwanza kwenye tukio.');
       return;
     }
-
-    // Check remaining SMS allocation
     const smsNeeded = totalRecipients * smsCount;
     if (smsNeeded > eventSmsRemaining) {
       toast.error(`SMS hazitoshi! Unahitaji ${smsNeeded} lakini zimebaki ${eventSmsRemaining} tu kwa tukio hili.`);
       return;
     }
+    setPreviewOpen(true);
+  };
 
+  const handleSend = async () => {
     setSending(true);
     try {
       const guestRecipients = guests
@@ -284,6 +284,7 @@ const SmsCompose = () => {
       queryClient.invalidateQueries({ queryKey: ['events-sms-allocation'] });
 
       setSent(true);
+      setPreviewOpen(false);
       setTimeout(() => {
         setSent(false);
         setSelectedGuests([]);
@@ -513,18 +514,22 @@ const SmsCompose = () => {
           </div>
         )}
 
-        <Button type="button" onClick={handleSend} disabled={sending || sent || hasErrors} className="w-full gap-2">
+        <Button type="button" onClick={openPreview} disabled={sending || sent || hasErrors} className="w-full gap-2">
           {sent ? <><CheckCircle className="w-4 h-4" /> Zimetumwa!</> :
            hasErrors ? 'Rekebisha makosa kwanza' :
            sending ? 'Inatuma kupitia Beem Africa...' :
-           scheduleEnabled ? <><Clock className="w-4 h-4" /> Panga SMS {totalRecipients}</> :
-           <><Send className="w-4 h-4" /> Tuma kwa Wapokeaji {totalRecipients}</>}
+           <><Send className="w-4 h-4" /> Kagua & Tuma ({totalRecipients})</>}
         </Button>
       </motion.div>
 
       {/* Recipients */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-card rounded-xl p-6 space-y-4">
         <h3 className="font-heading font-semibold text-foreground text-lg">Wapokeaji</h3>
+
+        {/* Custom template manager */}
+        <div className="p-3 rounded-lg border border-dashed border-border">
+          <SmsTemplateManager onUse={(c) => { setMessage(c); setSelectedTemplate('custom'); toast.success('Template imepakiwa kwenye ujumbe'); }} />
+        </div>
 
         {/* Manual phone entry */}
         <div className="space-y-2 p-3 rounded-lg border border-dashed border-border">
@@ -645,6 +650,23 @@ const SmsCompose = () => {
           </>
         )}
       </motion.div>
+
+      <SmsPreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        message={message}
+        recipients={[
+          ...guests.filter((g: any) => selectedGuests.includes(g.id)).map((g: any) => ({ name: g.full_name, phone: g.phone })),
+          ...manualRecipients.map((r) => ({ name: r.name, phone: r.phone, vars: r.vars || {} })),
+        ] as PreviewRecipient[]}
+        eventTitle={selectedEventData?.title}
+        eventDate={selectedEventData?.event_date}
+        smsCount={smsCount}
+        scheduled={scheduleEnabled}
+        scheduleAt={scheduleEnabled && scheduleDate && scheduleTime ? `${scheduleDate} ${scheduleTime}` : undefined}
+        sending={sending}
+        onConfirm={handleSend}
+      />
     </div>
   );
 };
