@@ -99,6 +99,7 @@ export type Database = {
           id: string
           max_guests: number | null
           photo_url: string | null
+          show_on_website: boolean
           sms_allocation: number
           status: string
           subscription_amount: number | null
@@ -117,6 +118,7 @@ export type Database = {
           id?: string
           max_guests?: number | null
           photo_url?: string | null
+          show_on_website?: boolean
           sms_allocation?: number
           status?: string
           subscription_amount?: number | null
@@ -135,6 +137,7 @@ export type Database = {
           id?: string
           max_guests?: number | null
           photo_url?: string | null
+          show_on_website?: boolean
           sms_allocation?: number
           status?: string
           subscription_amount?: number | null
@@ -193,6 +196,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "guests_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_testimonials"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "guests_event_id_fkey"
             columns: ["event_id"]
@@ -279,6 +289,13 @@ export type Database = {
           vat_enabled?: boolean
         }
         Relationships: [
+          {
+            foreignKeyName: "invoices_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_testimonials"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "invoices_event_id_fkey"
             columns: ["event_id"]
@@ -370,6 +387,13 @@ export type Database = {
             foreignKeyName: "payments_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
+            referencedRelation: "event_testimonials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -419,6 +443,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "pledges_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_testimonials"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "pledges_event_id_fkey"
             columns: ["event_id"]
@@ -540,6 +571,13 @@ export type Database = {
             foreignKeyName: "quotations_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
+            referencedRelation: "event_testimonials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -636,6 +674,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "sms_logs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_testimonials"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "sms_logs_event_id_fkey"
             columns: ["event_id"]
@@ -750,6 +795,13 @@ export type Database = {
             foreignKeyName: "whatsapp_logs_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
+            referencedRelation: "event_testimonials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_logs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -757,7 +809,42 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      event_testimonials: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          event_date: string | null
+          event_type: string | null
+          id: string | null
+          photo_url: string | null
+          status: string | null
+          title: string | null
+          venue: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          event_date?: string | null
+          event_type?: string | null
+          id?: string | null
+          photo_url?: string | null
+          status?: string | null
+          title?: string | null
+          venue?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          event_date?: string | null
+          event_type?: string | null
+          id?: string | null
+          photo_url?: string | null
+          status?: string | null
+          title?: string | null
+          venue?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
