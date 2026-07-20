@@ -74,6 +74,7 @@ const EventForm = ({ event, onSuccess }: EventFormProps) => {
       budget: form.budget ? parseFloat(form.budget) : 0,
       sms_allocation: form.sms_allocation ? parseInt(form.sms_allocation) : 0,
       photo_url: form.photo_url || null,
+      show_on_website: form.show_on_website,
       user_id: user.id,
     };
 
