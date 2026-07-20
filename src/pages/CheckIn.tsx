@@ -133,7 +133,8 @@ const CheckIn = () => {
   const total = guests.length;
   const filtered = guests.filter((g: any) =>
     g.full_name.toLowerCase().includes(search.toLowerCase()) ||
-    (g.barcode && g.barcode.includes(search))
+    (g.barcode && g.barcode.includes(search)) ||
+    (g.card_number && String(g.card_number).toLowerCase().includes(search.toLowerCase()))
   );
 
   return (
