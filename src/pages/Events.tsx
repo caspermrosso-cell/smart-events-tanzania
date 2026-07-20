@@ -24,9 +24,9 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
 
 const STATUS_STYLES: Record<string, string> = {
   draft: 'bg-muted text-muted-foreground',
-  active: 'bg-primary/10 text-primary',
-  completed: 'bg-accent/10 text-accent',
-  cancelled: 'bg-destructive/10 text-destructive',
+  active: 'bg-green-600 text-white shadow-sm',
+  completed: 'bg-blue-600 text-white shadow-sm',
+  cancelled: 'bg-destructive text-white shadow-sm',
 };
 
 const Events = () => {
