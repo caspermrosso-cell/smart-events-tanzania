@@ -15,7 +15,7 @@ const Services = () => {
   const { t } = useLanguage();
 
   return (
-    <section id="services" className="py-24 bg-gradient-warm">
+    <section id="services" className="py-24 bg-warm-cream/40">
       <div className="container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

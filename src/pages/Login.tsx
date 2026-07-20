@@ -102,7 +102,7 @@ const Login = () => {
   const inputClass = "w-full px-4 py-3 rounded-lg bg-background border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-sm";
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-warm px-4">
+    <div className="min-h-screen flex items-center justify-center bg-warm-cream/40 px-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}

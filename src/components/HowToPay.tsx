@@ -39,14 +39,14 @@ const HowToPay = () => {
           <p className="text-muted-foreground text-sm mb-4">
             {isEn ? 'Scan the QR code or use the Lipa No. below' : 'Scan QR code au tumia Lipa No. hapa chini'}
           </p>
-          <div className="bg-card rounded-xl p-4 inline-block mb-4 shadow-warm">
+          <div className="bg-warm-cream rounded-xl p-4 inline-block mb-4 shadow-warm">
             <QRCodeSVG value={NBC_MERCHANT_ID} size={160} />
           </div>
           <div className="mt-2">
             <p className="text-sm text-muted-foreground">{isEn ? 'Lipa No.' : 'Lipa No.'}:</p>
             <p className="text-2xl font-bold text-foreground">{NBC_MERCHANT_ID}</p>
           </div>
-          <div className="mt-4 p-3 rounded-lg bg-muted/50 text-xs text-muted-foreground text-left">
+          <div className="mt-4 p-3 rounded-lg bg-warm-cream/40 text-xs text-muted-foreground text-left">
             <p className="font-semibold mb-1">{isEn ? 'Steps:' : 'Hatua:'}</p>
             <ol className="list-decimal list-inside space-y-0.5">
               <li>{isEn ? 'Open your Mobile Money or Bank app' : 'Fungua app ya Mobile Money au Benki yako'}</li>
