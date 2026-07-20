@@ -1,7 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
-  RefreshCw, FileText, Send, Loader2, Plus, Trash2, CheckCircle2, Clock, XCircle, Upload,
+  RefreshCw, FileText, Send, Loader2, Plus, Trash2, CheckCircle2, Clock, XCircle, Upload, Image as ImageIcon, FileUp, Download,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -51,6 +51,11 @@ function getHeaderText(components: any[]): string {
     (c: any) => (c.type || '').toUpperCase() === 'HEADER' && (c.format || 'TEXT').toUpperCase() === 'TEXT',
   );
   return h?.text || '';
+}
+
+function getHeaderFormat(components: any[]): string {
+  const h = components?.find((c: any) => (c.type || '').toUpperCase() === 'HEADER');
+  return (h?.format || 'TEXT').toUpperCase();
 }
 
 // ----- Create template form -----
