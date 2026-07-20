@@ -124,14 +124,14 @@ const Events = () => {
           </Button>
         </motion.div>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory -mx-4 px-4 scroll-smooth">
           {events.map((event, i) => (
             <motion.div
               key={event.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="glass-card rounded-xl p-5 hover:shadow-warm transition-all group"
+              className="glass-card rounded-xl p-5 hover:shadow-warm transition-all group flex-shrink-0 w-72 snap-start"
             >
               {event.photo_url && (
                 <div className="-mx-5 -mt-5 mb-4 overflow-hidden rounded-t-xl aspect-[3/4] bg-muted flex items-center justify-center">
