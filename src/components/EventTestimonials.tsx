@@ -111,7 +111,7 @@ const EventTestimonials = () => {
                   className="glass-card rounded-2xl overflow-hidden flex-shrink-0 snap-start basis-full sm:basis-[calc((100%-1.5rem)/2)] lg:basis-[calc((100%-3rem)/3)] flex flex-col shadow-warm hover:shadow-lg transition-shadow"
                 >
                   {t.resolved_photo_url ? (
-                    <div className="relative aspect-[3/4] bg-muted overflow-hidden">
+                    <div className="relative aspect-[2/3] bg-muted overflow-hidden">
                       <img
                         src={t.resolved_photo_url}
                         alt={t.client_name}
@@ -127,9 +127,9 @@ const EventTestimonials = () => {
                       </div>
                     </div>
                   ) : (
-                    <div className="relative aspect-[3/4] bg-gradient-to-br from-primary/20 to-secondary/40 flex items-center justify-center">
-                      <div className="w-28 h-28 rounded-full bg-background/80 flex items-center justify-center">
-                        <User className="w-14 h-14 text-primary" />
+                    <div className="relative aspect-[2/3] bg-gradient-to-br from-primary/20 to-secondary/40 flex items-center justify-center">
+                      <div className="w-32 h-32 rounded-full bg-background/80 flex items-center justify-center">
+                        <User className="w-16 h-16 text-primary" />
                       </div>
                       <Quote className="absolute top-4 right-4 w-8 h-8 text-primary/40" />
                     </div>
