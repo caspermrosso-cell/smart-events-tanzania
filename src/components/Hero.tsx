@@ -15,7 +15,7 @@ const Hero = () => {
     <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden">
       <div className="absolute inset-0">
         <img src={heroImage} alt="Smart Events" className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-b from-foreground/80 via-foreground/60 to-foreground/90" />
+        <div className="absolute inset-0 bg-gradient-to-b from-deep-brown/85 via-deep-brown/65 to-deep-brown/90" />
       </div>
 
       <div className="relative z-10 container mx-auto px-4 text-center py-32">
@@ -25,12 +25,12 @@ const Hero = () => {
           transition={{ duration: 0.8 }}
           className="max-w-4xl mx-auto"
         >
-          <h1 className="font-heading text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+          <h1 className="font-heading text-4xl md:text-6xl lg:text-7xl font-bold text-primary-foreground mb-6 leading-tight">
             {isEn
               ? 'Increase Event Attendance. Eliminate Guesswork.'
               : 'Ongeza Mahudhurio ya Matukio. Ondoa Kubahatisha.'}
           </h1>
-          <p className="text-lg md:text-xl text-white/85 mb-10 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-lg md:text-xl text-primary-foreground/85 mb-10 max-w-3xl mx-auto leading-relaxed">
             {isEn
               ? 'Smart Events helps you manage invitations, automate reminders, and track attendance in real time — so your events run with precision and deliver measurable results.'
               : 'Smart Events inakusaidia kusimamia mialiko, kuautomatisha vikumbusho, na kufuatilia mahudhurio kwa wakati halisi — ili matukio yako yaendeshwe kwa usahihi na kutoa matokeo yanayopimika.'}
@@ -45,13 +45,13 @@ const Hero = () => {
             </button>
             <button
               onClick={() => scrollTo('howitworks')}
-              className="px-8 py-4 rounded-lg border-2 border-white/30 text-white font-semibold text-lg hover:bg-white/10 transition-all"
+              className="px-8 py-4 rounded-lg border-2 border-primary-foreground/30 text-primary-foreground font-semibold text-lg hover:bg-primary-foreground/10 transition-all"
             >
               <ArrowRight className="w-5 h-5 inline-block mr-2" />
               {isEn ? 'See How It Works' : 'Jinsi Inavyofanya Kazi'}
             </button>
           </div>
-          <p className="text-white/50 text-sm">
+          <p className="text-primary-foreground/50 text-sm">
             {isEn
               ? 'Used by organizations that value structured, high-impact events.'
               : 'Inatumiwa na mashirika yanayothamini matukio yaliyopangwa na yenye athari kubwa.'}
