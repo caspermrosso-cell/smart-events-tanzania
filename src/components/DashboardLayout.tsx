@@ -20,7 +20,7 @@ const navItems: { labelKey: TranslationKey; icon: any; href: string }[] = [
   { labelKey: 'admin.payments', icon: Wallet, href: '/payments' },
   { labelKey: 'admin.quotations', icon: FileText, href: '/quotations' },
   { labelKey: 'admin.packages', icon: Package, href: '/packages' },
-  { labelKey: 'admin.reports', icon: Quote, href: '/testimonials' },
+  { labelKey: 'admin.testimonials', icon: Quote, href: '/testimonials' },
   { labelKey: 'admin.reports', icon: BarChart3, href: '/reports' },
 ];
 
