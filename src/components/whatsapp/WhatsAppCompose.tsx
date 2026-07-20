@@ -23,12 +23,15 @@ interface ManualRecipient {
   phone: string;
 }
 
+const DEFAULT_WHATSAPP_BUSINESS_NUMBER = '255736670202';
+const DEFAULT_BUSINESS_NAME = 'Smart Events Tanzania';
+
 const WhatsAppCompose = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const [fromNumber, setFromNumber] = useState('');
+  const [fromNumber, setFromNumber] = useState(DEFAULT_WHATSAPP_BUSINESS_NUMBER);
   const [channel, setChannel] = useState('whatsapp');
   const [messageType, setMessageType] = useState<MessageType>('text');
   const [text, setText] = useState('');
