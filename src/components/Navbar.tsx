@@ -31,22 +31,22 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50" style={{ backgroundColor: '#2b2219' }}>
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-deep-brown">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
           <img src={smartEventsLogo} alt="Smart Events" className="w-32 h-auto" />
-          <span className="font-heading text-xl font-bold text-white">Smart Events</span>
+          <span className="font-heading text-xl font-bold text-primary-foreground">Smart Events</span>
         </Link>
 
         {/* Desktop */}
         <div className="hidden lg:flex items-center gap-5">
           {navLinks.map((link, i) =>
             link.to ? (
-              <Link key={i} to={link.to} className="text-sm font-medium text-white/80 hover:text-gold transition-colors">
+              <Link key={i} to={link.to} className="text-sm font-medium text-primary-foreground/80 hover:text-gold transition-colors">
                 {link.label}
               </Link>
             ) : (
-              <button key={i} onClick={link.action} className="text-sm font-medium text-white/80 hover:text-gold transition-colors">
+              <button key={i} onClick={link.action} className="text-sm font-medium text-primary-foreground/80 hover:text-gold transition-colors">
                 {link.label}
               </button>
             )
@@ -72,7 +72,7 @@ const Navbar = () => {
             <Globe className="w-3.5 h-3.5" />
             {language === 'en' ? 'SW' : 'EN'}
           </button>
-          <button onClick={() => setIsOpen(!isOpen)} className="p-2 text-white">
+          <button onClick={() => setIsOpen(!isOpen)} className="p-2 text-primary-foreground">
             {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
@@ -85,17 +85,16 @@ const Navbar = () => {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="lg:hidden overflow-hidden border-t border-white/10"
-            style={{ backgroundColor: '#2b2219' }}
+            className="lg:hidden overflow-hidden border-t border-primary-foreground/10 bg-deep-brown"
           >
             <div className="px-4 py-4 flex flex-col gap-3">
               {navLinks.map((link, i) =>
                 link.to ? (
-                  <Link key={i} to={link.to} className="text-sm py-2 text-white/80" onClick={() => setIsOpen(false)}>
+                  <Link key={i} to={link.to} className="text-sm py-2 text-primary-foreground/80" onClick={() => setIsOpen(false)}>
                     {link.label}
                   </Link>
                 ) : (
-                  <button key={i} onClick={link.action} className="text-sm py-2 text-white/80 text-left">
+                  <button key={i} onClick={link.action} className="text-sm py-2 text-primary-foreground/80 text-left">
                     {link.label}
                   </button>
                 )
