@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Calendar, MapPin, Users, MoreVertical, Pencil, Trash2, Eye, MessageSquare, ChevronLeft, ChevronRight, CheckCircle2, Clock } from 'lucide-react';
+import { Plus, Calendar, MapPin, Users, MoreVertical, Pencil, Trash2, Eye, MessageSquare, ChevronLeft, ChevronRight, CheckCircle2, Clock, Globe } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -165,11 +165,19 @@ const Events = () => {
                 </div>
               )}
               <div className="flex items-start justify-between mb-3">
-                <span className={`inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full font-semibold uppercase tracking-wide ${STATUS_STYLES[event.status] || STATUS_STYLES.draft}`}>
-                  {event.status === 'completed' && <CheckCircle2 className="w-4 h-4" />}
-                  {event.status === 'active' && <Clock className="w-4 h-4" />}
-                  {event.status}
-                </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className={`inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full font-semibold uppercase tracking-wide ${STATUS_STYLES[event.status] || STATUS_STYLES.draft}`}>
+                    {event.status === 'completed' && <CheckCircle2 className="w-4 h-4" />}
+                    {event.status === 'active' && <Clock className="w-4 h-4" />}
+                    {event.status}
+                  </span>
+                  {event.show_on_website && (
+                    <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-secondary text-secondary-foreground font-medium">
+                      <Globe className="w-3.5 h-3.5" />
+                      Website
+                    </span>
+                  )}
+                </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button className="p-1 rounded hover:bg-muted transition-colors">

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Upload, X, Loader2 } from 'lucide-react';
@@ -32,6 +33,7 @@ const EventForm = ({ event, onSuccess }: EventFormProps) => {
     budget: event?.budget?.toString() || '',
     sms_allocation: event?.sms_allocation?.toString() || '0',
     photo_url: event?.photo_url || '',
+    show_on_website: event?.show_on_website || false,
   });
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,6 +74,7 @@ const EventForm = ({ event, onSuccess }: EventFormProps) => {
       budget: form.budget ? parseFloat(form.budget) : 0,
       sms_allocation: form.sms_allocation ? parseInt(form.sms_allocation) : 0,
       photo_url: form.photo_url || null,
+      show_on_website: form.show_on_website,
       user_id: user.id,
     };
 
@@ -156,6 +159,18 @@ const EventForm = ({ event, onSuccess }: EventFormProps) => {
             </SelectContent>
           </Select>
         </div>
+      </div>
+
+      <div className="flex items-center justify-between rounded-lg border border-border p-3 bg-muted/30">
+        <div className="space-y-0.5">
+          <Label htmlFor="show_on_website" className="text-sm font-medium">Onyesha kwenye website</Label>
+          <p className="text-xs text-muted-foreground">Tukio hili liwe testimonial kwenye ukurasa wa mbele</p>
+        </div>
+        <Switch
+          id="show_on_website"
+          checked={form.show_on_website}
+          onCheckedChange={(checked) => setForm({ ...form, show_on_website: checked })}
+        />
       </div>
 
       <div>

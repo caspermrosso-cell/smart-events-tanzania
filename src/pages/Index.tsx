@@ -7,6 +7,7 @@ import Benefits from '@/components/Benefits';
 import HowItWorks from '@/components/HowItWorks';
 import ProductSnapshot from '@/components/ProductSnapshot';
 import SocialProof from '@/components/SocialProof';
+import EventTestimonials from '@/components/EventTestimonials';
 import UseCases from '@/components/UseCases';
 import Differentiation from '@/components/Differentiation';
 import ObjectionHandling from '@/components/ObjectionHandling';
@@ -26,8 +27,9 @@ const Index = () => {
         <Benefits />
         <HowItWorks />
         <ProductSnapshot />
-        <SocialProof />
-        <UseCases />
+      <SocialProof />
+      <EventTestimonials />
+      <UseCases />
         <Differentiation />
         <ObjectionHandling />
         <Pricing />
