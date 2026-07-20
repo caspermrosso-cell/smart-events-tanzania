@@ -24,9 +24,9 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
 
 const STATUS_STYLES: Record<string, string> = {
   draft: 'bg-muted text-muted-foreground',
-  active: 'bg-primary/10 text-primary',
-  completed: 'bg-accent/10 text-accent',
-  cancelled: 'bg-destructive/10 text-destructive',
+  active: 'bg-green-600 text-white shadow-sm',
+  completed: 'bg-blue-600 text-white shadow-sm',
+  cancelled: 'bg-destructive text-white shadow-sm',
 };
 
 const Events = () => {
@@ -165,9 +165,9 @@ const Events = () => {
                 </div>
               )}
               <div className="flex items-start justify-between mb-3">
-                <span className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium ${STATUS_STYLES[event.status] || STATUS_STYLES.draft}`}>
-                  {event.status === 'completed' && <CheckCircle2 className="w-3 h-3" />}
-                  {event.status === 'active' && <Clock className="w-3 h-3" />}
+                <span className={`inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full font-semibold uppercase tracking-wide ${STATUS_STYLES[event.status] || STATUS_STYLES.draft}`}>
+                  {event.status === 'completed' && <CheckCircle2 className="w-4 h-4" />}
+                  {event.status === 'active' && <Clock className="w-4 h-4" />}
                   {event.status}
                 </span>
                 <DropdownMenu>
