@@ -96,14 +96,31 @@ const SmsCompose = () => {
   };
 
   const downloadBulkTemplate = () => {
-    const ws = XLSX.utils.aoa_to_sheet([
-      ['Jina', 'Simu', 'amount', 'reference'],
-      ['Ali Mohamed', '0712345678', '50000', 'INV-001'],
-      ['Fatma Hassan', '0654321098', '25000', 'INV-002'],
-    ]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Wapokeaji');
-    XLSX.writeFile(wb, 'sms_wapokeaji_template.xlsx');
+    try {
+      const ws = XLSX.utils.aoa_to_sheet([
+        ['Jina', 'Simu', 'amount', 'reference'],
+        ['Ali Mohamed', '0712345678', '50000', 'INV-001'],
+        ['Fatma Hassan', '0654321098', '25000', 'INV-002'],
+      ]);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Wapokeaji');
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([wbout], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'sms_wapokeaji_template.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast.success('Template imepakuliwa');
+    } catch (err: any) {
+      console.error('Template download failed', err);
+      toast.error('Imeshindikana kupakua template: ' + (err?.message || 'Hitilafu'));
+    }
   };
 
   const { data: events = [] } = useQuery({
