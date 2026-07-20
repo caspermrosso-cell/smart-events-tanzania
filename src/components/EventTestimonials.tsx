@@ -111,13 +111,13 @@ const EventTestimonials = () => {
                   className="glass-card rounded-2xl overflow-hidden flex-shrink-0 snap-start basis-full sm:basis-[calc((100%-1.5rem)/2)] lg:basis-[calc((100%-3rem)/3)] flex flex-col shadow-warm hover:shadow-lg transition-shadow"
                 >
                   {t.resolved_photo_url ? (
-                    <div className="relative aspect-[2/3] bg-muted overflow-hidden">
+                    <div className="relative aspectio aspect-[4/5] bg-muted overflow-hidden flex items-center justify-center">
                       <img
                         src={t.resolved_photo_url}
                         alt={t.client_name}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent pointer-events-none" />
                       <Quote className="absolute top-4 right-4 w-8 h-8 text-white/80" />
                       <div className="absolute bottom-4 left-4 right-4 text-white">
                         <p className="font-heading text-lg font-semibold leading-tight">{t.client_name}</p>
