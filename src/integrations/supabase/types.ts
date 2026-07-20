@@ -152,9 +152,11 @@ export type Database = {
       guests: {
         Row: {
           barcode: string | null
+          card_number: string | null
           checked_in: boolean
           checked_in_at: string | null
           created_at: string
+          custom_fields: Json
           email: string | null
           event_id: string
           full_name: string
@@ -167,9 +169,11 @@ export type Database = {
         }
         Insert: {
           barcode?: string | null
+          card_number?: string | null
           checked_in?: boolean
           checked_in_at?: string | null
           created_at?: string
+          custom_fields?: Json
           email?: string | null
           event_id: string
           full_name: string
@@ -182,9 +186,11 @@ export type Database = {
         }
         Update: {
           barcode?: string | null
+          card_number?: string | null
           checked_in?: boolean
           checked_in_at?: string | null
           created_at?: string
+          custom_fields?: Json
           email?: string | null
           event_id?: string
           full_name?: string
