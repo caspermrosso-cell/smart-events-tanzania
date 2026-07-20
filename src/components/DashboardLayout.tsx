@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Calendar, Users, CreditCard, MessageSquare, Mail, QrCode, LogOut, LayoutDashboard, BarChart3, Wallet, FileText, Package, Globe, MessageCircle } from 'lucide-react';
+import { Calendar, Users, CreditCard, MessageSquare, Mail, QrCode, LogOut, LayoutDashboard, BarChart3, Wallet, FileText, Package, Globe, MessageCircle, Quote } from 'lucide-react';
 import smartEventsLogo from '@/assets/smart-events-logo.png';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -20,6 +20,7 @@ const navItems: { labelKey: TranslationKey; icon: any; href: string }[] = [
   { labelKey: 'admin.payments', icon: Wallet, href: '/payments' },
   { labelKey: 'admin.quotations', icon: FileText, href: '/quotations' },
   { labelKey: 'admin.packages', icon: Package, href: '/packages' },
+  { labelKey: 'admin.testimonials', icon: Quote, href: '/testimonials' },
   { labelKey: 'admin.reports', icon: BarChart3, href: '/reports' },
 ];
 

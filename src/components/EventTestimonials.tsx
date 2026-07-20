@@ -3,26 +3,23 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { format } from 'date-fns';
-import { Quote, ChevronLeft, ChevronRight, Calendar, MapPin } from 'lucide-react';
+import { Quote, ChevronLeft, ChevronRight, Star, ThumbsUp, User } from 'lucide-react';
+
+type Testimonial = {
+  id: string;
+  client_name: string;
+  client_role: string | null;
+  event_type: string | null;
+  photo_url: string | null;
+  quote: string;
+  recommendation: string | null;
+  rating: number;
+  display_order: number;
+};
 
 const EVENT_TYPE_LABELS: Record<string, Record<string, string>> = {
-  en: {
-    wedding: 'Wedding',
-    birthday: 'Birthday',
-    corporate: 'Corporate',
-    fundraiser: 'Fundraiser',
-    memorial: 'Memorial',
-    other: 'Other',
-  },
-  sw: {
-    wedding: 'Harusi',
-    birthday: 'Birthday',
-    corporate: 'Corporate',
-    fundraiser: 'Fundraiser',
-    memorial: 'Memorial',
-    other: 'Nyingine',
-  },
+  en: { wedding: 'Wedding', birthday: 'Birthday', corporate: 'Corporate', fundraiser: 'Fundraiser', memorial: 'Memorial', other: 'Other' },
+  sw: { wedding: 'Harusi', birthday: 'Birthday', corporate: 'Corporate', fundraiser: 'Fundraiser', memorial: 'Memorial', other: 'Nyingine' },
 };
 
 const EventTestimonials = () => {
@@ -31,14 +28,16 @@ const EventTestimonials = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const { data: testimonials = [], isLoading } = useQuery({
-    queryKey: ['event-testimonials'],
+    queryKey: ['client-testimonials'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('event_testimonials')
+      const { data, error } = await (supabase as any)
+        .from('testimonials')
         .select('*')
-        .order('event_date', { ascending: false });
+        .eq('is_published', true)
+        .order('display_order', { ascending: true })
+        .order('created_at', { ascending: false });
       if (error) throw error;
-      return data || [];
+      return (data || []) as Testimonial[];
     },
   });
 
@@ -58,15 +57,19 @@ const EventTestimonials = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-12"
+          className="text-center mb-14"
         >
+          <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-primary bg-primary/10 px-3 py-1 rounded-full mb-4">
+            <ThumbsUp className="w-3.5 h-3.5" />
+            {isEn ? 'Client Testimonials' : 'Shukrani za Wateja'}
+          </span>
           <h2 className="font-heading text-3xl md:text-5xl font-bold text-foreground mb-4">
-            {isEn ? 'Events That Made an Impact' : 'Matukio Yaliyofanya Tofauti'}
+            {isEn ? 'What Our Clients Say' : 'Wanachosema Wateja Wetu'}
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
             {isEn
-              ? 'Real events managed with Smart Events — from intimate gatherings to grand celebrations.'
-              : 'Matukio halisi yaliosimamiwa na Smart Events — kutoka makusanyiko madogo hadi sherehe kubwa.'}
+              ? 'Real thanks and recommendations from clients whose events we managed.'
+              : 'Shukrani na mapendekezo halisi kutoka kwa wateja ambao tumesimamia matukio yao.'}
           </p>
         </motion.div>
 
@@ -95,64 +98,78 @@ const EventTestimonials = () => {
                 <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
               </div>
             ) : (
-              testimonials.map((event, i) => (
-                <motion.div
-                  key={event.id}
+              testimonials.map((t, i) => (
+                <motion.article
+                  key={t.id}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.08 }}
-                  className="glass-card rounded-2xl overflow-hidden flex-shrink-0 snap-start basis-full sm:basis-[calc((100%-1.5rem)/2)] lg:basis-[calc((100%-3rem)/3)] flex flex-col"
+                  className="glass-card rounded-2xl overflow-hidden flex-shrink-0 snap-start basis-full sm:basis-[calc((100%-1.5rem)/2)] lg:basis-[calc((100%-3rem)/3)] flex flex-col shadow-warm hover:shadow-lg transition-shadow"
                 >
-                  {event.photo_url ? (
-                    <div className="relative h-56 bg-muted overflow-hidden">
+                  {t.photo_url ? (
+                    <div className="relative h-64 bg-muted overflow-hidden">
                       <img
-                        src={event.photo_url}
-                        alt={event.title || ''}
+                        src={t.photo_url}
+                        alt={t.client_name}
                         className="w-full h-full object-cover"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                      <Quote className="absolute top-4 right-4 w-8 h-8 text-white/70" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                      <Quote className="absolute top-4 right-4 w-8 h-8 text-white/80" />
+                      <div className="absolute bottom-4 left-4 right-4 text-white">
+                        <p className="font-heading text-lg font-semibold leading-tight">{t.client_name}</p>
+                        {t.client_role && (
+                          <p className="text-white/85 text-sm">{t.client_role}</p>
+                        )}
+                      </div>
                     </div>
                   ) : (
-                    <div className="h-40 bg-secondary/40 flex items-center justify-center">
-                      <Quote className="w-10 h-10 text-primary/30" />
+                    <div className="relative h-40 bg-gradient-to-br from-primary/20 to-secondary/40 flex items-center justify-center">
+                      <div className="w-20 h-20 rounded-full bg-background/80 flex items-center justify-center">
+                        <User className="w-10 h-10 text-primary" />
+                      </div>
+                      <Quote className="absolute top-4 right-4 w-8 h-8 text-primary/40" />
                     </div>
                   )}
 
                   <div className="p-6 flex flex-col flex-1">
-                    <span className="inline-flex self-start text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium mb-3">
-                      {EVENT_TYPE_LABELS[language]?.[event.event_type || 'other'] || event.event_type}
-                    </span>
+                    {!t.photo_url && (
+                      <div className="mb-3">
+                        <p className="font-heading text-lg font-semibold text-foreground">{t.client_name}</p>
+                        {t.client_role && (
+                          <p className="text-muted-foreground text-sm">{t.client_role}</p>
+                        )}
+                      </div>
+                    )}
 
-                    <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
-                      {event.title}
-                    </h3>
-
-                    <div className="space-y-1.5 text-sm text-muted-foreground mb-4">
-                      {event.event_date && (
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-3.5 h-3.5" />
-                          <span>
-                            {format(new Date(event.event_date), 'dd MMM yyyy')}
-                          </span>
-                        </div>
-                      )}
-                      {event.venue && (
-                        <div className="flex items-center gap-2">
-                          <MapPin className="w-3.5 h-3.5" />
-                          <span className="truncate">{event.venue}</span>
-                        </div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="flex gap-0.5">
+                        {Array.from({ length: 5 }).map((_, idx) => (
+                          <Star
+                            key={idx}
+                            className={`w-4 h-4 ${idx < t.rating ? 'fill-primary text-primary' : 'text-muted-foreground/30'}`}
+                          />
+                        ))}
+                      </div>
+                      {t.event_type && (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+                          {EVENT_TYPE_LABELS[language]?.[t.event_type] || t.event_type}
+                        </span>
                       )}
                     </div>
 
-                    {event.description && (
-                      <p className="text-foreground/80 text-sm leading-relaxed line-clamp-4 flex-1">
-                        “{event.description}”
-                      </p>
+                    <p className="text-foreground/85 text-sm leading-relaxed italic mb-4">
+                      "{t.quote}"
+                    </p>
+
+                    {t.recommendation && (
+                      <div className="mt-auto pt-4 border-t border-border/60 flex gap-2 text-sm">
+                        <ThumbsUp className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                        <p className="text-foreground/90 font-medium">{t.recommendation}</p>
+                      </div>
                     )}
                   </div>
-                </motion.div>
+                </motion.article>
               ))
             )}
           </div>
