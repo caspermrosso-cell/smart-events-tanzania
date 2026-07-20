@@ -50,7 +50,7 @@ const Events = () => {
       const { data, error } = await supabase
         .from('events')
         .select('*')
-        .order('event_date', { ascending: false });
+        .order('event_date', { ascending: true });
       if (error) throw error;
       return data;
     },
