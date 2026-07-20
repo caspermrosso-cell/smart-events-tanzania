@@ -165,7 +165,9 @@ const Events = () => {
                 </div>
               )}
               <div className="flex items-start justify-between mb-3">
-                <span className={`text-xs px-2 py-1 rounded-full font-medium ${STATUS_STYLES[event.status] || STATUS_STYLES.draft}`}>
+                <span className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium ${STATUS_STYLES[event.status] || STATUS_STYLES.draft}`}>
+                  {event.status === 'completed' && <CheckCircle2 className="w-3 h-3" />}
+                  {event.status === 'active' && <Clock className="w-3 h-3" />}
                   {event.status}
                 </span>
                 <DropdownMenu>
