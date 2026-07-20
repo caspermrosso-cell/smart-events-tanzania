@@ -15,7 +15,7 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="py-10 text-white" style={{ backgroundColor: '#2b2219' }}>
+    <footer className="py-10 bg-deep-brown text-primary-foreground">
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-8">
           <div className="flex items-center gap-3">
@@ -23,20 +23,20 @@ const Footer = () => {
           </div>
           <div className="flex flex-wrap justify-center gap-6">
             {links.map((link, i) => (
-              <Link key={i} to={link.to} className="text-sm text-white/70 hover:text-gold transition-colors">
+              <Link key={i} to={link.to} className="text-sm text-primary-foreground/70 hover:text-gold transition-colors">
                 {link.label}
               </Link>
             ))}
           </div>
         </div>
-        <div className="border-t border-white/10 pt-6 text-center">
-          <p className="text-white/60 text-sm mb-2">
+        <div className="border-t border-primary-foreground/10 pt-6 text-center">
+          <p className="text-primary-foreground/60 text-sm mb-2">
             {isEn ? 'Smart Events — Intelligent Event Management' : 'Smart Events — Usimamizi wa Matukio kwa Akili'}
           </p>
-          <p className="text-white/40 text-xs">
+          <p className="text-primary-foreground/40 text-xs">
             © {new Date().getFullYear()} Smart Events. {isEn ? 'All rights reserved.' : 'Haki zote zimehifadhiwa.'}
           </p>
-          <p className="text-white/50 text-xs mt-2">
+          <p className="text-primary-foreground/50 text-xs mt-2">
             <a href="mailto:info@smartevents.co.tz" className="hover:text-gold transition-colors">info@smartevents.co.tz</a>
           </p>
         </div>
