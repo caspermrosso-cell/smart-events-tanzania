@@ -157,7 +157,7 @@ const Events = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="glass-card rounded-xl p-5 hover:shadow-warm transition-all group flex-shrink-0 w-72 snap-start"
+              className="glass-card rounded-xl p-5 hover:shadow-warm transition-all group flex-shrink-0 snap-start basis-full sm:basis-[calc((100%-1.5rem)/2)] lg:basis-[calc((100%-3rem)/3)]"
             >
               {event.photo_url && (
                 <div className="-mx-5 -mt-5 mb-4 overflow-hidden rounded-t-xl aspect-[3/4] bg-muted flex items-center justify-center">
