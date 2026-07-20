@@ -234,8 +234,8 @@ const TestimonialsPage = () => {
             {testimonials.map((t) => (
               <div key={t.id} className="glass-card rounded-2xl overflow-hidden flex flex-col flex-shrink-0 snap-start basis-full sm:basis-[calc((100%-1.5rem)/2)] lg:basis-[calc((100%-3rem)/3)]">
                 {t.resolved_photo_url ? (
-                  <div className="aspect-[4/5] w-full overflow-hidden bg-muted">
-                    <img src={t.resolved_photo_url} alt={t.client_name} className="w-full h-full object-cover" />
+                  <div className="aspect-[4/5] w-full overflow-hidden bg-muted flex items-center justify-center">
+                    <img src={t.resolved_photo_url} alt={t.client_name} className="w-full h-full object-contain" />
                   </div>
                 ) : (
                   <div className="aspect-[4/5] w-full bg-secondary/40 flex items-center justify-center">
