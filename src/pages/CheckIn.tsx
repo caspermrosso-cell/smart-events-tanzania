@@ -101,7 +101,13 @@ const CheckIn = () => {
   };
 
   const handleScanResult = (code: string) => {
-    const guest = guests.find((g: any) => g.barcode === code || g.id === code);
+    const norm = code.trim();
+    const lower = norm.toLowerCase();
+    const guest = guests.find((g: any) =>
+      g.barcode === norm ||
+      g.id === norm ||
+      (g.card_number && String(g.card_number).toLowerCase() === lower)
+    );
     if (guest) {
       if ((guest as any).checked_in) {
         toast.warning(`${(guest as any).full_name} tayari ameingia`);
@@ -109,7 +115,7 @@ const CheckIn = () => {
         checkInMutation.mutate((guest as any).id);
       }
     } else {
-      toast.error('Barcode haijapatikana');
+      toast.error('Kadi/QR haijapatikana');
     }
   };
 
@@ -164,7 +170,7 @@ const CheckIn = () => {
                   <Input
                     value={manualCode}
                     onChange={e => setManualCode(e.target.value)}
-                    placeholder="Ingiza barcode..."
+                    placeholder="Ingiza Kadi Namba au barcode..."
                     onKeyDown={e => e.key === 'Enter' && handleManualCheckIn()}
                   />
                   <Button onClick={handleManualCheckIn} size="icon" variant="outline">
