@@ -27,8 +27,9 @@ const Index = () => {
         <Benefits />
         <HowItWorks />
         <ProductSnapshot />
-        <SocialProof />
-        <UseCases />
+      <SocialProof />
+      <EventTestimonials />
+      <UseCases />
         <Differentiation />
         <ObjectionHandling />
         <Pricing />
