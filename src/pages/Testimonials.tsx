@@ -208,10 +208,12 @@ const TestimonialsPage = () => {
             {testimonials.map((t) => (
               <div key={t.id} className="glass-card rounded-2xl overflow-hidden flex flex-col">
                 {t.resolved_photo_url ? (
-                  <img src={t.resolved_photo_url} alt={t.client_name} className="h-40 w-full object-cover" />
+                  <div className="aspect-[4/3] w-full overflow-hidden bg-muted">
+                    <img src={t.resolved_photo_url} alt={t.client_name} className="w-full h-full object-cover" />
+                  </div>
                 ) : (
-                  <div className="h-40 bg-secondary/40 flex items-center justify-center">
-                    <User className="w-10 h-10 text-primary/40" />
+                  <div className="aspect-[4/3] w-full bg-secondary/40 flex items-center justify-center">
+                    <User className="w-12 h-12 text-primary/40" />
                   </div>
                 )}
                 <div className="p-4 flex flex-col flex-1">
