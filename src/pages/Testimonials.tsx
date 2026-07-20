@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Plus, Pencil, Trash2, Star, Upload, Loader2, User } from 'lucide-react';
+import { Plus, Pencil, Trash2, Star, Upload, Loader2, User, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { resolvePhotoUrls, resolvePhotoUrl } from '@/lib/testimonialPhoto';
 
@@ -52,6 +52,14 @@ const TestimonialsPage = () => {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formPhotoPreview, setFormPhotoPreview] = useState<string | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const scrollBy = (dir: 'left' | 'right') => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const amount = el.clientWidth * 0.8;
+    el.scrollBy({ left: dir === 'left' ? -amount : amount, behavior: 'smooth' });
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -204,9 +212,27 @@ const TestimonialsPage = () => {
             </p>
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="relative">
+            <button
+              onClick={() => scrollBy('left')}
+              aria-label="Scroll left"
+              className="hidden md:flex absolute -left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 items-center justify-center rounded-full bg-background border border-border shadow-warm hover:bg-muted transition-all"
+            >
+              <ChevronLeft className="w-5 h-5 text-foreground" />
+            </button>
+            <button
+              onClick={() => scrollBy('right')}
+              aria-label="Scroll right"
+              className="hidden md:flex absolute -right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 items-center justify-center rounded-full bg-background border border-border shadow-warm hover:bg-muted transition-all"
+            >
+              <ChevronRight className="w-5 h-5 text-foreground" />
+            </button>
+            <div
+              ref={scrollRef}
+              className="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth scrollbar-hide"
+            >
             {testimonials.map((t) => (
-              <div key={t.id} className="glass-card rounded-2xl overflow-hidden flex flex-col">
+              <div key={t.id} className="glass-card rounded-2xl overflow-hidden flex flex-col flex-shrink-0 snap-start basis-full sm:basis-[calc((100%-1.5rem)/2)] lg:basis-[calc((100%-3rem)/3)]">
                 {t.resolved_photo_url ? (
                   <div className="aspect-[2/3] w-full overflow-hidden bg-muted">
                     <img src={t.resolved_photo_url} alt={t.client_name} className="w-full h-full object-cover" />
@@ -251,6 +277,7 @@ const TestimonialsPage = () => {
                 </div>
               </div>
             ))}
+            </div>
           </div>
         )}
 
