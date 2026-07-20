@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Quote, ChevronLeft, ChevronRight, Star, ThumbsUp, User } from 'lucide-react';
+import { resolvePhotoUrls } from '@/lib/testimonialPhoto';
 
 type Testimonial = {
   id: string;
@@ -15,6 +16,7 @@ type Testimonial = {
   recommendation: string | null;
   rating: number;
   display_order: number;
+  resolved_photo_url?: string | null;
 };
 
 const EVENT_TYPE_LABELS: Record<string, Record<string, string>> = {
@@ -37,7 +39,8 @@ const EventTestimonials = () => {
         .order('display_order', { ascending: true })
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return (data || []) as Testimonial[];
+      const list = (data || []) as Testimonial[];
+      return await resolvePhotoUrls(list);
     },
   });
 
@@ -107,10 +110,10 @@ const EventTestimonials = () => {
                   transition={{ delay: i * 0.08 }}
                   className="glass-card rounded-2xl overflow-hidden flex-shrink-0 snap-start basis-full sm:basis-[calc((100%-1.5rem)/2)] lg:basis-[calc((100%-3rem)/3)] flex flex-col shadow-warm hover:shadow-lg transition-shadow"
                 >
-                  {t.photo_url ? (
+                  {t.resolved_photo_url ? (
                     <div className="relative h-64 bg-muted overflow-hidden">
                       <img
-                        src={t.photo_url}
+                        src={t.resolved_photo_url}
                         alt={t.client_name}
                         className="w-full h-full object-cover"
                       />
@@ -133,7 +136,7 @@ const EventTestimonials = () => {
                   )}
 
                   <div className="p-6 flex flex-col flex-1">
-                    {!t.photo_url && (
+                    {!t.resolved_photo_url && (
                       <div className="mb-3">
                         <p className="font-heading text-lg font-semibold text-foreground">{t.client_name}</p>
                         {t.client_role && (

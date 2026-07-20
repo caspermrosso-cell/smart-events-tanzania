@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { Plus, Pencil, Trash2, Star, Upload, Loader2, User } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { resolvePhotoUrls, resolvePhotoUrl } from '@/lib/testimonialPhoto';
 
 type Testimonial = {
   id: string;
@@ -24,6 +25,7 @@ type Testimonial = {
   rating: number;
   is_published: boolean;
   display_order: number;
+  resolved_photo_url?: string | null;
 };
 
 const EVENT_TYPES = ['wedding', 'birthday', 'corporate', 'fundraiser', 'memorial', 'other'];
@@ -49,6 +51,14 @@ const TestimonialsPage = () => {
   const [form, setForm] = useState({ ...emptyForm });
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [formPhotoPreview, setFormPhotoPreview] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!form.photo_url) { setFormPhotoPreview(null); return; }
+    resolvePhotoUrl(form.photo_url).then((url) => { if (!cancelled) setFormPhotoPreview(url); });
+    return () => { cancelled = true; };
+  }, [form.photo_url]);
 
   const { data: testimonials = [], isLoading } = useQuery({
     queryKey: ['admin-testimonials'],
@@ -59,7 +69,8 @@ const TestimonialsPage = () => {
         .order('display_order', { ascending: true })
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return (data || []) as Testimonial[];
+      const list = (data || []) as Testimonial[];
+      return await resolvePhotoUrls(list);
     },
   });
 
@@ -96,8 +107,8 @@ const TestimonialsPage = () => {
       const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
       const { error } = await supabase.storage.from('testimonial-photos').upload(path, file, { upsert: false });
       if (error) throw error;
-      const { data: { publicUrl } } = supabase.storage.from('testimonial-photos').getPublicUrl(path);
-      setForm(f => ({ ...f, photo_url: publicUrl }));
+      // Store only the storage path — public component and admin resolve to signed URLs
+      setForm(f => ({ ...f, photo_url: path }));
       toast.success(isEn ? 'Photo uploaded' : 'Picha imepakiwa');
     } catch (e: any) {
       toast.error(e.message);
@@ -196,8 +207,8 @@ const TestimonialsPage = () => {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {testimonials.map((t) => (
               <div key={t.id} className="glass-card rounded-2xl overflow-hidden flex flex-col">
-                {t.photo_url ? (
-                  <img src={t.photo_url} alt={t.client_name} className="h-40 w-full object-cover" />
+                {t.resolved_photo_url ? (
+                  <img src={t.resolved_photo_url} alt={t.client_name} className="h-40 w-full object-cover" />
                 ) : (
                   <div className="h-40 bg-secondary/40 flex items-center justify-center">
                     <User className="w-10 h-10 text-primary/40" />
@@ -285,8 +296,8 @@ const TestimonialsPage = () => {
               <div>
                 <Label>{isEn ? 'Photo' : 'Picha'}</Label>
                 <div className="flex items-center gap-3 mt-1">
-                  {form.photo_url && (
-                    <img src={form.photo_url} alt="" className="w-16 h-16 rounded-lg object-cover border" />
+                  {form.photo_url && formPhotoPreview && (
+                    <img src={formPhotoPreview} alt="" className="w-16 h-16 rounded-lg object-cover border" />
                   )}
                   <label className="flex-1">
                     <input
