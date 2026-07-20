@@ -6,52 +6,53 @@
 
 @layer base {
   :root {
-    /* Smart Events - Nude Rose palette (chocolate • mocha • tan • cream • ivory) */
-    --background: 38 55% 95%;      /* ivory #F6EBD4 */
-    --foreground: 22 45% 18%;      /* deep chocolate */
+    /* Smart Events - Bouquet palette from reference image
+       chocolate #3E2A1E • mocha #6B4A33 • tan #B08968 • cream #E8C99B • ivory #F5E6C8 */
+    --background: 38 65% 94%;      /* ivory #F5E6C8 */
+    --foreground: 22 35% 18%;      /* dark chocolate #3E2A1E */
 
-    --card: 38 65% 97%;
-    --card-foreground: 22 45% 18%;
+    --card: 40 70% 97%;
+    --card-foreground: 22 35% 18%;
 
-    --popover: 38 55% 95%;
-    --popover-foreground: 22 45% 18%;
+    --popover: 38 65% 94%;
+    --popover-foreground: 22 35% 18%;
 
-    --primary: 24 35% 38%;         /* mocha #7D5A42 */
-    --primary-foreground: 38 65% 97%;
+    --primary: 24 35% 31%;         /* mocha #6B4A33 */
+    --primary-foreground: 40 70% 97%;
 
-    --secondary: 32 40% 86%;       /* soft cream */
-    --secondary-foreground: 22 45% 18%;
+    --secondary: 36 55% 76%;       /* cream #E8C99B */
+    --secondary-foreground: 22 35% 18%;
 
-    --muted: 34 30% 90%;
-    --muted-foreground: 24 20% 35%;
+    --muted: 36 45% 88%;
+    --muted-foreground: 24 22% 32%;
 
-    --accent: 26 40% 60%;          /* tan/latte #B58968 */
-    --accent-foreground: 22 45% 15%;
+    --accent: 27 33% 55%;          /* warm tan #B08968 */
+    --accent-foreground: 22 35% 15%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 32 28% 82%;
-    --input: 32 28% 82%;
-    --ring: 24 35% 45%;
+    --border: 34 32% 80%;
+    --input: 34 32% 80%;
+    --ring: 24 35% 40%;
 
     --radius: 0.75rem;
 
     /* Custom tokens */
-    --gold: 26 40% 60%;             /* tan/latte accent */
-    --gold-foreground: 22 45% 15%;
-    --warm-cream: 38 60% 96%;
-    --deep-brown: 22 45% 22%;       /* chocolate #4A2E1E */
-    --sunset: 24 35% 38%;           /* mocha */
+    --gold: 27 33% 55%;             /* warm tan accent */
+    --gold-foreground: 22 35% 15%;
+    --warm-cream: 36 55% 82%;       /* cream */
+    --deep-brown: 22 35% 18%;       /* chocolate */
+    --sunset: 24 35% 31%;           /* mocha */
 
-    --sidebar-background: 22 45% 22%;
-    --sidebar-foreground: 38 65% 96%;
-    --sidebar-primary: 26 40% 60%;
-    --sidebar-primary-foreground: 22 45% 15%;
-    --sidebar-accent: 24 30% 32%;
-    --sidebar-accent-foreground: 38 65% 96%;
-    --sidebar-border: 24 30% 32%;
-    --sidebar-ring: 26 40% 60%;
+    --sidebar-background: 22 35% 18%;
+    --sidebar-foreground: 40 70% 96%;
+    --sidebar-primary: 27 33% 55%;
+    --sidebar-primary-foreground: 22 35% 15%;
+    --sidebar-accent: 24 30% 26%;
+    --sidebar-accent-foreground: 40 70% 96%;
+    --sidebar-border: 24 30% 26%;
+    --sidebar-ring: 27 33% 55%;
 
     --font-heading: 'Playfair Display', serif;
     --font-body: 'Poppins', sans-serif;
