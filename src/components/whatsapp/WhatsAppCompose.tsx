@@ -257,7 +257,8 @@ const WhatsAppCompose = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label>WhatsApp Business Number</Label>
-              <Input placeholder="e.g. 255701000000" value={fromNumber} onChange={e => setFromNumber(e.target.value)} />
+              <Input placeholder={`e.g. ${DEFAULT_WHATSAPP_BUSINESS_NUMBER}`} value={fromNumber} onChange={e => setFromNumber(e.target.value)} />
+              <p className="text-xs text-muted-foreground mt-1">{DEFAULT_BUSINESS_NAME}</p>
             </div>
             <div>
               <Label>Channel</Label>
