@@ -133,6 +133,11 @@ const Events = () => {
               transition={{ delay: i * 0.05 }}
               className="glass-card rounded-xl p-5 hover:shadow-warm transition-all group"
             >
+              {event.photo_url && (
+                <div className="-mx-5 -mt-5 mb-4 h-32 overflow-hidden rounded-t-xl">
+                  <img src={event.photo_url} alt={event.title} className="w-full h-full object-cover" />
+                </div>
+              )}
               <div className="flex items-start justify-between mb-3">
                 <span className={`text-xs px-2 py-1 rounded-full font-medium ${STATUS_STYLES[event.status] || STATUS_STYLES.draft}`}>
                   {event.status}
