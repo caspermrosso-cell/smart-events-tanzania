@@ -296,8 +296,8 @@ const TestimonialsPage = () => {
               <div>
                 <Label>{isEn ? 'Photo' : 'Picha'}</Label>
                 <div className="flex items-center gap-3 mt-1">
-                  {form.photo_url && (
-                    <img src={form.photo_url} alt="" className="w-16 h-16 rounded-lg object-cover border" />
+                  {form.photo_url && formPhotoPreview && (
+                    <img src={formPhotoPreview} alt="" className="w-16 h-16 rounded-lg object-cover border" />
                   )}
                   <label className="flex-1">
                     <input
