@@ -114,6 +114,7 @@ export const translations = {
     'admin.payments': 'Payments',
     'admin.quotations': 'Documents',
     'admin.packages': 'Packages',
+    'admin.testimonials': 'Testimonials',
     'admin.reports': 'Reports',
     'admin.logout': 'Logout',
   },
