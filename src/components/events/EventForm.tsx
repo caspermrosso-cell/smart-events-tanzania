@@ -33,6 +33,7 @@ const EventForm = ({ event, onSuccess }: EventFormProps) => {
     budget: event?.budget?.toString() || '',
     sms_allocation: event?.sms_allocation?.toString() || '0',
     photo_url: event?.photo_url || '',
+    show_on_website: event?.show_on_website || false,
   });
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
