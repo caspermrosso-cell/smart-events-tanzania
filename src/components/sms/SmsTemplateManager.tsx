@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -31,9 +31,7 @@ const SmsTemplateManager = ({ onUse }: Props) => {
   const [category, setCategory] = useState('custom');
   const [content, setContent] = useState('');
   const [newVar, setNewVar] = useState('');
-  const contentRef = (typeof window !== 'undefined')
-    ? (globalThis as any)._smsTplRef ||= { current: null as HTMLTextAreaElement | null }
-    : { current: null };
+  const contentRef = useRef<HTMLTextAreaElement | null>(null);
 
   const BUILTIN_VARS = ['name', 'event', 'date'];
 
