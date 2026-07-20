@@ -96,8 +96,8 @@ const TestimonialsPage = () => {
       const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
       const { error } = await supabase.storage.from('testimonial-photos').upload(path, file, { upsert: false });
       if (error) throw error;
-      const { data: { publicUrl } } = supabase.storage.from('testimonial-photos').getPublicUrl(path);
-      setForm(f => ({ ...f, photo_url: publicUrl }));
+      // Store only the storage path — public component and admin resolve to signed URLs
+      setForm(f => ({ ...f, photo_url: path }));
       toast.success(isEn ? 'Photo uploaded' : 'Picha imepakiwa');
     } catch (e: any) {
       toast.error(e.message);
