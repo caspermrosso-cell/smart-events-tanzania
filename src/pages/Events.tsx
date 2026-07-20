@@ -124,7 +124,7 @@ const Events = () => {
           </Button>
         </motion.div>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {events.map((event, i) => (
             <motion.div
               key={event.id}
@@ -134,8 +134,8 @@ const Events = () => {
               className="glass-card rounded-xl p-5 hover:shadow-warm transition-all group"
             >
               {event.photo_url && (
-                <div className="-mx-5 -mt-5 mb-4 h-32 overflow-hidden rounded-t-xl">
-                  <img src={event.photo_url} alt={event.title} className="w-full h-full object-cover" />
+                <div className="-mx-5 -mt-5 mb-4 overflow-hidden rounded-t-xl aspect-[3/4] bg-muted">
+                  <img src={event.photo_url} alt={event.title} className="w-full h-full object-contain" />
                 </div>
               )}
               <div className="flex items-start justify-between mb-3">
