@@ -231,6 +231,7 @@ export const translations = {
     'admin.payments': 'Malipo',
     'admin.quotations': 'Nyaraka',
     'admin.packages': 'Vifurushi',
+    'admin.testimonials': 'Shukrani',
     'admin.reports': 'Ripoti',
     'admin.logout': 'Ondoka',
   },
