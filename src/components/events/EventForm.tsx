@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { Upload, X, Loader2 } from 'lucide-react';
 
 interface EventFormProps {
   event?: any;
@@ -18,6 +19,7 @@ const EventForm = ({ event, onSuccess }: EventFormProps) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const [form, setForm] = useState({
     title: event?.title || '',
@@ -29,7 +31,30 @@ const EventForm = ({ event, onSuccess }: EventFormProps) => {
     max_guests: event?.max_guests?.toString() || '',
     budget: event?.budget?.toString() || '',
     sms_allocation: event?.sms_allocation?.toString() || '0',
+    photo_url: event?.photo_url || '',
   });
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Picha ni kubwa mno (max 5MB)');
+      return;
+    }
+    setUploading(true);
+    const ext = file.name.split('.').pop();
+    const path = `${user.id}/${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from('event-photos').upload(path, file, { upsert: false });
+    if (upErr) {
+      toast.error('Imeshindikana kupakia picha');
+      setUploading(false);
+      return;
+    }
+    const { data: { publicUrl } } = supabase.storage.from('event-photos').getPublicUrl(path);
+    setForm((f) => ({ ...f, photo_url: publicUrl }));
+    setUploading(false);
+    toast.success('Picha imepakiwa');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,6 +71,7 @@ const EventForm = ({ event, onSuccess }: EventFormProps) => {
       max_guests: form.max_guests ? parseInt(form.max_guests) : null,
       budget: form.budget ? parseFloat(form.budget) : 0,
       sms_allocation: form.sms_allocation ? parseInt(form.sms_allocation) : 0,
+      photo_url: form.photo_url || null,
       user_id: user.id,
     };
 
@@ -69,6 +95,35 @@ const EventForm = ({ event, onSuccess }: EventFormProps) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label>Picha ya Mwenye Tukio</Label>
+        <div className="mt-1 flex items-center gap-3">
+          {form.photo_url ? (
+            <div className="relative">
+              <img src={form.photo_url} alt="Mwenye tukio" className="w-20 h-20 rounded-lg object-cover border border-border" />
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, photo_url: '' })}
+                className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-0.5"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          ) : (
+            <div className="w-20 h-20 rounded-lg border-2 border-dashed border-border flex items-center justify-center bg-muted/30">
+              <Upload className="w-5 h-5 text-muted-foreground" />
+            </div>
+          )}
+          <label className="cursor-pointer">
+            <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploading} />
+            <span className="inline-flex items-center gap-2 px-3 py-2 text-sm border border-border rounded-md hover:bg-muted transition-colors">
+              {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+              {uploading ? 'Inapakia...' : form.photo_url ? 'Badilisha' : 'Pakia Picha'}
+            </span>
+          </label>
+        </div>
+      </div>
+
       <div>
         <Label htmlFor="title">Jina la Tukio *</Label>
         <Input id="title" required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Mfano: Harusi ya Anna & John" />
