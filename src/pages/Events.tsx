@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Calendar, MapPin, Users, MoreVertical, Pencil, Trash2, Eye, MessageSquare } from 'lucide-react';
+import { Plus, Calendar, MapPin, Users, MoreVertical, Pencil, Trash2, Eye, MessageSquare, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -35,6 +35,14 @@ const Events = () => {
   const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<any>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const scrollBy = (dir: 'left' | 'right') => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const amount = el.clientWidth * 0.8;
+    el.scrollBy({ left: dir === 'left' ? -amount : amount, behavior: 'smooth' });
+  };
 
   const { data: events = [], isLoading } = useQuery({
     queryKey: ['events'],
@@ -124,8 +132,26 @@ const Events = () => {
           </Button>
         </motion.div>
       ) : (
-        <div className="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory -mx-4 px-4 scroll-smooth">
-          {events.map((event, i) => (
+        <div className="relative">
+          <button
+            onClick={() => scrollBy('left')}
+            aria-label="Scroll left"
+            className="hidden md:flex absolute -left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 items-center justify-center rounded-full bg-background border border-border shadow-warm hover:bg-muted transition-all"
+          >
+            <ChevronLeft className="w-5 h-5 text-foreground" />
+          </button>
+          <button
+            onClick={() => scrollBy('right')}
+            aria-label="Scroll right"
+            className="hidden md:flex absolute -right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 items-center justify-center rounded-full bg-background border border-border shadow-warm hover:bg-muted transition-all"
+          >
+            <ChevronRight className="w-5 h-5 text-foreground" />
+          </button>
+          <div
+            ref={scrollRef}
+            className="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth scrollbar-hide"
+          >
+            {events.map((event, i) => (
             <motion.div
               key={event.id}
               initial={{ opacity: 0, y: 20 }}
@@ -209,7 +235,8 @@ const Events = () => {
                 })()}
               </div>
             </motion.div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
     </DashboardLayout>
