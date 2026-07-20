@@ -36,7 +36,7 @@ const EventTestimonials = () => {
       const { data, error } = await supabase
         .from('event_testimonials')
         .select('*')
-        .order('event_date', { ascending: true });
+        .order('event_date', { ascending: false });
       if (error) throw error;
       return data || [];
     },
