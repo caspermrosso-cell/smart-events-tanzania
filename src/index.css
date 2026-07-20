@@ -8,13 +8,13 @@
   :root {
     /* Smart Events - Bouquet palette from reference image
        chocolate #3E2A1E • mocha #6B4A33 • tan #B08968 • cream #E8C99B • ivory #F5E6C8 */
-    --background: 38 65% 94%;      /* ivory #F5E6C8 */
+    --background: 38 65% 87%;      /* ivory #F5E6C8 */
     --foreground: 22 35% 18%;      /* dark chocolate #3E2A1E */
 
-    --card: 40 70% 97%;
+    --card: 40 70% 94%;
     --card-foreground: 22 35% 18%;
 
-    --popover: 38 65% 94%;
+    --popover: 38 65% 87%;
     --popover-foreground: 22 35% 18%;
 
     --primary: 24 35% 31%;         /* mocha #6B4A33 */
@@ -39,9 +39,9 @@
     --radius: 0.75rem;
 
     /* Custom tokens */
-    --gold: 27 33% 55%;             /* warm tan accent */
+    --gold: 27 33% 55%;             /* tan #B08968 */
     --gold-foreground: 22 35% 15%;
-    --warm-cream: 36 55% 82%;       /* cream */
+    --warm-cream: 36 55% 76%;       /* cream #E8C99B */
     --deep-brown: 22 35% 18%;       /* chocolate */
     --sunset: 24 35% 31%;           /* mocha */
 
