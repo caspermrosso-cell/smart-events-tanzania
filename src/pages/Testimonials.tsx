@@ -229,48 +229,48 @@ const TestimonialsPage = () => {
             </button>
             <div
               ref={scrollRef}
-              className="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth scrollbar-hide"
+              className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth scrollbar-hide"
             >
             {testimonials.map((t) => (
-              <div key={t.id} className="glass-card rounded-2xl overflow-hidden flex flex-col flex-shrink-0 snap-start basis-full sm:basis-[calc((100%-1.5rem)/2)] lg:basis-[calc((100%-3rem)/3)]">
+              <div key={t.id} className="glass-card rounded-2xl overflow-hidden flex flex-col flex-shrink-0 snap-start basis-full sm:basis-[calc((100%-1rem)/2)] lg:basis-[calc((100%-3rem)/4)]">
                 {t.resolved_photo_url ? (
-                  <div className="aspect-[4/5] w-full overflow-hidden bg-muted flex items-center justify-center">
+                  <div className="aspect-[3/4] w-full overflow-hidden bg-muted flex items-center justify-center">
                     <img src={t.resolved_photo_url} alt={t.client_name} className="w-full h-full object-contain" />
                   </div>
                 ) : (
-                  <div className="aspect-[4/5] w-full bg-secondary/40 flex items-center justify-center">
-                    <User className="w-16 h-16 text-primary/40" />
+                  <div className="aspect-[3/4] w-full bg-secondary/40 flex items-center justify-center">
+                    <User className="w-12 h-12 text-primary/40" />
                   </div>
                 )}
-                <div className="p-4 flex flex-col flex-1">
+                <div className="p-3 flex flex-col flex-1">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <h3 className="font-semibold text-foreground">{t.client_name}</h3>
-                      {t.client_role && <p className="text-xs text-muted-foreground">{t.client_role}</p>}
+                      <h3 className="font-semibold text-foreground text-sm">{t.client_name}</h3>
+                      {t.client_role && <p className="text-[11px] text-muted-foreground">{t.client_role}</p>}
                     </div>
                     <div className="flex gap-0.5">
                       {Array.from({ length: 5 }).map((_, i) => (
-                        <Star key={i} className={`w-3.5 h-3.5 ${i < t.rating ? 'fill-primary text-primary' : 'text-muted-foreground/30'}`} />
+                        <Star key={i} className={`w-3 h-3 ${i < t.rating ? 'fill-primary text-primary' : 'text-muted-foreground/30'}`} />
                       ))}
                     </div>
                   </div>
-                  <p className="text-sm text-foreground/80 italic mt-2 line-clamp-3">"{t.quote}"</p>
+                  <p className="text-xs text-foreground/80 italic mt-1 line-clamp-2">"{t.quote}"</p>
                   {t.recommendation && (
-                    <p className="text-sm text-foreground/90 font-medium mt-2 line-clamp-2">{t.recommendation}</p>
+                    <p className="text-xs text-foreground/90 font-medium mt-1 line-clamp-1">{t.recommendation}</p>
                   )}
-                  <div className="flex items-center justify-between mt-4 pt-3 border-t">
+                  <div className="flex items-center justify-between mt-3 pt-2 border-t">
                     <div className="flex items-center gap-2">
                       <Switch checked={t.is_published} onCheckedChange={() => togglePublish(t)} />
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-[11px] text-muted-foreground">
                         {t.is_published ? (isEn ? 'Published' : 'Imechapishwa') : (isEn ? 'Hidden' : 'Imefichwa')}
                       </span>
                     </div>
                     <div className="flex gap-1">
-                      <Button size="icon" variant="ghost" onClick={() => openEdit(t)}>
-                        <Pencil className="w-4 h-4" />
+                      <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => openEdit(t)}>
+                        <Pencil className="w-3.5 h-3.5" />
                       </Button>
-                      <Button size="icon" variant="ghost" onClick={() => handleDelete(t.id)}>
-                        <Trash2 className="w-4 h-4 text-destructive" />
+                      <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleDelete(t.id)}>
+                        <Trash2 className="w-3.5 h-3.5 text-destructive" />
                       </Button>
                     </div>
                   </div>
