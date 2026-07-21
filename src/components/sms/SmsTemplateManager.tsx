@@ -255,7 +255,7 @@ const SmsTemplateManager = ({ onUse }: Props) => {
           Bado hujatengeneza template. Bonyeza "Tengeneza" kuanza.
         </p>
       ) : (
-        <div className="space-y-1.5 max-h-56 overflow-y-auto">
+        <div className="space-y-1.5 overflow-y-auto pr-1" style={{ maxHeight: 'calc(100vh - 340px)' }}>
           {templates.map((t) => (
             <div key={t.id} className="p-2.5 rounded-lg border border-border hover:border-primary/40 transition-colors">
               <div className="flex items-start justify-between gap-2 mb-1">
