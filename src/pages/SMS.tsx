@@ -121,13 +121,13 @@ const SMS = () => {
         </div>
       )}
 
-      <Tabs defaultValue="compose" className="space-y-4">
-        <TabsList className="grid grid-cols-5 w-full max-w-2xl">
-          <TabsTrigger value="compose">Tuma SMS</TabsTrigger>
-          <TabsTrigger value="templates">Templates</TabsTrigger>
-          <TabsTrigger value="logs">Delivery Logs</TabsTrigger>
-          <TabsTrigger value="errors">Error Log</TabsTrigger>
-          <TabsTrigger value="reports">Ripoti</TabsTrigger>
+      <Tabs defaultValue="compose" className="space-y-3">
+        <TabsList className="grid grid-cols-5 w-full max-w-xl h-9">
+          <TabsTrigger value="compose" className="text-xs">Tuma SMS</TabsTrigger>
+          <TabsTrigger value="templates" className="text-xs">Templates</TabsTrigger>
+          <TabsTrigger value="logs" className="text-xs">Delivery Logs</TabsTrigger>
+          <TabsTrigger value="errors" className="text-xs">Error Log</TabsTrigger>
+          <TabsTrigger value="reports" className="text-xs">Ripoti</TabsTrigger>
         </TabsList>
 
         <TabsContent value="compose">
