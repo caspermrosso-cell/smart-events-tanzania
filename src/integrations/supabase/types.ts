@@ -93,6 +93,7 @@ export type Database = {
         Row: {
           budget: number | null
           created_at: string
+          deleted_at: string | null
           description: string | null
           event_date: string
           event_type: string
@@ -112,6 +113,7 @@ export type Database = {
         Insert: {
           budget?: number | null
           created_at?: string
+          deleted_at?: string | null
           description?: string | null
           event_date: string
           event_type?: string
@@ -131,6 +133,7 @@ export type Database = {
         Update: {
           budget?: number | null
           created_at?: string
+          deleted_at?: string | null
           description?: string | null
           event_date?: string
           event_type?: string
@@ -157,6 +160,7 @@ export type Database = {
           checked_in_at: string | null
           created_at: string
           custom_fields: Json
+          deleted_at: string | null
           email: string | null
           event_id: string
           full_name: string
@@ -174,6 +178,7 @@ export type Database = {
           checked_in_at?: string | null
           created_at?: string
           custom_fields?: Json
+          deleted_at?: string | null
           email?: string | null
           event_id: string
           full_name: string
@@ -191,6 +196,7 @@ export type Database = {
           checked_in_at?: string | null
           created_at?: string
           custom_fields?: Json
+          deleted_at?: string | null
           email?: string | null
           event_id?: string
           full_name?: string
@@ -732,6 +738,7 @@ export type Database = {
           client_role: string | null
           created_at: string
           created_by: string | null
+          deleted_at: string | null
           display_order: number
           event_type: string | null
           id: string
@@ -747,6 +754,7 @@ export type Database = {
           client_role?: string | null
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
           display_order?: number
           event_type?: string | null
           id?: string
@@ -762,6 +770,7 @@ export type Database = {
           client_role?: string | null
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
           display_order?: number
           event_type?: string | null
           id?: string
