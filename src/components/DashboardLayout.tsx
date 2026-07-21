@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Calendar, Users, CreditCard, MessageSquare, Mail, QrCode, LogOut, LayoutDashboard, BarChart3, Wallet, FileText, Package, Globe, MessageCircle, Quote } from 'lucide-react';
+import { Calendar, Users, CreditCard, MessageSquare, Mail, QrCode, LogOut, LayoutDashboard, BarChart3, Wallet, FileText, Package, Globe, MessageCircle, Quote, Trash2 } from 'lucide-react';
 import smartEventsLogo from '@/assets/smart-events-logo.png';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -8,7 +8,7 @@ import ThemeToggle from '@/components/ThemeToggle';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { TranslationKey } from '@/data/translations';
 
-const navItems: { labelKey: TranslationKey; icon: any; href: string }[] = [
+const navItems: { labelKey?: TranslationKey; label?: string; icon: any; href: string }[] = [
   { labelKey: 'admin.dashboard', icon: LayoutDashboard, href: '/dashboard' },
   { labelKey: 'admin.events', icon: Calendar, href: '/events' },
   { labelKey: 'admin.guests', icon: Users, href: '/guests' },
@@ -22,6 +22,7 @@ const navItems: { labelKey: TranslationKey; icon: any; href: string }[] = [
   { labelKey: 'admin.packages', icon: Package, href: '/packages' },
   { labelKey: 'admin.testimonials', icon: Quote, href: '/testimonials' },
   { labelKey: 'admin.reports', icon: BarChart3, href: '/reports' },
+  { label: 'Recycle Bin', icon: Trash2, href: '/recycle-bin' },
 ];
 
 const DashboardLayout = ({ children }: { children: ReactNode }) => {
@@ -63,7 +64,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                 }`}
               >
                 <item.icon className="w-4 h-4" />
-                {t(item.labelKey)}
+                {item.labelKey ? t(item.labelKey) : item.label}
               </Link>
             );
           })}
@@ -119,7 +120,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
               return (
                 <Link key={item.href} to={item.href} className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs whitespace-nowrap ${isActive ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground'}`}>
                   <item.icon className="w-3.5 h-3.5" />
-                  <span className="hidden xs:inline">{t(item.labelKey)}</span>
+                  <span className="hidden xs:inline">{item.labelKey ? t(item.labelKey) : item.label}</span>
                 </Link>
               );
             })}
