@@ -63,14 +63,14 @@ const SMS = () => {
 
   return (
     <DashboardLayout>
-      <div className="flex items-center justify-between mb-6">
-        <motion.h2 initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-heading text-2xl font-bold text-foreground">
+      <div className="flex items-center justify-between mb-3">
+        <motion.h2 initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-heading text-xl font-bold text-foreground">
           SMS Management
         </motion.h2>
         {balance && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2 glass-card rounded-lg px-4 py-2">
-            <Wallet className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-foreground">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2 glass-card rounded-lg px-3 py-1.5">
+            <Wallet className="w-3.5 h-3.5 text-primary" />
+            <span className="text-xs font-medium text-foreground">
               Salio: TZS {creditBalance.toLocaleString()}
             </span>
           </motion.div>
@@ -79,7 +79,7 @@ const SMS = () => {
 
       {/* Per-Event SMS Allocation Cards */}
       {eventsWithAllocation.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
           {eventsWithAllocation.map((ev: any) => {
             const usedPercent = ev.sms_allocation > 0 ? Math.round((ev.sms_used / ev.sms_allocation) * 100) : 0;
             const isLow = ev.sms_remaining < ev.sms_allocation * 0.2;
@@ -88,33 +88,33 @@ const SMS = () => {
                 key={ev.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="glass-card rounded-xl p-4"
+                className="glass-card rounded-lg p-2.5"
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <MessageSquare className="w-4 h-4 text-primary" />
-                  <h4 className="font-semibold text-foreground text-sm truncate">{ev.title}</h4>
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <MessageSquare className="w-3 h-3 text-primary" />
+                  <h4 className="font-semibold text-foreground text-xs truncate">{ev.title}</h4>
                 </div>
-                <div className="flex items-end justify-between mb-2">
+                <div className="flex items-end justify-between mb-1.5">
                   <div>
-                    <p className="text-xs text-muted-foreground">Zimebaki</p>
-                    <p className={`text-xl font-bold ${isLow ? 'text-destructive' : 'text-primary'}`}>
+                    <p className="text-[10px] text-muted-foreground">Zimebaki</p>
+                    <p className={`text-base font-bold ${isLow ? 'text-destructive' : 'text-primary'}`}>
                       {ev.sms_remaining.toLocaleString()}
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-muted-foreground">Zimetumika / Zote</p>
-                    <p className="text-sm font-medium text-foreground">
+                    <p className="text-[10px] text-muted-foreground">Zimetumika / Zote</p>
+                    <p className="text-xs font-medium text-foreground">
                       {ev.sms_used.toLocaleString()} / {ev.sms_allocation.toLocaleString()}
                     </p>
                   </div>
                 </div>
-                <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all ${isLow ? 'bg-destructive' : 'bg-primary'}`}
                     style={{ width: `${Math.min(usedPercent, 100)}%` }}
                   />
                 </div>
-                <p className="text-[10px] text-muted-foreground mt-1 text-right">{usedPercent}% zimetumika</p>
+                <p className="text-[9px] text-muted-foreground mt-0.5 text-right">{usedPercent}% zimetumika</p>
               </motion.div>
             );
           })}
