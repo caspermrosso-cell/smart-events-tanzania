@@ -8,6 +8,7 @@ import SmsCompose from '@/components/sms/SmsCompose';
 import SmsDeliveryLogs from '@/components/sms/SmsDeliveryLogs';
 import SmsReports from '@/components/sms/SmsReports';
 import SmsErrorLogs from '@/components/sms/SmsErrorLogs';
+import SmsTemplateManager from '@/components/sms/SmsTemplateManager';
 
 const SMS = () => {
   const queryClient = useQueryClient();
@@ -121,8 +122,9 @@ const SMS = () => {
       )}
 
       <Tabs defaultValue="compose" className="space-y-4">
-        <TabsList className="grid grid-cols-4 w-full max-w-lg">
+        <TabsList className="grid grid-cols-5 w-full max-w-2xl">
           <TabsTrigger value="compose">Tuma SMS</TabsTrigger>
+          <TabsTrigger value="templates">Templates</TabsTrigger>
           <TabsTrigger value="logs">Delivery Logs</TabsTrigger>
           <TabsTrigger value="errors">Error Log</TabsTrigger>
           <TabsTrigger value="reports">Ripoti</TabsTrigger>
@@ -130,6 +132,10 @@ const SMS = () => {
 
         <TabsContent value="compose">
           <SmsCompose />
+        </TabsContent>
+
+        <TabsContent value="templates">
+          <SmsTemplateManager />
         </TabsContent>
 
         <TabsContent value="logs">
