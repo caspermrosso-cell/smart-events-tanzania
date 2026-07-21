@@ -145,6 +145,7 @@ const SMS = () => {
               </motion.div>
             );
           })}
+          </div>
         </div>
       )}
 
