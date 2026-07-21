@@ -13,6 +13,14 @@ import SmsTemplateManager from '@/components/sms/SmsTemplateManager';
 
 const SMS = () => {
   const queryClient = useQueryClient();
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const scrollBy = (dir: 'left' | 'right') => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const amount = el.clientWidth * 0.8;
+    el.scrollBy({ left: dir === 'left' ? -amount : amount, behavior: 'smooth' });
+  };
 
   const { data: balance } = useQuery({
     queryKey: ['beem-balance'],
