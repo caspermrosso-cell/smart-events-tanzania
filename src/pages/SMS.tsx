@@ -79,7 +79,7 @@ const SMS = () => {
 
       {/* Per-Event SMS Allocation Cards */}
       {eventsWithAllocation.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
+        <div className="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
           {eventsWithAllocation.map((ev: any) => {
             const usedPercent = ev.sms_allocation > 0 ? Math.round((ev.sms_used / ev.sms_allocation) * 100) : 0;
             const isLow = ev.sms_remaining < ev.sms_allocation * 0.2;
