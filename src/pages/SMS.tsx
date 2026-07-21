@@ -1,5 +1,6 @@
+import { useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Wallet, MessageSquare } from 'lucide-react';
+import { Wallet, MessageSquare, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -12,6 +13,14 @@ import SmsTemplateManager from '@/components/sms/SmsTemplateManager';
 
 const SMS = () => {
   const queryClient = useQueryClient();
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const scrollBy = (dir: 'left' | 'right') => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const amount = el.clientWidth * 0.8;
+    el.scrollBy({ left: dir === 'left' ? -amount : amount, behavior: 'smooth' });
+  };
 
   const { data: balance } = useQuery({
     queryKey: ['beem-balance'],
@@ -79,8 +88,26 @@ const SMS = () => {
 
       {/* Per-Event SMS Allocation Cards */}
       {eventsWithAllocation.length > 0 && (
-        <div className="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
-          {eventsWithAllocation.map((ev: any) => {
+        <div className="relative mb-4">
+          <button
+            onClick={() => scrollBy('left')}
+            aria-label="Scroll left"
+            className="hidden md:flex absolute -left-3 top-1/2 -translate-y-1/2 z-10 w-8 h-8 items-center justify-center rounded-full bg-background border border-border shadow-warm hover:bg-muted transition-all"
+          >
+            <ChevronLeft className="w-4 h-4 text-foreground" />
+          </button>
+          <button
+            onClick={() => scrollBy('right')}
+            aria-label="Scroll right"
+            className="hidden md:flex absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-8 h-8 items-center justify-center rounded-full bg-background border border-border shadow-warm hover:bg-muted transition-all"
+          >
+            <ChevronRight className="w-4 h-4 text-foreground" />
+          </button>
+          <div
+            ref={scrollRef}
+            className="flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory scroll-smooth scrollbar-hide"
+          >
+            {eventsWithAllocation.map((ev: any) => {
             const usedPercent = ev.sms_allocation > 0 ? Math.round((ev.sms_used / ev.sms_allocation) * 100) : 0;
             const isLow = ev.sms_remaining < ev.sms_allocation * 0.2;
             return (
@@ -118,6 +145,7 @@ const SMS = () => {
               </motion.div>
             );
           })}
+          </div>
         </div>
       )}
 
