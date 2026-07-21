@@ -105,7 +105,7 @@ const SMS = () => {
           </button>
           <div
             ref={scrollRef}
-            className="flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory scroll-smooth scrollbar-hide"
+            className="flex gap-2 overflow-x-auto pb-3 snap-x snap-mandatory scroll-smooth scrollbar-hide"
           >
             {eventsWithAllocation.map((ev: any) => {
             const usedPercent = ev.sms_allocation > 0 ? Math.round((ev.sms_used / ev.sms_allocation) * 100) : 0;
@@ -115,7 +115,7 @@ const SMS = () => {
                 key={ev.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="glass-card rounded-lg p-2.5 min-w-[220px] flex-shrink-0 snap-start"
+                className="glass-card rounded-lg p-2.5 min-w-[220px] md:min-w-[calc(25%-0.375rem)] flex-shrink-0 snap-start"
               >
                 <div className="flex items-center gap-1.5 mb-1.5">
                   <MessageSquare className="w-3 h-3 text-primary" />
