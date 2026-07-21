@@ -50,6 +50,7 @@ const Events = () => {
       const { data, error } = await supabase
         .from('events')
         .select('*')
+        .is('deleted_at', null)
         .order('event_date', { ascending: false });
       if (error) throw error;
       return data;
@@ -77,12 +78,15 @@ const Events = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('events').delete().eq('id', id);
+      const { error } = await supabase
+        .from('events')
+        .update({ deleted_at: new Date().toISOString() } as any)
+        .eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
-      toast.success('Tukio limefutwa');
+      toast.success('Tukio limehamishwa Recycle Bin');
     },
     onError: () => toast.error('Imeshindikana kufuta tukio'),
   });

@@ -74,6 +74,7 @@ const TestimonialsPage = () => {
       const { data, error } = await (supabase as any)
         .from('testimonials')
         .select('*')
+        .is('deleted_at', null)
         .order('display_order', { ascending: true })
         .order('created_at', { ascending: false });
       if (error) throw error;
@@ -165,9 +166,12 @@ const TestimonialsPage = () => {
 
   const handleDelete = async (id: string) => {
     if (!confirm(isEn ? 'Delete this testimonial?' : 'Futa ushuhuda huu?')) return;
-    const { error } = await (supabase as any).from('testimonials').delete().eq('id', id);
+    const { error } = await (supabase as any)
+      .from('testimonials')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', id);
     if (error) return toast.error(error.message);
-    toast.success(isEn ? 'Deleted' : 'Imefutwa');
+    toast.success(isEn ? 'Moved to Recycle Bin' : 'Imehamishwa Recycle Bin');
     qc.invalidateQueries({ queryKey: ['admin-testimonials'] });
     qc.invalidateQueries({ queryKey: ['client-testimonials'] });
   };

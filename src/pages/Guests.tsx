@@ -52,7 +52,7 @@ const Guests = () => {
   const { data: guests = [], isLoading } = useQuery({
     queryKey: ['guests', selectedEvent],
     queryFn: async () => {
-      let q = supabase.from('guests').select('*, events(title)').order('created_at', { ascending: false });
+      let q = supabase.from('guests').select('*, events(title)').is('deleted_at', null).order('created_at', { ascending: false });
       if (selectedEvent !== 'all') q = q.eq('event_id', selectedEvent);
       const { data, error } = await q;
       if (error) throw error;
@@ -81,13 +81,16 @@ const Guests = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('guests').delete().eq('id', id);
+      const { error } = await supabase
+        .from('guests')
+        .update({ deleted_at: new Date().toISOString() } as any)
+        .eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['guests'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
-      toast.success('Mgeni amefutwa');
+      toast.success('Mgeni amehamishwa Recycle Bin');
     },
     onError: () => toast.error('Imeshindikana kufuta mgeni'),
   });

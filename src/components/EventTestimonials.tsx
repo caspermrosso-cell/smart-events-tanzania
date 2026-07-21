@@ -36,6 +36,7 @@ const EventTestimonials = () => {
         .from('testimonials')
         .select('*')
         .eq('is_published', true)
+        .is('deleted_at', null)
         .order('display_order', { ascending: true })
         .order('created_at', { ascending: false });
       if (error) throw error;
