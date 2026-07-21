@@ -25,6 +25,7 @@ import Payments from "./pages/Payments";
 import Quotations from "./pages/Quotations";
 import Packages from "./pages/Packages";
 import Testimonials from "./pages/Testimonials";
+import RecycleBin from "./pages/RecycleBin";
 import OAuthConsent from "./pages/OAuthConsent";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
