@@ -256,7 +256,12 @@ const Guests = () => {
                 </div>
                 <div>
                   <Label>Faili (Excel/CSV)</Label>
-                  <p className="text-xs text-muted-foreground mb-2">Safu: Jina, Simu, Kadi (standard) + safu zingine zozote zitakuwa custom variables. Pia inasoma Name, Phone, Card.</p>
+                  <div className="flex items-center justify-between mb-2 gap-2">
+                    <p className="text-xs text-muted-foreground">Safu za lazima: <strong>Jina, Simu, Kadi Namba, Tukio</strong>. Safu zingine zitakuwa custom variables.</p>
+                    <Button type="button" variant="outline" size="sm" onClick={downloadTemplate} className="gap-1 shrink-0">
+                      <Download className="w-3.5 h-3.5" /> Pakua Template
+                    </Button>
+                  </div>
                   <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" onChange={handleFileUpload} className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
                 </div>
                 {bulkData.length > 0 && (
