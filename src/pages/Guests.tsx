@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Users, Search, Phone, Mail, CheckCircle, XCircle, Clock, Trash2, Pencil, Upload, X, CreditCard } from 'lucide-react';
+import { Plus, Users, Search, Phone, Mail, CheckCircle, XCircle, Clock, Trash2, Pencil, Upload, X, CreditCard, Download } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -167,7 +167,7 @@ const Guests = () => {
         const wb = XLSX.read(evt.target?.result, { type: 'binary' });
         const ws = wb.Sheets[wb.SheetNames[0]];
         const data = XLSX.utils.sheet_to_json(ws);
-        const STANDARD = ['Jina','Name','full_name','Simu','Phone','phone','Email','email','Meza','Table','table_number','Kadi','Card','card_number'];
+        const STANDARD = ['Jina','Name','full_name','Simu','Phone','phone','Email','email','Meza','Table','table_number','Kadi','Kadi Namba','Card','card_number','Tukio','Event'];
         const parsed = data.map((row: any) => {
           const custom: Record<string, string> = {};
           Object.keys(row).forEach(k => {
@@ -178,7 +178,7 @@ const Guests = () => {
             phone: row['Simu'] || row['Phone'] || row['phone'] || '',
             email: row['Email'] || row['email'] || '',
             table_number: row['Meza'] || row['Table'] || row['table_number'] || '',
-            card_number: row['Kadi'] || row['Card'] || row['card_number'] || '',
+            card_number: row['Kadi Namba'] || row['Kadi'] || row['Card'] || row['card_number'] || '',
             custom_fields: custom,
           };
         }).filter(r => r.full_name);
@@ -205,6 +205,20 @@ const Guests = () => {
       rsvp_status: 'pending',
     }));
     bulkMutation.mutate(rows);
+  };
+
+  const downloadTemplate = () => {
+    const eventTitle = events.find((e: any) => e.id === bulkEventId)?.title || '';
+    const sample = [
+      { Jina: 'Mfano Mgeni 1', Simu: '+255700000001', 'Kadi Namba': '001', Tukio: eventTitle },
+      { Jina: 'Mfano Mgeni 2', Simu: '+255700000002', 'Kadi Namba': '002', Tukio: eventTitle },
+    ];
+    const ws = XLSX.utils.json_to_sheet(sample, { header: ['Jina', 'Simu', 'Kadi Namba', 'Tukio'] });
+    ws['!cols'] = [{ wch: 25 }, { wch: 18 }, { wch: 12 }, { wch: 25 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Wageni');
+    XLSX.writeFile(wb, 'wageni-template.xlsx');
+    toast.success('Template imepakuliwa');
   };
 
   const filtered = guests.filter((g: any) =>
@@ -242,7 +256,12 @@ const Guests = () => {
                 </div>
                 <div>
                   <Label>Faili (Excel/CSV)</Label>
-                  <p className="text-xs text-muted-foreground mb-2">Safu: Jina, Simu, Kadi (standard) + safu zingine zozote zitakuwa custom variables. Pia inasoma Name, Phone, Card.</p>
+                  <div className="flex items-center justify-between mb-2 gap-2">
+                    <p className="text-xs text-muted-foreground">Safu za lazima: <strong>Jina, Simu, Kadi Namba, Tukio</strong>. Safu zingine zitakuwa custom variables.</p>
+                    <Button type="button" variant="outline" size="sm" onClick={downloadTemplate} className="gap-1 shrink-0">
+                      <Download className="w-3.5 h-3.5" /> Pakua Template
+                    </Button>
+                  </div>
                   <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" onChange={handleFileUpload} className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
                 </div>
                 {bulkData.length > 0 && (
