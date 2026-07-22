@@ -15,13 +15,34 @@ serve(async (req) => {
   }
 
   try {
+    // Require authenticated caller
+    const userAuthHeader = req.headers.get('Authorization');
+    if (!userAuthHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const supabaseUrlEnv = Deno.env.get('SUPABASE_URL')!;
+    const anonKeyEnv = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const authClient = createClient(supabaseUrlEnv, anonKeyEnv, {
+      global: { headers: { Authorization: userAuthHeader } },
+    });
+    const jwt = userAuthHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsErr } = await authClient.auth.getClaims(jwt);
+    if (claimsErr || !claimsData?.claims?.sub) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const authenticatedUserId = claimsData.claims.sub as string;
+
     const apiKey = Deno.env.get('BEEM_API_KEY');
     const secretKey = Deno.env.get('BEEM_SECRET_KEY');
 
     if (!apiKey || !secretKey) {
       return new Response(JSON.stringify({ 
         success: false, 
-        error: 'BEEM_API_KEY au BEEM_SECRET_KEY hazijawekwa' 
+        error: 'SMS service is not configured' 
       }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -43,7 +64,10 @@ serve(async (req) => {
       });
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(`Beem balance check failed [${response.status}]: ${JSON.stringify(data)}`);
+        console.error('[send-sms] Beem balance check failed', response.status, data);
+        return new Response(JSON.stringify({ error: 'Unable to fetch SMS balance' }), {
+          status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
       }
       return new Response(JSON.stringify({ success: true, data }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -51,15 +75,41 @@ serve(async (req) => {
     }
 
     // Send SMS
-    const { message, recipients, eventTitle, eventDate, senderID, scheduleTime, logSms, userId, eventId } = body;
+    const { message, recipients, eventTitle, eventDate, senderID, scheduleTime, logSms, eventId } = body;
+    // Always trust the authenticated user id from the JWT
+    const userId = authenticatedUserId;
 
-    if (!message || !recipients || recipients.length === 0) {
+    // Input validation
+    if (typeof message !== 'string' || message.trim().length === 0) {
       return new Response(JSON.stringify({ 
         success: false, 
-        error: 'Ujumbe na wapokeaji vinahitajika' 
+        error: 'Message is required' 
       }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    if (message.length > 1000) {
+      return new Response(JSON.stringify({ success: false, error: 'Message too long (max 1000 chars)' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    if (!Array.isArray(recipients) || recipients.length === 0 || recipients.length > 500) {
+      return new Response(JSON.stringify({ success: false, error: 'Recipient count must be between 1 and 500' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const phoneRe = /^[0-9+\s()-]{7,20}$/;
+    for (const r of recipients) {
+      if (!r || typeof r !== 'object' || typeof (r as any).phone !== 'string' || !phoneRe.test((r as any).phone)) {
+        return new Response(JSON.stringify({ success: false, error: 'Invalid recipient phone number' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+    if (senderID !== undefined && senderID !== null && (typeof senderID !== 'string' || senderID.length > 11)) {
+      return new Response(JSON.stringify({ success: false, error: 'Invalid sender ID' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
@@ -84,10 +134,9 @@ serve(async (req) => {
 
     // Initialize Supabase client for logging
     let supabaseClient: any = null;
-    if (logSms && userId) {
-      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    if (logSms) {
       const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-      supabaseClient = createClient(supabaseUrl, supabaseServiceKey);
+      supabaseClient = createClient(supabaseUrlEnv, supabaseServiceKey);
     }
 
     const isScheduled = !!scheduleTime;
