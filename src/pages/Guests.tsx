@@ -234,7 +234,10 @@ const Guests = () => {
         <motion.h2 initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-heading text-2xl font-bold text-foreground">
           Wageni
         </motion.h2>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" className="gap-2" onClick={() => downloadTemplate()}>
+            <Download className="w-4 h-4" /> Pakua Template
+          </Button>
           {/* Bulk Upload Dialog */}
           <Dialog open={bulkDialogOpen} onOpenChange={setBulkDialogOpen}>
             <DialogTrigger asChild>
