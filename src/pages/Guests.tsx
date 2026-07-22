@@ -178,7 +178,7 @@ const Guests = () => {
             phone: row['Simu'] || row['Phone'] || row['phone'] || '',
             email: row['Email'] || row['email'] || '',
             table_number: row['Meza'] || row['Table'] || row['table_number'] || '',
-            card_number: row['Kadi'] || row['Card'] || row['card_number'] || '',
+            card_number: row['Kadi Namba'] || row['Kadi'] || row['Card'] || row['card_number'] || '',
             custom_fields: custom,
           };
         }).filter(r => r.full_name);
