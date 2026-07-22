@@ -131,6 +131,7 @@ serve(async (req) => {
       if (body.category) params.set('category', body.category);
       if (body.status) params.set('status', body.status);
       if (body.q) params.set('q', body.q);
+      if (body.page) params.set('page', String(body.page));
 
       const url = `${TEMPLATES_URL}${params.toString() ? '?' + params.toString() : ''}`;
       console.log('Fetching templates from:', url);
@@ -212,6 +213,82 @@ serve(async (req) => {
       }
 
       return new Response(JSON.stringify({ success: true, data }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // High-level bulk template send: normalizes phones, personalizes params
+    if (action === 'send-template-bulk') {
+      const {
+        from_addr, template_id, template_name, mediaUrl,
+        recipients, // [{ name, phone, params: [] }]
+        default_params, // fallback array of params if recipient.params missing
+        userId, eventId,
+      } = body;
+
+      if (!from_addr || !template_id || !Array.isArray(recipients) || recipients.length === 0) {
+        return new Response(JSON.stringify({ success: false, error: 'from_addr, template_id and recipients[] are required' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const destination_addr = recipients
+        .filter((r: any) => r?.phone)
+        .map((r: any) => {
+          const params = Array.isArray(r.params) && r.params.length > 0
+            ? r.params
+            : Array.isArray(default_params)
+              ? default_params.map((v: string) => (v === '{name}' ? (r.name || '') : v))
+              : [];
+          return { phoneNumber: normalizePhone(r.phone), params: params.map((v: any) => String(v ?? '')) };
+        });
+
+      const payload: any = {
+        from_addr,
+        destination_addr,
+        channel: 'whatsapp',
+        messageTemplateData: { id: template_id },
+      };
+      if (mediaUrl) payload.content = { mediaUrl };
+
+      const result = await makeBeemRequest(BROADCAST_TEMPLATE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': authHeader },
+        body: JSON.stringify(payload),
+      });
+
+      const data = result.data ?? { error: getBeemErrorMessage(result, 'Template send failed') };
+      const status = result.ok && result.data ? 'sent' : 'failed';
+
+      if (userId) {
+        const supabase = getSupabaseClient();
+        const logEntries = destination_addr.map((dest: any, i: number) => ({
+          user_id: userId,
+          event_id: eventId || null,
+          recipient_phone: dest.phoneNumber,
+          recipient_name: recipients[i]?.name || null,
+          channel: 'whatsapp',
+          message_type: 'template',
+          template_id: String(template_id),
+          template_name: template_name || null,
+          media_url: mediaUrl || null,
+          status,
+          beem_response: data,
+        }));
+        await supabase.from('whatsapp_logs').insert(logEntries);
+      }
+
+      return new Response(JSON.stringify({
+        success: result.ok,
+        summary: {
+          sent: status === 'sent' ? destination_addr.length : 0,
+          failed: status === 'failed' ? destination_addr.length : 0,
+          total: destination_addr.length,
+        },
+        data,
+        error: status === 'failed' ? getBeemErrorMessage(result, 'Template send failed') : undefined,
+      }), {
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
