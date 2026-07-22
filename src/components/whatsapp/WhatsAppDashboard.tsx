@@ -2,11 +2,12 @@ import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   BarChart3, CheckCircle2, CheckCheck, Eye, XCircle, Clock, MessageSquare,
-  Filter, RefreshCw, Send, Loader2, Reply,
+  Filter, RefreshCw, Send, Loader2, Reply, Trash2,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -68,6 +69,7 @@ const KPI = ({ label, value, icon: Icon, color }: any) => (
 
 const WhatsAppDashboard = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const today = new Date();
   const monthAgo = new Date(); monthAgo.setDate(today.getDate() - 30);
   const [from, setFrom] = useState(monthAgo.toISOString().slice(0, 10));
@@ -133,6 +135,28 @@ const WhatsAppDashboard = () => {
 
   const responses = useMemo(() => filtered.filter((l) => l.response_text && l.response_text.trim()), [filtered]);
 
+  const clearFailed = useMutation({
+    mutationFn: async () => {
+      const { error, count } = await supabase
+        .from('whatsapp_logs')
+        .delete({ count: 'exact' })
+        .eq('status', 'failed');
+      if (error) throw error;
+      return count ?? 0;
+    },
+    onSuccess: (n) => {
+      toast.success(`Cleared ${n} failed message${n === 1 ? '' : 's'}`);
+      queryClient.invalidateQueries({ queryKey: ['wa-dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-logs'] });
+    },
+    onError: (e: any) => toast.error(e.message || 'Failed to clear'),
+  });
+
+  const refreshResponses = async () => {
+    await refetch();
+    toast.success(`Found ${responses.length} response${responses.length === 1 ? '' : 's'}`);
+  };
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
@@ -140,9 +164,22 @@ const WhatsAppDashboard = () => {
           <BarChart3 className="w-5 h-5 text-primary" />
           <h3 className="font-semibold text-foreground">WhatsApp Delivery Dashboard</h3>
         </div>
-        <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isLoading}>
-          <RefreshCw className={`w-4 h-4 mr-1 ${isLoading ? 'animate-spin' : ''}`} /> Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-destructive border-destructive/30 hover:bg-destructive/10"
+            onClick={() => {
+              if (confirm('Clear all failed WhatsApp messages? This cannot be undone.')) clearFailed.mutate();
+            }}
+            disabled={clearFailed.isPending || stats.failed === 0}
+          >
+            <Trash2 className="w-4 h-4 mr-1" /> Clear failed ({stats.failed})
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isLoading}>
+            <RefreshCw className={`w-4 h-4 mr-1 ${isLoading ? 'animate-spin' : ''}`} /> Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -233,6 +270,15 @@ const WhatsAppDashboard = () => {
           <CardTitle className="text-sm flex items-center gap-2">
             <Reply className="w-4 h-4 text-primary" /> Recipient responses
             <Badge variant="secondary">{responses.length}</Badge>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="ml-auto"
+              onClick={refreshResponses}
+              disabled={isLoading}
+            >
+              <RefreshCw className={`w-4 h-4 mr-1 ${isLoading ? 'animate-spin' : ''}`} /> Refresh responses
+            </Button>
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
