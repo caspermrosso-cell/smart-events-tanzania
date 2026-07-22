@@ -210,11 +210,11 @@ const Guests = () => {
   const downloadTemplate = () => {
     const eventTitle = events.find((e: any) => e.id === bulkEventId)?.title || '';
     const sample = [
-      { Jina: 'Mfano Mgeni 1', Simu: '+255700000001', 'Kadi Namba': '001', Tukio: eventTitle },
-      { Jina: 'Mfano Mgeni 2', Simu: '+255700000002', 'Kadi Namba': '002', Tukio: eventTitle },
+      { 'Jina la Tukio': eventTitle, 'Jina Kamili': 'Mfano Mgeni 1', 'Namba ya Simu': '+255700000001', 'Kadi Namba': '001' },
+      { 'Jina la Tukio': eventTitle, 'Jina Kamili': 'Mfano Mgeni 2', 'Namba ya Simu': '+255700000002', 'Kadi Namba': '002' },
     ];
-    const ws = XLSX.utils.json_to_sheet(sample, { header: ['Jina', 'Simu', 'Kadi Namba', 'Tukio'] });
-    ws['!cols'] = [{ wch: 25 }, { wch: 18 }, { wch: 12 }, { wch: 25 }];
+    const ws = XLSX.utils.json_to_sheet(sample, { header: ['Jina la Tukio', 'Jina Kamili', 'Namba ya Simu', 'Kadi Namba'] });
+    ws['!cols'] = [{ wch: 28 }, { wch: 25 }, { wch: 18 }, { wch: 14 }];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Wageni');
     XLSX.writeFile(wb, 'wageni-template.xlsx');
