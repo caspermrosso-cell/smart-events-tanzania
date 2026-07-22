@@ -8,7 +8,11 @@ const corsHeaders = {
 
 const CHAT_API_URL = 'https://apichatcore.beem.africa/v1/chatapi';
 const ACTIVE_SESSIONS_URL = 'https://apichatcore.beem.africa/v1/chatapi/active-users';
-const TEMPLATES_URL = 'https://apichatcore.beem.africa/v1/message-templates/list';
+const TEMPLATE_URL_CANDIDATES = [
+  'https://apichatcore.beem.africa/v1/message-templates',
+  'https://apitemplates.beem.africa/public/v1/message-templates',
+  'https://apichatcore.beem.africa/v1/message-templates/list',
+];
 const BROADCAST_TEMPLATE_URL = 'https://apibroadcast.beem.africa/v1/broadcast/template/api-send';
 
 function normalizePhone(raw: string): string {
@@ -132,28 +136,31 @@ serve(async (req) => {
       if (body.status) params.set('status', body.status);
       if (body.q) params.set('q', body.q);
       if (body.page) params.set('page', String(body.page));
+      const qs = params.toString() ? '?' + params.toString() : '';
 
-      const url = `${TEMPLATES_URL}${params.toString() ? '?' + params.toString() : ''}`;
-      console.log('Fetching templates from:', url);
+      let result: BeemRequestResult | null = null;
+      for (const base of TEMPLATE_URL_CANDIDATES) {
+        const url = `${base}${qs}`;
+        console.log('Fetching templates from:', url);
+        result = await makeBeemRequest(url, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json', 'Authorization': authHeader },
+        });
+        if (result.ok && result.data) break;
+      }
 
-      const result = await makeBeemRequest(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': authHeader,
-        },
-      });
-
-      if (!result.ok || !result.data) {
+      if (!result || !result.ok || !result.data) {
         return new Response(JSON.stringify({
           success: false,
           data: {
             data: [],
             pagination: {},
           },
-          warning: result.status === 500
+          warning: result && result.status === 500
             ? 'Beem templates service is returning an upstream error. Confirm your Beem account has WhatsApp Broadcast/Templates enabled.'
-            : getBeemErrorMessage(result, 'Templates fetch failed'),
+            : result
+              ? getBeemErrorMessage(result, 'Templates fetch failed')
+              : 'Templates fetch failed: no response',
         }), {
           status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -173,15 +180,39 @@ serve(async (req) => {
         });
       }
 
-      // Fetch all templates from Beem (paginate defensively)
-      const collected: any[] = [];
-      let page = 1;
-      for (let i = 0; i < 20; i++) {
-        const url = `${TEMPLATES_URL}?page=${page}`;
-        const result = await makeBeemRequest(url, {
+      // Detect a working templates base URL, then paginate
+      let templatesBase: string | null = null;
+      let firstResult: BeemRequestResult | null = null;
+      for (const base of TEMPLATE_URL_CANDIDATES) {
+        const probe = await makeBeemRequest(`${base}?page=1`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json', 'Authorization': authHeader },
         });
+        if (probe.ok && probe.data) {
+          templatesBase = base;
+          firstResult = probe;
+          break;
+        }
+        firstResult = probe;
+      }
+      if (!templatesBase) {
+        return new Response(JSON.stringify({
+          success: false,
+          error: firstResult
+            ? getBeemErrorMessage(firstResult, 'Templates fetch failed')
+            : 'Templates fetch failed',
+        }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      const collected: any[] = [];
+      let page = 1;
+      for (let i = 0; i < 20; i++) {
+        const result = i === 0 && firstResult
+          ? firstResult
+          : await makeBeemRequest(`${templatesBase}?page=${page}`, {
+              method: 'GET',
+              headers: { 'Content-Type': 'application/json', 'Authorization': authHeader },
+            });
         if (!result.ok || !result.data) {
           if (collected.length === 0) {
             return new Response(JSON.stringify({
