@@ -267,6 +267,7 @@ const CheckIn = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Jina</TableHead>
+                      <TableHead className="hidden sm:table-cell">Kadi Namba</TableHead>
                       <TableHead className="hidden sm:table-cell">Meza</TableHead>
                       <TableHead>Hali</TableHead>
                       <TableHead className="hidden md:table-cell">Muda</TableHead>
@@ -277,6 +278,7 @@ const CheckIn = () => {
                     {filtered.map((g: any) => (
                       <TableRow key={g.id} className={g.checked_in ? 'bg-green-50/50 dark:bg-green-950/10' : ''}>
                         <TableCell className="font-medium">{g.full_name}</TableCell>
+                        <TableCell className="hidden sm:table-cell text-muted-foreground text-sm font-mono">{g.card_number || '-'}</TableCell>
                         <TableCell className="hidden sm:table-cell text-muted-foreground text-sm">{g.table_number || '-'}</TableCell>
                         <TableCell>
                           {g.checked_in ? (
