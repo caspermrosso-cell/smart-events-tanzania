@@ -106,13 +106,10 @@ const CheckIn = () => {
   const handleScanResult = (code: string) => {
     const norm = code.trim();
     const lower = norm.toLowerCase();
-    const digits = norm.replace(/\D/g, '');
     const guest = guests.find((g: any) =>
       g.barcode === norm ||
       g.id === norm ||
-      (g.card_number && String(g.card_number).toLowerCase() === lower) ||
-      (digits.length >= 6 && g.phone && String(g.phone).replace(/\D/g, '').endsWith(digits)) ||
-      (g.full_name && String(g.full_name).toLowerCase() === lower)
+      (g.card_number && String(g.card_number).toLowerCase() === lower)
     );
     if (guest) {
       if ((guest as any).checked_in) {
@@ -181,7 +178,7 @@ const CheckIn = () => {
                     <label className={`flex items-center gap-2 rounded-lg border p-2.5 cursor-pointer transition ${method === 'card' ? 'border-primary bg-primary/5' : 'border-border'}`}>
                       <RadioGroupItem value="card" id="m-card" />
                       <CreditCard className="w-4 h-4" />
-                      <span className="text-sm">Kadi / Simu / Jina</span>
+                      <span className="text-sm">Kadi Namba</span>
                     </label>
                   </RadioGroup>
                 </div>
@@ -200,7 +197,7 @@ const CheckIn = () => {
                       <Input
                         value={manualCode}
                         onChange={e => setManualCode(e.target.value)}
-                        placeholder="Kadi Namba, Simu au Jina..."
+                        placeholder="Andika Kadi Namba..."
                         onKeyDown={e => e.key === 'Enter' && handleManualCheckIn()}
                         autoFocus
                       />
@@ -208,7 +205,7 @@ const CheckIn = () => {
                         <CheckCircle className="w-4 h-4" />
                       </Button>
                     </div>
-                    <p className="text-[11px] text-muted-foreground">Andika kadi namba, namba ya simu au jina kamili, kisha bonyeza Enter.</p>
+                    <p className="text-[11px] text-muted-foreground">Andika kadi namba ya mgeni kisha bonyeza Enter.</p>
                   </div>
                 )}
               </>
