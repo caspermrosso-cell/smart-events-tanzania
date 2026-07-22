@@ -167,15 +167,15 @@ const Guests = () => {
         const wb = XLSX.read(evt.target?.result, { type: 'binary' });
         const ws = wb.Sheets[wb.SheetNames[0]];
         const data = XLSX.utils.sheet_to_json(ws);
-        const STANDARD = ['Jina','Name','full_name','Simu','Phone','phone','Email','email','Meza','Table','table_number','Kadi','Kadi Namba','Card','card_number','Tukio','Event'];
+        const STANDARD = ['Jina','Jina Kamili','Name','full_name','Simu','Namba ya Simu','Phone','phone','Email','email','Meza','Table','table_number','Kadi','Kadi Namba','Card','card_number','Tukio','Jina la Tukio','Event'];
         const parsed = data.map((row: any) => {
           const custom: Record<string, string> = {};
           Object.keys(row).forEach(k => {
             if (!STANDARD.includes(k) && row[k] !== '' && row[k] != null) custom[k] = String(row[k]);
           });
           return {
-            full_name: row['Jina'] || row['Name'] || row['full_name'] || '',
-            phone: row['Simu'] || row['Phone'] || row['phone'] || '',
+            full_name: row['Jina Kamili'] || row['Jina'] || row['Name'] || row['full_name'] || '',
+            phone: row['Namba ya Simu'] || row['Simu'] || row['Phone'] || row['phone'] || '',
             email: row['Email'] || row['email'] || '',
             table_number: row['Meza'] || row['Table'] || row['table_number'] || '',
             card_number: row['Kadi Namba'] || row['Kadi'] || row['Card'] || row['card_number'] || '',
