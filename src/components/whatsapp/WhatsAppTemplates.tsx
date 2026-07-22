@@ -1,7 +1,8 @@
 import { useState, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
-  RefreshCw, FileText, Send, Loader2, Plus, Trash2, CheckCircle2, Clock, XCircle, Upload, Image as ImageIcon, FileUp, Download,
+  RefreshCw, FileText, Send, Loader2, Plus, Trash2, CheckCircle2, Clock, XCircle,
+  Upload, Image as ImageIcon, FileUp, Download, ExternalLink, Info,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -10,250 +11,63 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select';
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import * as XLSX from 'xlsx';
 
-// ----- helpers -----
+const DEFAULT_FROM_ADDR = '255736670202';
+
+// Beem statuses per Moja docs: pending, enabled, approved, rejected, failed
 const statusMeta: Record<string, { label: string; variant: any; icon: any }> = {
-  APPROVED: { label: 'Approved', variant: 'default', icon: CheckCircle2 },
-  PENDING: { label: 'Pending review', variant: 'secondary', icon: Clock },
-  IN_APPEAL: { label: 'In appeal', variant: 'secondary', icon: Clock },
-  REJECTED: { label: 'Rejected', variant: 'destructive', icon: XCircle },
-  DISABLED: { label: 'Disabled', variant: 'destructive', icon: XCircle },
-  PAUSED: { label: 'Paused', variant: 'secondary', icon: Clock },
+  approved: { label: 'Approved', variant: 'default', icon: CheckCircle2 },
+  enabled: { label: 'Approved', variant: 'default', icon: CheckCircle2 },
+  pending: { label: 'Pending review', variant: 'secondary', icon: Clock },
+  rejected: { label: 'Rejected', variant: 'destructive', icon: XCircle },
+  failed: { label: 'Failed', variant: 'destructive', icon: XCircle },
 };
 
 function countPlaceholders(text: string): number {
-  const m = text.match(/\{\{\d+\}\}/g);
+  const m = (text || '').match(/\{\{\d+\}\}/g);
   if (!m) return 0;
   return new Set(m).size;
 }
 
-function getBodyText(components: any[]): string {
-  const b = components?.find((c: any) => (c.type || '').toUpperCase() === 'BODY');
-  return b?.text || '';
+function isApproved(status: string) {
+  const s = String(status || '').toLowerCase();
+  return s === 'approved' || s === 'enabled';
 }
 
-function getHeaderText(components: any[]): string {
-  const h = components?.find(
-    (c: any) => (c.type || '').toUpperCase() === 'HEADER' && (c.format || 'TEXT').toUpperCase() === 'TEXT',
-  );
-  return h?.text || '';
+interface Recipient {
+  id: string;
+  name: string;
+  phone: string;
+  vars?: string[];
 }
 
-function getHeaderFormat(components: any[]): string {
-  const h = components?.find((c: any) => (c.type || '').toUpperCase() === 'HEADER');
-  return (h?.format || 'TEXT').toUpperCase();
-}
-
-// ----- Create template form -----
-interface CreateFormProps {
-  onCreated: () => void;
-}
-
-const CreateTemplateForm = ({ onCreated }: CreateFormProps) => {
-  const { toast } = useToast();
-  const [name, setName] = useState('');
-  const [language, setLanguage] = useState('en_US');
-  const [category, setCategory] = useState<'MARKETING' | 'UTILITY' | 'AUTHENTICATION'>('UTILITY');
-  const [headerText, setHeaderText] = useState('');
-  const [bodyText, setBodyText] = useState('');
-  const [footerText, setFooterText] = useState('');
-  const [bodyExamples, setBodyExamples] = useState<string[]>([]);
-  const [submitting, setSubmitting] = useState(false);
-
-  const placeholderCount = useMemo(() => countPlaceholders(bodyText), [bodyText]);
-
-  // keep examples array in sync with placeholders
-  useMemo(() => {
-    setBodyExamples((prev) => {
-      const next = [...prev];
-      while (next.length < placeholderCount) next.push('');
-      next.length = placeholderCount;
-      return next;
-    });
-  }, [placeholderCount]);
-
-  const nameValid = /^[a-z0-9_]+$/.test(name);
-
-  const submit = async () => {
-    if (!nameValid) {
-      toast({ title: 'Invalid name', description: 'Use lowercase letters, numbers, and underscores only.', variant: 'destructive' });
-      return;
-    }
-    if (!bodyText.trim()) {
-      toast({ title: 'Body is required', variant: 'destructive' });
-      return;
-    }
-    if (placeholderCount > 0 && bodyExamples.some((v) => !v.trim())) {
-      toast({ title: 'Provide an example for each placeholder', variant: 'destructive' });
-      return;
-    }
-
-    const components: any[] = [];
-    if (headerText.trim()) {
-      components.push({ type: 'HEADER', format: 'TEXT', text: headerText.trim() });
-    }
-    const body: any = { type: 'BODY', text: bodyText.trim() };
-    if (placeholderCount > 0) {
-      body.example = { body_text: [bodyExamples.map((s) => s.trim())] };
-    }
-    components.push(body);
-    if (footerText.trim()) {
-      components.push({ type: 'FOOTER', text: footerText.trim() });
-    }
-
-    setSubmitting(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('send-whatsapp', {
-        body: {
-          action: 'meta-create-template',
-          name,
-          language,
-          category,
-          components,
-        },
-      });
-      if (error) throw error;
-      if (data?.success === false) throw new Error(data?.error || 'Create failed');
-      toast({ title: 'Template submitted', description: 'Meta itafanya review. Utaona status ikibadilika hapa.' });
-      onCreated();
-      // reset
-      setName(''); setHeaderText(''); setBodyText(''); setFooterText(''); setBodyExamples([]);
-    } catch (err: any) {
-      toast({ title: 'Create failed', description: err.message, variant: 'destructive' });
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div>
-          <Label>Template name</Label>
-          <Input
-            value={name}
-            onChange={(e) => setName(e.target.value.toLowerCase())}
-            placeholder="event_reminder"
-          />
-          {name && !nameValid && (
-            <p className="text-xs text-destructive mt-1">Lowercase, numbers, underscores only</p>
-          )}
-        </div>
-        <div>
-          <Label>Language</Label>
-          <Select value={language} onValueChange={setLanguage}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="en_US">English (US)</SelectItem>
-              <SelectItem value="en">English</SelectItem>
-              <SelectItem value="sw">Swahili</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label>Category</Label>
-          <Select value={category} onValueChange={(v) => setCategory(v as any)}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="UTILITY">Utility</SelectItem>
-              <SelectItem value="MARKETING">Marketing</SelectItem>
-              <SelectItem value="AUTHENTICATION">Authentication</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div>
-        <Label>Header text (optional)</Label>
-        <Input value={headerText} onChange={(e) => setHeaderText(e.target.value)} placeholder="Karibu kwa Smart Events" maxLength={60} />
-      </div>
-
-      <div>
-        <Label>Body</Label>
-        <Textarea
-          rows={5}
-          value={bodyText}
-          onChange={(e) => setBodyText(e.target.value)}
-          placeholder="Habari {{1}}, event yako {{2}} ipo tarehe {{3}}."
-          maxLength={1024}
-        />
-        <p className="text-xs text-muted-foreground mt-1">
-          Tumia {'{{1}}, {{2}}'}... kwa placeholders. Detected: {placeholderCount}
-        </p>
-      </div>
-
-      {placeholderCount > 0 && (
-        <div className="space-y-2">
-          <Label>Placeholder examples (required by Meta)</Label>
-          {bodyExamples.map((val, i) => (
-            <Input
-              key={i}
-              value={val}
-              placeholder={`Example for {{${i + 1}}}`}
-              onChange={(e) => setBodyExamples((prev) => prev.map((x, idx) => (idx === i ? e.target.value : x)))}
-            />
-          ))}
-        </div>
-      )}
-
-      <div>
-        <Label>Footer (optional)</Label>
-        <Input value={footerText} onChange={(e) => setFooterText(e.target.value)} maxLength={60} placeholder="Smart Events Tanzania" />
-      </div>
-
-      <div className="flex justify-end">
-        <Button onClick={submit} disabled={submitting || !name || !bodyText.trim()}>
-          {submitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Submitting...</> : <><Plus className="w-4 h-4 mr-2" /> Submit for review</>}
-        </Button>
-      </div>
-    </div>
-  );
-};
-
-// ----- Send template dialog -----
-interface SendDialogProps {
-  template: any;
-  onClose: () => void;
-}
-
-interface Recipient { id: string; name: string; phone: string; vars?: string[]; }
-
-const SendTemplateDialog = ({ template, onClose }: SendDialogProps) => {
+// ---------- Send dialog ----------
+const SendTemplateDialog = ({ template, onClose }: { template: any; onClose: () => void }) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const bodyText = getBodyText(template.components || []);
-  const headerText = getHeaderText(template.components || []);
-  const headerFormat = getHeaderFormat(template.components || []);
-  const isMediaHeader = ['IMAGE', 'DOCUMENT', 'VIDEO'].includes(headerFormat);
+  const bodyText: string = template.content || '';
   const bodyPh = countPlaceholders(bodyText);
-  const headerPh = countPlaceholders(headerText);
+  const requiresMedia = !!template.mediaUrl || ['image', 'document', 'video'].includes(String(template.type || '').toLowerCase());
 
-  const [bodyParams, setBodyParams] = useState<string[]>(Array.from({ length: bodyPh }, () => ''));
-  const [headerParams, setHeaderParams] = useState<string[]>(Array.from({ length: headerPh }, () => ''));
+  const [fromAddr, setFromAddr] = useState(DEFAULT_FROM_ADDR);
+  const [defaultParams, setDefaultParams] = useState<string[]>(Array.from({ length: bodyPh }, () => ''));
+  const [mediaUrl, setMediaUrl] = useState<string>(template.mediaUrl || '');
+  const [uploadingMedia, setUploadingMedia] = useState(false);
   const [recipients, setRecipients] = useState<Recipient[]>([]);
   const [selectedEventId, setSelectedEventId] = useState('');
   const [selectedGuests, setSelectedGuests] = useState<string[]>([]);
-  const [sending, setSending] = useState(false);
-  const [headerMedia, setHeaderMedia] = useState<{ url: string; type: string; filename?: string } | null>(null);
-  const [uploadingMedia, setUploadingMedia] = useState(false);
   const [perRecipientVars, setPerRecipientVars] = useState(false);
-  const mediaInputRef = useRef<HTMLInputElement>(null);
+  const [sending, setSending] = useState(false);
+  const mediaRef = useRef<HTMLInputElement>(null);
 
   const { data: events = [] } = useQuery({
     queryKey: ['events-for-tpl'],
@@ -283,22 +97,18 @@ const SendTemplateDialog = ({ template, onClose }: SendDialogProps) => {
       const wb = XLSX.read(evt.target?.result, { type: 'binary' });
       const ws = wb.Sheets[wb.SheetNames[0]];
       const rows: any[] = XLSX.utils.sheet_to_json(ws);
-      const imported: Recipient[] = rows
-        .map((r, i) => {
-          const vars: string[] = [];
-          for (let n = 1; n <= bodyPh; n++) {
-            const key = `var${n}`;
-            const alt = `{{${n}}}`;
-            vars.push(String(r[key] ?? r[alt] ?? ''));
-          }
-          return {
-            id: `u-${Date.now()}-${i}`,
-            name: r.name || r.Name || r.jina || '',
-            phone: String(r.phone || r.Phone || r.simu || r.number || ''),
-            vars,
-          };
-        })
-        .filter((r) => r.phone);
+      const imported: Recipient[] = rows.map((r, i) => {
+        const vars: string[] = [];
+        for (let n = 1; n <= bodyPh; n++) {
+          vars.push(String(r[`var${n}`] ?? r[`{{${n}}}`] ?? ''));
+        }
+        return {
+          id: `u-${Date.now()}-${i}`,
+          name: r.name || r.Name || r.jina || '',
+          phone: String(r.phone || r.Phone || r.simu || r.number || ''),
+          vars,
+        };
+      }).filter((r) => r.phone);
       setRecipients((p) => [...p, ...imported]);
       toast({ title: `${imported.length} contacts imported` });
       if (bodyPh > 0) setPerRecipientVars(true);
@@ -334,41 +144,44 @@ const SendTemplateDialog = ({ template, onClose }: SendDialogProps) => {
       });
       if (error) throw error;
       const { data } = supabase.storage.from('whatsapp-media').getPublicUrl(path);
-      const type = headerFormat === 'IMAGE' ? 'image' : headerFormat === 'VIDEO' ? 'video' : 'document';
-      setHeaderMedia({ url: data.publicUrl, type, filename: file.name });
+      setMediaUrl(data.publicUrl);
       toast({ title: 'Media uploaded' });
     } catch (err: any) {
       toast({ title: 'Upload failed', description: err.message, variant: 'destructive' });
     } finally {
       setUploadingMedia(false);
-      if (mediaInputRef.current) mediaInputRef.current.value = '';
+      if (mediaRef.current) mediaRef.current.value = '';
     }
   };
 
   const send = async () => {
     const guestRecipients = guests
       .filter((g: any) => selectedGuests.includes(g.id))
-      .map((g: any) => ({ name: g.full_name, phone: g.phone, body_params: undefined as string[] | undefined }));
+      .map((g: any) => ({ name: g.full_name, phone: g.phone, params: [] as string[] }));
     const manualRecipients = recipients
       .filter((r) => r.phone.trim())
       .map((r) => ({
         name: r.name,
         phone: r.phone,
-        body_params: perRecipientVars && bodyPh > 0
-          ? (r.vars || []).map((v, i) => (v && v.trim()) || bodyParams[i] || '')
-          : undefined,
+        params: perRecipientVars && bodyPh > 0
+          ? (r.vars || []).map((v, i) => (v && v.trim()) || defaultParams[i] || '')
+          : [],
       }));
     const allRecipients = [...guestRecipients, ...manualRecipients];
     if (allRecipients.length === 0) {
       toast({ title: 'Add at least one recipient', variant: 'destructive' });
       return;
     }
-    if (bodyPh > 0 && !perRecipientVars && bodyParams.some((v) => !v.trim())) {
-      toast({ title: 'Fill all body parameters', variant: 'destructive' });
-      return;
+    if (bodyPh > 0 && !perRecipientVars && defaultParams.some((v) => !v.trim() && v !== '{name}')) {
+      // allow {name} placeholder to pass through
+      const missing = defaultParams.some((v) => !v.trim());
+      if (missing) {
+        toast({ title: 'Fill all body parameters', variant: 'destructive' });
+        return;
+      }
     }
-    if (isMediaHeader && !headerMedia) {
-      toast({ title: `Please upload ${headerFormat.toLowerCase()} for the header`, variant: 'destructive' });
+    if (requiresMedia && !mediaUrl) {
+      toast({ title: 'Media URL is required for this template', variant: 'destructive' });
       return;
     }
 
@@ -376,18 +189,19 @@ const SendTemplateDialog = ({ template, onClose }: SendDialogProps) => {
     try {
       const { data, error } = await supabase.functions.invoke('send-whatsapp', {
         body: {
-          action: 'meta-send-template',
+          action: 'send-template-bulk',
+          from_addr: fromAddr,
+          template_id: template.id,
           template_name: template.name,
-          language_code: template.language,
+          mediaUrl: mediaUrl || undefined,
+          default_params: perRecipientVars ? [] : defaultParams,
           recipients: allRecipients,
-          body_params: perRecipientVars ? [] : bodyParams,
-          header_params: headerParams,
-          header_media: headerMedia,
           userId: user?.id,
           eventId: selectedEventId || null,
         },
       });
       if (error) throw error;
+      if (data?.success === false) throw new Error(data?.error || 'Send failed');
       const s = data?.summary || {};
       toast({ title: `Sent: ${s.sent || 0}, Failed: ${s.failed || 0}` });
       queryClient.invalidateQueries({ queryKey: ['whatsapp-logs'] });
@@ -401,51 +215,37 @@ const SendTemplateDialog = ({ template, onClose }: SendDialogProps) => {
 
   return (
     <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
-      {(headerText || bodyText) && (
+      {(template.header || bodyText || template.footer) && (
         <div className="bg-muted rounded-lg p-3 text-sm space-y-2">
-          {headerText && <p className="font-semibold">{headerText}</p>}
+          {template.header && <p className="font-semibold">{template.header}</p>}
           {bodyText && <p className="whitespace-pre-wrap">{bodyText}</p>}
+          {template.footer && <p className="text-xs text-muted-foreground">{template.footer}</p>}
         </div>
       )}
 
-      {isMediaHeader && (
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <Label>From (Beem WhatsApp number)</Label>
+          <Input value={fromAddr} onChange={(e) => setFromAddr(e.target.value)} placeholder="2557XXXXXXXX" />
+        </div>
+        <div>
+          <Label>Language</Label>
+          <Input value={template.language || ''} disabled />
+        </div>
+      </div>
+
+      {requiresMedia && (
         <div className="space-y-2 border rounded-lg p-3 bg-accent/5">
           <Label className="flex items-center gap-2">
-            {headerFormat === 'IMAGE' ? <ImageIcon className="w-4 h-4" /> : <FileUp className="w-4 h-4" />}
-            Header {headerFormat.toLowerCase()} (required)
+            <ImageIcon className="w-4 h-4" /> Media URL (required)
           </Label>
-          <input
-            ref={mediaInputRef}
-            type="file"
-            className="hidden"
-            accept={headerFormat === 'IMAGE' ? 'image/*' : headerFormat === 'VIDEO' ? 'video/mp4' : '.pdf,.doc,.docx,.xls,.xlsx'}
-            onChange={handleMediaUpload}
-          />
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => mediaInputRef.current?.click()} disabled={uploadingMedia}>
-              {uploadingMedia ? <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Uploading...</> : <><Upload className="w-3 h-3 mr-1" /> Choose file</>}
+            <Input value={mediaUrl} onChange={(e) => setMediaUrl(e.target.value)} placeholder="https://..." />
+            <input ref={mediaRef} type="file" className="hidden" onChange={handleMediaUpload} />
+            <Button variant="outline" size="sm" onClick={() => mediaRef.current?.click()} disabled={uploadingMedia}>
+              {uploadingMedia ? <Loader2 className="w-3 h-3 animate-spin" /> : <><Upload className="w-3 h-3 mr-1" /> Upload</>}
             </Button>
-            {headerMedia && (
-              <span className="text-xs text-muted-foreground truncate max-w-[300px]">{headerMedia.filename}</span>
-            )}
           </div>
-          {headerMedia && headerFormat === 'IMAGE' && (
-            <img src={headerMedia.url} alt="header" className="mt-2 max-h-32 rounded" />
-          )}
-        </div>
-      )}
-
-      {headerPh > 0 && (
-        <div className="space-y-2">
-          <Label>Header parameters</Label>
-          {headerParams.map((v, i) => (
-            <Input
-              key={i}
-              value={v}
-              placeholder={`Header {{${i + 1}}}`}
-              onChange={(e) => setHeaderParams((prev) => prev.map((x, idx) => (idx === i ? e.target.value : x)))}
-            />
-          ))}
         </div>
       )}
 
@@ -458,17 +258,14 @@ const SendTemplateDialog = ({ template, onClose }: SendDialogProps) => {
               Different values per recipient
             </label>
           </div>
-          {!perRecipientVars && bodyParams.map((v, i) => (
+          {!perRecipientVars && defaultParams.map((v, i) => (
             <Input
               key={i}
               value={v}
-              placeholder={i === 0 ? 'Use {name} to use each recipient name' : `Body {{${i + 1}}}`}
-              onChange={(e) => setBodyParams((prev) => prev.map((x, idx) => (idx === i ? e.target.value : x)))}
+              placeholder={i === 0 ? 'Tumia {name} kubadilishwa na jina la mpokeaji' : `{{${i + 1}}}`}
+              onChange={(e) => setDefaultParams((prev) => prev.map((x, idx) => (idx === i ? e.target.value : x)))}
             />
           ))}
-          <p className="text-xs text-muted-foreground">
-            Tip: andika <code>{'{name}'}</code> ibadilishwe na jina la mpokeaji. Au washa "Different values per recipient" kutuma thamani tofauti kwa kila mmoja.
-          </p>
         </div>
       )}
 
@@ -555,22 +352,28 @@ const SendTemplateDialog = ({ template, onClose }: SendDialogProps) => {
   );
 };
 
-// ----- Main list -----
+// ---------- Main list ----------
 const WhatsAppTemplates = () => {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [createOpen, setCreateOpen] = useState(false);
   const [sendTpl, setSendTpl] = useState<any | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [categoryFilter, setCategoryFilter] = useState<string>('');
+  const [q, setQ] = useState('');
 
   const { data: templatesData, isLoading, refetch, error } = useQuery({
-    queryKey: ['meta-templates'],
+    queryKey: ['beem-templates', statusFilter, categoryFilter, q],
     queryFn: async () => {
       const { data, error } = await supabase.functions.invoke('send-whatsapp', {
-        body: { action: 'meta-list-templates' },
+        body: {
+          action: 'templates',
+          status: statusFilter || undefined,
+          category: categoryFilter || undefined,
+          q: q || undefined,
+        },
       });
       if (error) throw new Error(error.message);
-      if (data?.success === false) throw new Error(data?.error || 'Failed to load templates');
-      return data?.data || { data: [] };
+      if (data?.warning) toast({ title: 'Beem notice', description: data.warning });
+      return data?.data || { data: [], pagination: {} };
     },
     retry: false,
     staleTime: 30000,
@@ -578,56 +381,60 @@ const WhatsAppTemplates = () => {
 
   const templates: any[] = templatesData?.data || [];
 
-  const deleteTemplate = async (t: any) => {
-    if (!confirm(`Delete template "${t.name}"?`)) return;
-    try {
-      const { data, error } = await supabase.functions.invoke('send-whatsapp', {
-        body: { action: 'meta-delete-template', name: t.name, hsm_id: t.id },
-      });
-      if (error) throw error;
-      if (data?.success === false) throw new Error(data?.error);
-      toast({ title: 'Template deleted' });
-      queryClient.invalidateQueries({ queryKey: ['meta-templates'] });
-    } catch (err: any) {
-      toast({ title: 'Delete failed', description: err.message, variant: 'destructive' });
-    }
-  };
-
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <FileText className="w-5 h-5 text-primary" />
-          <h3 className="font-semibold text-foreground">WhatsApp Templates (Meta)</h3>
+          <h3 className="font-semibold text-foreground">WhatsApp Templates (Beem Moja)</h3>
           <Badge variant="secondary">{templates.length}</Badge>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isLoading}>
             <RefreshCw className={`w-4 h-4 mr-1 ${isLoading ? 'animate-spin' : ''}`} /> Refresh
           </Button>
-          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm"><Plus className="w-4 h-4 mr-1" /> New template</Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Create WhatsApp template</DialogTitle>
-              </DialogHeader>
-              <CreateTemplateForm onCreated={() => { setCreateOpen(false); refetch(); }} />
-            </DialogContent>
-          </Dialog>
+          <Button size="sm" asChild>
+            <a href="https://login.beem.africa" target="_blank" rel="noreferrer">
+              <ExternalLink className="w-4 h-4 mr-1" /> Unda kwenye Beem
+            </a>
+          </Button>
         </div>
       </div>
 
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm text-muted-foreground font-normal">
-            User journey: <span className="font-medium text-foreground">1. Unda template</span> →
-            <span className="font-medium text-foreground"> 2. Meta i-approve</span> →
-            <span className="font-medium text-foreground"> 3. Tuma kwa recipients</span>
+          <CardTitle className="text-sm text-muted-foreground font-normal flex items-start gap-2">
+            <Info className="w-4 h-4 mt-0.5 text-primary shrink-0" />
+            <span>
+              Kwa mujibu wa Moja API, templates hutengenezwa kwenye <strong>Beem Engage Portal / Moja Settings</strong>.
+              Baada ya Beem/Meta ku-approve, zitaonekana hapa na utaweza kuzituma kwa recipients wako.
+            </span>
           </CardTitle>
         </CardHeader>
       </Card>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <Input placeholder="Search (name, content)" value={q} onChange={(e) => setQ(e.target.value)} />
+        <Select value={statusFilter || 'all'} onValueChange={(v) => setStatusFilter(v === 'all' ? '' : v)}>
+          <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All statuses</SelectItem>
+            <SelectItem value="approved">Approved</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="rejected">Rejected</SelectItem>
+            <SelectItem value="failed">Failed</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={categoryFilter || 'all'} onValueChange={(v) => setCategoryFilter(v === 'all' ? '' : v)}>
+          <SelectTrigger><SelectValue placeholder="Category" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All categories</SelectItem>
+            <SelectItem value="MARKETING">Marketing</SelectItem>
+            <SelectItem value="UTILITY">Utility</SelectItem>
+            <SelectItem value="AUTHENTICATION">Authentication</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
       {error && (
         <div className="rounded-lg border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive">
@@ -641,7 +448,7 @@ const WhatsAppTemplates = () => {
         <div className="text-center py-10 text-muted-foreground">
           <FileText className="w-10 h-10 mx-auto mb-3 opacity-30" />
           <p>Hakuna templates bado</p>
-          <p className="text-xs mt-1">Bofya "New template" kuanza</p>
+          <p className="text-xs mt-1">Tengeneza kwenye Beem Portal, kisha refresh hapa</p>
         </div>
       ) : (
         <div className="border rounded-lg overflow-hidden">
@@ -658,10 +465,10 @@ const WhatsAppTemplates = () => {
             </TableHeader>
             <TableBody>
               {templates.map((tpl: any) => {
-                const cfg = statusMeta[tpl.status] || { label: tpl.status, variant: 'outline', icon: Clock };
+                const statusKey = String(tpl.status || '').toLowerCase();
+                const cfg = statusMeta[statusKey] || { label: tpl.status || 'unknown', variant: 'outline', icon: Clock };
                 const StatusIcon = cfg.icon;
-                const bodyText = getBodyText(tpl.components || []);
-                const approved = tpl.status === 'APPROVED';
+                const approved = isApproved(tpl.status);
                 return (
                   <TableRow key={tpl.id}>
                     <TableCell className="font-medium">{tpl.name}</TableCell>
@@ -671,12 +478,9 @@ const WhatsAppTemplates = () => {
                       <Badge variant={cfg.variant} className="gap-1">
                         <StatusIcon className="w-3 h-3" /> {cfg.label}
                       </Badge>
-                      {tpl.rejected_reason && tpl.rejected_reason !== 'NONE' && (
-                        <p className="text-xs text-destructive mt-1">{tpl.rejected_reason}</p>
-                      )}
                     </TableCell>
-                    <TableCell className="max-w-[280px] truncate text-sm text-muted-foreground">{bodyText}</TableCell>
-                    <TableCell className="text-right space-x-1">
+                    <TableCell className="max-w-[280px] truncate text-sm text-muted-foreground">{tpl.content}</TableCell>
+                    <TableCell className="text-right">
                       <Button
                         variant={approved ? 'default' : 'outline'}
                         size="sm"
@@ -685,9 +489,6 @@ const WhatsAppTemplates = () => {
                         title={approved ? 'Send' : 'Available after approval'}
                       >
                         <Send className="w-3 h-3 mr-1" /> Send
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => deleteTemplate(tpl)}>
-                        <Trash2 className="w-3 h-3 text-destructive" />
                       </Button>
                     </TableCell>
                   </TableRow>
