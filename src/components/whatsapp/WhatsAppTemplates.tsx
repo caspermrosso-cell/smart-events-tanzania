@@ -2,7 +2,7 @@ import { useState, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
   RefreshCw, FileText, Send, Loader2, Plus, Trash2, CheckCircle2, Clock, XCircle,
-  Upload, Image as ImageIcon, FileUp, Download, ExternalLink, Info, DownloadCloud,
+  Upload, Image as ImageIcon, FileUp, Download, ExternalLink, Info, DownloadCloud, Eye,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -67,6 +67,7 @@ const SendTemplateDialog = ({ template, onClose }: { template: any; onClose: () 
   const [selectedGuests, setSelectedGuests] = useState<string[]>([]);
   const [perRecipientVars, setPerRecipientVars] = useState(false);
   const [sending, setSending] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
   const mediaRef = useRef<HTMLInputElement>(null);
 
   const { data: events = [] } = useQuery({
@@ -157,7 +158,7 @@ const SendTemplateDialog = ({ template, onClose }: { template: any; onClose: () 
     }
   };
 
-  const send = async () => {
+  const buildRecipients = () => {
     const guestRecipients = guests
       .filter((g: any) => selectedGuests.includes(g.id))
       .map((g: any) => ({ name: g.full_name, phone: g.phone, params: [] as string[] }));
@@ -170,24 +171,41 @@ const SendTemplateDialog = ({ template, onClose }: { template: any; onClose: () 
           ? (r.vars || []).map((v, i) => (v && v.trim()) || defaultParams[i] || '')
           : [],
       }));
-    const allRecipients = [...guestRecipients, ...manualRecipients];
+    return [...guestRecipients, ...manualRecipients];
+  };
+
+  const renderBodyFor = (recipient: { name?: string; params?: string[] }) => {
+    let out = bodyText;
+    const params = perRecipientVars && recipient.params?.length
+      ? recipient.params
+      : defaultParams.map((v) => (v === '{name}' ? (recipient.name || '') : v));
+    for (let i = 0; i < bodyPh; i++) {
+      const val = (params[i] ?? '').toString();
+      out = out.replaceAll(`{{${i + 1}}}`, val || `{{${i + 1}}}`);
+    }
+    if (out.includes('{name}')) out = out.replaceAll('{name}', recipient.name || '');
+    return out;
+  };
+
+  const openReview = () => {
+    const allRecipients = buildRecipients();
     if (allRecipients.length === 0) {
       toast({ title: 'Add at least one recipient', variant: 'destructive' });
       return;
     }
-    if (bodyPh > 0 && !perRecipientVars && defaultParams.some((v) => !v.trim() && v !== '{name}')) {
-      // allow {name} placeholder to pass through
-      const missing = defaultParams.some((v) => !v.trim());
-      if (missing) {
-        toast({ title: 'Fill all body parameters', variant: 'destructive' });
-        return;
-      }
+    if (bodyPh > 0 && !perRecipientVars && defaultParams.some((v) => !v.trim())) {
+      toast({ title: 'Fill all body parameters', variant: 'destructive' });
+      return;
     }
     if (requiresMedia && !mediaUrl) {
       toast({ title: 'Media URL is required for this template', variant: 'destructive' });
       return;
     }
+    setReviewOpen(true);
+  };
 
+  const send = async () => {
+    const allRecipients = buildRecipients();
     setSending(true);
     try {
       const { data, error } = await supabase.functions.invoke('send-whatsapp', {
@@ -208,6 +226,7 @@ const SendTemplateDialog = ({ template, onClose }: { template: any; onClose: () 
       const s = data?.summary || {};
       toast({ title: `Sent: ${s.sent || 0}, Failed: ${s.failed || 0}` });
       queryClient.invalidateQueries({ queryKey: ['whatsapp-logs'] });
+      setReviewOpen(false);
       onClose();
     } catch (err: any) {
       toast({ title: 'Send failed', description: err.message, variant: 'destructive' });
@@ -215,6 +234,9 @@ const SendTemplateDialog = ({ template, onClose }: { template: any; onClose: () 
       setSending(false);
     }
   };
+
+  const previewRecipients = buildRecipients();
+  const firstPreview = previewRecipients[0];
 
   return (
     <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
@@ -347,10 +369,60 @@ const SendTemplateDialog = ({ template, onClose }: { template: any; onClose: () 
 
       <DialogFooter>
         <Button variant="outline" onClick={onClose}>Cancel</Button>
-        <Button onClick={send} disabled={sending}>
-          {sending ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sending...</> : <><Send className="w-4 h-4 mr-2" /> Send</>}
+        <Button onClick={openReview}>
+          <Eye className="w-4 h-4 mr-2" /> Review & Send
         </Button>
       </DialogFooter>
+
+      <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Review WhatsApp message</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 max-h-[65vh] overflow-y-auto pr-1">
+            {firstPreview && (
+              <div className="border rounded-lg bg-[#ECE5DD] p-4">
+                <div className="max-w-md ml-auto bg-[#DCF8C6] rounded-lg shadow p-3 space-y-2">
+                  {mediaUrl && requiresMedia && (
+                    String(template.type || '').toLowerCase() === 'image' ? (
+                      <img src={mediaUrl} alt="media" className="rounded max-h-56 w-full object-cover" />
+                    ) : (
+                      <div className="text-xs bg-white/60 rounded p-2 break-all">📎 {mediaUrl}</div>
+                    )
+                  )}
+                  {template.header && <p className="font-semibold text-sm">{template.header}</p>}
+                  <p className="text-sm whitespace-pre-wrap">{renderBodyFor(firstPreview)}</p>
+                  {template.footer && <p className="text-[11px] text-muted-foreground">{template.footer}</p>}
+                </div>
+                <p className="text-xs text-muted-foreground text-right mt-2">
+                  Preview for: <span className="font-medium">{firstPreview.name || firstPreview.phone}</span>
+                </p>
+              </div>
+            )}
+
+            <div className="border rounded-lg p-3">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm font-medium">Recipients ({previewRecipients.length})</p>
+                <p className="text-xs text-muted-foreground">From: {fromAddr}</p>
+              </div>
+              <div className="max-h-48 overflow-y-auto text-sm space-y-1">
+                {previewRecipients.map((r, i) => (
+                  <div key={i} className="flex justify-between border-b py-1 last:border-0">
+                    <span>{r.name || '—'}</span>
+                    <span className="text-muted-foreground">{r.phone}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReviewOpen(false)} disabled={sending}>Back to edit</Button>
+            <Button onClick={send} disabled={sending}>
+              {sending ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sending...</> : <><Send className="w-4 h-4 mr-2" /> Confirm & Send</>}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
