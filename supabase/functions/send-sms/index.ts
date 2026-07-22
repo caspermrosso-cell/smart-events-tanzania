@@ -282,8 +282,8 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('SMS Error:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error('[send-sms] error:', error);
+    return new Response(JSON.stringify({ error: 'An error occurred processing your request' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
