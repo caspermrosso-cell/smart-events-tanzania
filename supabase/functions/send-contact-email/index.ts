@@ -11,25 +11,42 @@ serve(async (req) => {
   }
 
   try {
-    const { name, email, phone, eventType, date, guests, message } = await req.json();
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== 'object') {
+      return new Response(JSON.stringify({ error: 'Invalid request' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const { name, email, phone, eventType, date, guests, message } = body as Record<string, unknown>;
+
+    // Input validation
+    const isStr = (v: unknown, min: number, max: number) =>
+      typeof v === 'string' && v.trim().length >= min && v.trim().length <= max;
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!isStr(name, 1, 100)) {
+      return new Response(JSON.stringify({ error: 'Invalid name' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    if (typeof email !== 'string' || !emailRe.test(email) || email.length > 255) {
+      return new Response(JSON.stringify({ error: 'Invalid email' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    if (phone !== undefined && phone !== null && (typeof phone !== 'string' || phone.length > 30)) {
+      return new Response(JSON.stringify({ error: 'Invalid phone' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    if (message !== undefined && message !== null && (typeof message !== 'string' || message.length > 2000)) {
+      return new Response(JSON.stringify({ error: 'Invalid message' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     // Send email using Lovable AI gateway to format, then use SMTP-like approach
     // For now, we'll store the contact request and notify via email
-    const emailBody = `
-Ombi Jipya la Huduma - Smart Events
-
-Jina: ${name}
-Barua Pepe: ${email}
-Simu: ${phone}
-Aina ya Tukio: ${eventType}
-Tarehe: ${date}
-Wageni: ${guests}
-Maelezo: ${message || 'Hakuna'}
-
----
-Ombi hili limetumwa kupitia Smart Events Platform
-    `.trim();
-
     // Use Resend or similar - for now we'll use a simple fetch to email service
     // Store in database as contact_requests for admin to see
     const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
@@ -39,8 +56,14 @@ Ombi hili limetumwa kupitia Smart Events Platform
 
     // Store contact request
     const { error } = await supabase.from('contact_requests').insert({
-      name, email, phone, event_type: eventType, event_date: date, 
-      expected_guests: parseInt(guests) || 0, message, status: 'new'
+      name: (name as string).trim(),
+      email: (email as string).trim(),
+      phone: typeof phone === 'string' ? phone.trim() : null,
+      event_type: typeof eventType === 'string' ? eventType.slice(0, 100) : null,
+      event_date: typeof date === 'string' ? date.slice(0, 100) : null,
+      expected_guests: parseInt(String(guests ?? '0')) || 0,
+      message: typeof message === 'string' ? message.trim() : null,
+      status: 'new',
     });
 
     if (error) throw error;
@@ -49,7 +72,8 @@ Ombi hili limetumwa kupitia Smart Events Platform
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error('[send-contact-email] error:', error);
+    return new Response(JSON.stringify({ error: 'An error occurred processing your request' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
