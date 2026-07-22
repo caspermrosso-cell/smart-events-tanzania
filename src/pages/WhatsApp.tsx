@@ -6,6 +6,7 @@ import WhatsAppCompose from '@/components/whatsapp/WhatsAppCompose';
 import WhatsAppActiveSessions from '@/components/whatsapp/WhatsAppActiveSessions';
 import WhatsAppTemplates from '@/components/whatsapp/WhatsAppTemplates';
 import WhatsAppLogs from '@/components/whatsapp/WhatsAppLogs';
+import WhatsAppDashboard from '@/components/whatsapp/WhatsAppDashboard';
 
 const WhatsApp = () => {
   return (
@@ -17,13 +18,18 @@ const WhatsApp = () => {
         </motion.div>
       </div>
 
-      <Tabs defaultValue="compose" className="space-y-4">
-        <TabsList className="grid grid-cols-4 w-full max-w-lg">
+      <Tabs defaultValue="dashboard" className="space-y-4">
+        <TabsList className="grid grid-cols-5 w-full max-w-2xl">
+          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="compose">Compose</TabsTrigger>
           <TabsTrigger value="sessions">Sessions</TabsTrigger>
           <TabsTrigger value="templates">Templates</TabsTrigger>
           <TabsTrigger value="logs">Logs</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="dashboard">
+          <WhatsAppDashboard />
+        </TabsContent>
 
         <TabsContent value="compose">
           <WhatsAppCompose />
