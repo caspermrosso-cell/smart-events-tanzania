@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Users, Search, Phone, Mail, CheckCircle, XCircle, Clock, Trash2, Pencil, Upload, X, CreditCard } from 'lucide-react';
+import { Plus, Users, Search, Phone, Mail, CheckCircle, XCircle, Clock, Trash2, Pencil, Upload, X, CreditCard, Download } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -205,6 +205,20 @@ const Guests = () => {
       rsvp_status: 'pending',
     }));
     bulkMutation.mutate(rows);
+  };
+
+  const downloadTemplate = () => {
+    const eventTitle = events.find((e: any) => e.id === bulkEventId)?.title || '';
+    const sample = [
+      { Jina: 'Mfano Mgeni 1', Simu: '+255700000001', 'Kadi Namba': '001', Tukio: eventTitle },
+      { Jina: 'Mfano Mgeni 2', Simu: '+255700000002', 'Kadi Namba': '002', Tukio: eventTitle },
+    ];
+    const ws = XLSX.utils.json_to_sheet(sample, { header: ['Jina', 'Simu', 'Kadi Namba', 'Tukio'] });
+    ws['!cols'] = [{ wch: 25 }, { wch: 18 }, { wch: 12 }, { wch: 25 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Wageni');
+    XLSX.writeFile(wb, 'wageni-template.xlsx');
+    toast.success('Template imepakuliwa');
   };
 
   const filtered = guests.filter((g: any) =>
