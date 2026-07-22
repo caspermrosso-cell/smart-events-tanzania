@@ -207,11 +207,11 @@ const Guests = () => {
     bulkMutation.mutate(rows);
   };
 
-  const downloadTemplate = () => {
-    const eventTitle = events.find((e: any) => e.id === bulkEventId)?.title || '';
+  const downloadTemplate = (eventTitle?: string) => {
+    const title = eventTitle ?? events.find((e: any) => e.id === bulkEventId)?.title ?? '';
     const sample = [
-      { 'Jina la Tukio': eventTitle, 'Jina Kamili': 'Mfano Mgeni 1', 'Namba ya Simu': '+255700000001', 'Kadi Namba': '001' },
-      { 'Jina la Tukio': eventTitle, 'Jina Kamili': 'Mfano Mgeni 2', 'Namba ya Simu': '+255700000002', 'Kadi Namba': '002' },
+      { 'Jina la Tukio': title, 'Jina Kamili': 'Mfano Mgeni 1', 'Namba ya Simu': '+255700000001', 'Kadi Namba': '001' },
+      { 'Jina la Tukio': title, 'Jina Kamili': 'Mfano Mgeni 2', 'Namba ya Simu': '+255700000002', 'Kadi Namba': '002' },
     ];
     const ws = XLSX.utils.json_to_sheet(sample, { header: ['Jina la Tukio', 'Jina Kamili', 'Namba ya Simu', 'Kadi Namba'] });
     ws['!cols'] = [{ wch: 28 }, { wch: 25 }, { wch: 18 }, { wch: 14 }];
