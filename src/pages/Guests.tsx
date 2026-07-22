@@ -167,15 +167,15 @@ const Guests = () => {
         const wb = XLSX.read(evt.target?.result, { type: 'binary' });
         const ws = wb.Sheets[wb.SheetNames[0]];
         const data = XLSX.utils.sheet_to_json(ws);
-        const STANDARD = ['Jina','Name','full_name','Simu','Phone','phone','Email','email','Meza','Table','table_number','Kadi','Kadi Namba','Card','card_number','Tukio','Event'];
+        const STANDARD = ['Jina','Jina Kamili','Name','full_name','Simu','Namba ya Simu','Phone','phone','Email','email','Meza','Table','table_number','Kadi','Kadi Namba','Card','card_number','Tukio','Jina la Tukio','Event'];
         const parsed = data.map((row: any) => {
           const custom: Record<string, string> = {};
           Object.keys(row).forEach(k => {
             if (!STANDARD.includes(k) && row[k] !== '' && row[k] != null) custom[k] = String(row[k]);
           });
           return {
-            full_name: row['Jina'] || row['Name'] || row['full_name'] || '',
-            phone: row['Simu'] || row['Phone'] || row['phone'] || '',
+            full_name: row['Jina Kamili'] || row['Jina'] || row['Name'] || row['full_name'] || '',
+            phone: row['Namba ya Simu'] || row['Simu'] || row['Phone'] || row['phone'] || '',
             email: row['Email'] || row['email'] || '',
             table_number: row['Meza'] || row['Table'] || row['table_number'] || '',
             card_number: row['Kadi Namba'] || row['Kadi'] || row['Card'] || row['card_number'] || '',
@@ -210,11 +210,11 @@ const Guests = () => {
   const downloadTemplate = () => {
     const eventTitle = events.find((e: any) => e.id === bulkEventId)?.title || '';
     const sample = [
-      { Jina: 'Mfano Mgeni 1', Simu: '+255700000001', 'Kadi Namba': '001', Tukio: eventTitle },
-      { Jina: 'Mfano Mgeni 2', Simu: '+255700000002', 'Kadi Namba': '002', Tukio: eventTitle },
+      { 'Jina la Tukio': eventTitle, 'Jina Kamili': 'Mfano Mgeni 1', 'Namba ya Simu': '+255700000001', 'Kadi Namba': '001' },
+      { 'Jina la Tukio': eventTitle, 'Jina Kamili': 'Mfano Mgeni 2', 'Namba ya Simu': '+255700000002', 'Kadi Namba': '002' },
     ];
-    const ws = XLSX.utils.json_to_sheet(sample, { header: ['Jina', 'Simu', 'Kadi Namba', 'Tukio'] });
-    ws['!cols'] = [{ wch: 25 }, { wch: 18 }, { wch: 12 }, { wch: 25 }];
+    const ws = XLSX.utils.json_to_sheet(sample, { header: ['Jina la Tukio', 'Jina Kamili', 'Namba ya Simu', 'Kadi Namba'] });
+    ws['!cols'] = [{ wch: 28 }, { wch: 25 }, { wch: 18 }, { wch: 14 }];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Wageni');
     XLSX.writeFile(wb, 'wageni-template.xlsx');
@@ -257,7 +257,7 @@ const Guests = () => {
                 <div>
                   <Label>Faili (Excel/CSV)</Label>
                   <div className="flex items-center justify-between mb-2 gap-2">
-                    <p className="text-xs text-muted-foreground">Safu za lazima: <strong>Jina, Simu, Kadi Namba, Tukio</strong>. Safu zingine zitakuwa custom variables.</p>
+                    <p className="text-xs text-muted-foreground">Safu za lazima: <strong>Jina la Tukio, Jina Kamili, Namba ya Simu, Kadi Namba</strong>. Safu zingine zitakuwa custom variables.</p>
                     <Button type="button" variant="outline" size="sm" onClick={downloadTemplate} className="gap-1 shrink-0">
                       <Download className="w-3.5 h-3.5" /> Pakua Template
                     </Button>
