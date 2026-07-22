@@ -165,6 +165,82 @@ serve(async (req) => {
       });
     }
 
+    if (action === 'import-templates') {
+      const { userId } = body;
+      if (!userId) {
+        return new Response(JSON.stringify({ success: false, error: 'userId is required' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Fetch all templates from Beem (paginate defensively)
+      const collected: any[] = [];
+      let page = 1;
+      for (let i = 0; i < 20; i++) {
+        const url = `${TEMPLATES_URL}?page=${page}`;
+        const result = await makeBeemRequest(url, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json', 'Authorization': authHeader },
+        });
+        if (!result.ok || !result.data) {
+          if (collected.length === 0) {
+            return new Response(JSON.stringify({
+              success: false,
+              error: getBeemErrorMessage(result, 'Templates fetch failed'),
+            }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+          }
+          break;
+        }
+        const items: any[] = result.data.data || result.data.templates || [];
+        collected.push(...items);
+        const pg = result.data.pagination || {};
+        const totalPages = pg.total_pages || pg.totalPages || pg.last_page;
+        if (!totalPages || page >= totalPages || items.length === 0) break;
+        page += 1;
+      }
+
+      const approved = collected.filter((t: any) => {
+        const s = String(t.status || '').toLowerCase();
+        return s === 'approved' || s === 'enabled';
+      });
+
+      const supabase = getSupabaseClient();
+      const rows = approved.map((t: any) => ({
+        user_id: userId,
+        beem_id: String(t.id ?? t._id ?? t.template_id ?? t.name),
+        name: t.name || '',
+        category: t.category || null,
+        language: t.language || null,
+        status: String(t.status || '').toLowerCase(),
+        header: t.header || null,
+        content: t.content || t.body || null,
+        footer: t.footer || null,
+        media_url: t.mediaUrl || t.media_url || null,
+        type: t.type || null,
+        raw: t,
+      }));
+
+      let inserted = 0;
+      if (rows.length > 0) {
+        const { error, count } = await supabase
+          .from('whatsapp_templates')
+          .upsert(rows, { onConflict: 'user_id,beem_id', count: 'exact' });
+        if (error) {
+          return new Response(JSON.stringify({ success: false, error: error.message }), {
+            status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        inserted = count ?? rows.length;
+      }
+
+      return new Response(JSON.stringify({
+        success: true,
+        total_fetched: collected.length,
+        approved_count: approved.length,
+        imported: inserted,
+      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     if (action === 'send-template') {
       const { from_addr, destination_addr, channel, content, messageTemplateData, userId, eventId } = body;
 
@@ -202,8 +278,10 @@ serve(async (req) => {
           message_type: 'template',
           template_id: messageTemplateData.id,
           template_name: body.templateName || null,
+          campaign_name: body.templateName || null,
           status: result.ok ? 'sent' : 'failed',
           beem_response: data,
+          error_message: result.ok ? null : getBeemErrorMessage(result, 'Template send failed'),
         }));
         await supabase.from('whatsapp_logs').insert(logEntries);
       }
@@ -271,9 +349,11 @@ serve(async (req) => {
           message_type: 'template',
           template_id: String(template_id),
           template_name: template_name || null,
+          campaign_name: template_name || null,
           media_url: mediaUrl || null,
           status,
           beem_response: data,
+          error_message: status === 'failed' ? getBeemErrorMessage(result, 'Template send failed') : null,
         }));
         await supabase.from('whatsapp_logs').insert(logEntries);
       }

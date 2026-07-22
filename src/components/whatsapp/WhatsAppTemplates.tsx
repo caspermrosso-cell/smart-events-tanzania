@@ -2,7 +2,7 @@ import { useState, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
   RefreshCw, FileText, Send, Loader2, Plus, Trash2, CheckCircle2, Clock, XCircle,
-  Upload, Image as ImageIcon, FileUp, Download, ExternalLink, Info,
+  Upload, Image as ImageIcon, FileUp, Download, ExternalLink, Info, DownloadCloud,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -355,10 +355,34 @@ const SendTemplateDialog = ({ template, onClose }: { template: any; onClose: () 
 // ---------- Main list ----------
 const WhatsAppTemplates = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [sendTpl, setSendTpl] = useState<any | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [categoryFilter, setCategoryFilter] = useState<string>('');
   const [q, setQ] = useState('');
+  const [importing, setImporting] = useState(false);
+
+  const handleImport = async () => {
+    if (!user?.id) return;
+    setImporting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-whatsapp', {
+        body: { action: 'import-templates', userId: user.id },
+      });
+      if (error) throw error;
+      if (data?.success === false) throw new Error(data?.error || 'Import failed');
+      toast({
+        title: 'Import complete',
+        description: `Imported ${data?.imported || 0} approved templates (of ${data?.total_fetched || 0} fetched).`,
+      });
+      queryClient.invalidateQueries({ queryKey: ['beem-templates'] });
+    } catch (err: any) {
+      toast({ title: 'Import failed', description: err.message, variant: 'destructive' });
+    } finally {
+      setImporting(false);
+    }
+  };
 
   const { data: templatesData, isLoading, refetch, error } = useQuery({
     queryKey: ['beem-templates', statusFilter, categoryFilter, q],
@@ -390,6 +414,10 @@ const WhatsAppTemplates = () => {
           <Badge variant="secondary">{templates.length}</Badge>
         </div>
         <div className="flex items-center gap-2">
+          <Button size="sm" onClick={handleImport} disabled={importing}>
+            {importing ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <DownloadCloud className="w-4 h-4 mr-1" />}
+            Import Approved
+          </Button>
           <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isLoading}>
             <RefreshCw className={`w-4 h-4 mr-1 ${isLoading ? 'animate-spin' : ''}`} /> Refresh
           </Button>

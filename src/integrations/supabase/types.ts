@@ -804,15 +804,21 @@ export type Database = {
       whatsapp_logs: {
         Row: {
           beem_response: Json | null
+          campaign_name: string | null
           channel: string
           created_at: string
+          delivered_at: string | null
+          error_message: string | null
           event_id: string | null
           id: string
           media_url: string | null
           message_content: string | null
           message_type: string
+          read_at: string | null
           recipient_name: string | null
           recipient_phone: string
+          response_at: string | null
+          response_text: string | null
           status: string
           template_id: number | null
           template_name: string | null
@@ -821,15 +827,21 @@ export type Database = {
         }
         Insert: {
           beem_response?: Json | null
+          campaign_name?: string | null
           channel?: string
           created_at?: string
+          delivered_at?: string | null
+          error_message?: string | null
           event_id?: string | null
           id?: string
           media_url?: string | null
           message_content?: string | null
           message_type?: string
+          read_at?: string | null
           recipient_name?: string | null
           recipient_phone: string
+          response_at?: string | null
+          response_text?: string | null
           status?: string
           template_id?: number | null
           template_name?: string | null
@@ -838,15 +850,21 @@ export type Database = {
         }
         Update: {
           beem_response?: Json | null
+          campaign_name?: string | null
           channel?: string
           created_at?: string
+          delivered_at?: string | null
+          error_message?: string | null
           event_id?: string | null
           id?: string
           media_url?: string | null
           message_content?: string | null
           message_type?: string
+          read_at?: string | null
           recipient_name?: string | null
           recipient_phone?: string
+          response_at?: string | null
+          response_text?: string | null
           status?: string
           template_id?: number | null
           template_name?: string | null
@@ -869,6 +887,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      whatsapp_templates: {
+        Row: {
+          beem_id: string
+          category: string | null
+          content: string | null
+          created_at: string
+          footer: string | null
+          header: string | null
+          id: string
+          imported_at: string
+          language: string | null
+          media_url: string | null
+          name: string
+          raw: Json | null
+          status: string | null
+          type: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          beem_id: string
+          category?: string | null
+          content?: string | null
+          created_at?: string
+          footer?: string | null
+          header?: string | null
+          id?: string
+          imported_at?: string
+          language?: string | null
+          media_url?: string | null
+          name: string
+          raw?: Json | null
+          status?: string | null
+          type?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          beem_id?: string
+          category?: string | null
+          content?: string | null
+          created_at?: string
+          footer?: string | null
+          header?: string | null
+          id?: string
+          imported_at?: string
+          language?: string | null
+          media_url?: string | null
+          name?: string
+          raw?: Json | null
+          status?: string | null
+          type?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {
