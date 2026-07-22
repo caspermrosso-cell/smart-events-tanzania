@@ -257,7 +257,7 @@ const Guests = () => {
                 <div>
                   <Label>Faili (Excel/CSV)</Label>
                   <div className="flex items-center justify-between mb-2 gap-2">
-                    <p className="text-xs text-muted-foreground">Safu za lazima: <strong>Jina, Simu, Kadi Namba, Tukio</strong>. Safu zingine zitakuwa custom variables.</p>
+                    <p className="text-xs text-muted-foreground">Safu za lazima: <strong>Jina la Tukio, Jina Kamili, Namba ya Simu, Kadi Namba</strong>. Safu zingine zitakuwa custom variables.</p>
                     <Button type="button" variant="outline" size="sm" onClick={downloadTemplate} className="gap-1 shrink-0">
                       <Download className="w-3.5 h-3.5" /> Pakua Template
                     </Button>
