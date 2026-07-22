@@ -100,10 +100,23 @@ const SmsCompose = () => {
 
   const downloadBulkTemplate = () => {
     try {
+      if (!message || message.trim().length === 0) {
+        toast.error('Chagua au andika template kwanza kabla ya kupakua orodha');
+        return;
+      }
+      // Build columns dynamically from the selected/typed template's variables
+      const varCols = [...detectedVars]; // custom {vars}
+      const headers = ['Jina', 'Simu', ...varCols];
+      const sample1: (string | number)[] = ['Ali Mohamed', '0712345678'];
+      const sample2: (string | number)[] = ['Fatma Hassan', '0654321098'];
+      varCols.forEach((v) => {
+        sample1.push(`Mfano ${v} 1`);
+        sample2.push(`Mfano ${v} 2`);
+      });
       const ws = XLSX.utils.aoa_to_sheet([
-        ['Jina', 'Simu', 'amount', 'reference'],
-        ['Ali Mohamed', '0712345678', '50000', 'INV-001'],
-        ['Fatma Hassan', '0654321098', '25000', 'INV-002'],
+        headers,
+        sample1,
+        sample2,
       ]);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Wapokeaji');
@@ -114,12 +127,16 @@ const SmsCompose = () => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'sms_wapokeaji_template.xlsx';
+      a.download = `sms_wapokeaji_${varCols.length ? varCols.join('_') : 'basic'}.xlsx`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       setTimeout(() => URL.revokeObjectURL(url), 1000);
-      toast.success('Template imepakuliwa');
+      toast.success(
+        varCols.length
+          ? `Template yenye variables ${varCols.length} imepakuliwa`
+          : 'Template ya msingi imepakuliwa (hakuna variables kwenye ujumbe)'
+      );
     } catch (err: any) {
       console.error('Template download failed', err);
       toast.error('Imeshindikana kupakua template: ' + (err?.message || 'Hitilafu'));
@@ -572,7 +589,12 @@ const SmsCompose = () => {
             <span className="text-sm font-medium text-foreground">Pakia Orodha (Excel/CSV)</span>
           </div>
           <p className="text-xs text-muted-foreground mb-2">
-            Safu wima za lazima: <strong>Jina</strong>, <strong>Simu</strong>. Safu wima nyingine (mfano <code>amount</code>, <code>reference</code>) zinakuwa <strong>variables</strong> — tumia <code>{'{amount}'}</code> kwenye ujumbe.
+            Bonyeza <strong>Pakua Template</strong> kupata Excel yenye safu wima za <strong>Jina</strong>, <strong>Simu</strong>
+            {detectedVars.length > 0 ? (
+              <> pamoja na variables za template uliyochagua: {detectedVars.map((v) => (<code key={v} className="mx-0.5">{`{${v}}`}</code>))}.</>
+            ) : (
+              <>. Andika/chagua template yenye <code>{'{variables}'}</code> ili safu wima zake ziongezwe kiotomatiki.</>
+            )}
           </p>
           <div className="flex gap-2">
             <input
