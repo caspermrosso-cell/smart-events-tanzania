@@ -143,8 +143,11 @@ const SendTemplateDialog = ({ template, onClose }: { template: any; onClose: () 
         contentType: file.type, upsert: false,
       });
       if (error) throw error;
-      const { data } = supabase.storage.from('whatsapp-media').getPublicUrl(path);
-      setMediaUrl(data.publicUrl);
+      const { data: signed, error: signErr } = await supabase.storage
+        .from('whatsapp-media')
+        .createSignedUrl(path, 60 * 60 * 24 * 7); // 7 days
+      if (signErr) throw signErr;
+      setMediaUrl(signed.signedUrl);
       toast({ title: 'Media uploaded' });
     } catch (err: any) {
       toast({ title: 'Upload failed', description: err.message, variant: 'destructive' });
