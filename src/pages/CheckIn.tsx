@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { QrCode, Camera, CheckCircle, XCircle, Users, Search } from 'lucide-react';
+import { QrCode, Camera, CheckCircle, XCircle, Users, Search, CreditCard } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
 import DashboardLayout from '@/components/DashboardLayout';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 
 const CheckIn = () => {
   const { user } = useAuth();
@@ -18,6 +20,7 @@ const CheckIn = () => {
   const [scanning, setScanning] = useState(false);
   const [manualCode, setManualCode] = useState('');
   const [search, setSearch] = useState('');
+  const [method, setMethod] = useState<'qr' | 'card'>('qr');
   const scannerRef = useRef<any>(null);
   const scannerContainerRef = useRef<HTMLDivElement>(null);
 
@@ -103,10 +106,13 @@ const CheckIn = () => {
   const handleScanResult = (code: string) => {
     const norm = code.trim();
     const lower = norm.toLowerCase();
+    const digits = norm.replace(/\D/g, '');
     const guest = guests.find((g: any) =>
       g.barcode === norm ||
       g.id === norm ||
-      (g.card_number && String(g.card_number).toLowerCase() === lower)
+      (g.card_number && String(g.card_number).toLowerCase() === lower) ||
+      (digits.length >= 6 && g.phone && String(g.phone).replace(/\D/g, '').endsWith(digits)) ||
+      (g.full_name && String(g.full_name).toLowerCase() === lower)
     );
     if (guest) {
       if ((guest as any).checked_in) {
@@ -160,24 +166,51 @@ const CheckIn = () => {
 
             {selectedEvent && (
               <>
-                <div id="scanner-container" ref={scannerContainerRef} className="rounded-lg overflow-hidden bg-muted aspect-square" />
-                
-                <Button onClick={scanning ? stopScanner : startScanner} className="w-full gap-2" variant={scanning ? 'destructive' : 'default'}>
-                  <Camera className="w-4 h-4" />
-                  {scanning ? 'Simamisha Scanner' : 'Fungua Scanner'}
-                </Button>
-
-                <div className="flex gap-2">
-                  <Input
-                    value={manualCode}
-                    onChange={e => setManualCode(e.target.value)}
-                    placeholder="Ingiza Kadi Namba au barcode..."
-                    onKeyDown={e => e.key === 'Enter' && handleManualCheckIn()}
-                  />
-                  <Button onClick={handleManualCheckIn} size="icon" variant="outline">
-                    <QrCode className="w-4 h-4" />
-                  </Button>
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Njia ya Check-In</Label>
+                  <RadioGroup
+                    value={method}
+                    onValueChange={(v) => { setMethod(v as 'qr' | 'card'); if (v !== 'qr') stopScanner(); }}
+                    className="grid grid-cols-2 gap-2"
+                  >
+                    <label className={`flex items-center gap-2 rounded-lg border p-2.5 cursor-pointer transition ${method === 'qr' ? 'border-primary bg-primary/5' : 'border-border'}`}>
+                      <RadioGroupItem value="qr" id="m-qr" />
+                      <QrCode className="w-4 h-4" />
+                      <span className="text-sm">QR Code</span>
+                    </label>
+                    <label className={`flex items-center gap-2 rounded-lg border p-2.5 cursor-pointer transition ${method === 'card' ? 'border-primary bg-primary/5' : 'border-border'}`}>
+                      <RadioGroupItem value="card" id="m-card" />
+                      <CreditCard className="w-4 h-4" />
+                      <span className="text-sm">Kadi / Simu / Jina</span>
+                    </label>
+                  </RadioGroup>
                 </div>
+
+                {method === 'qr' ? (
+                  <>
+                    <div id="scanner-container" ref={scannerContainerRef} className="rounded-lg overflow-hidden bg-muted aspect-square" />
+                    <Button onClick={scanning ? stopScanner : startScanner} className="w-full gap-2" variant={scanning ? 'destructive' : 'default'}>
+                      <Camera className="w-4 h-4" />
+                      {scanning ? 'Simamisha Scanner' : 'Fungua Scanner'}
+                    </Button>
+                  </>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <Input
+                        value={manualCode}
+                        onChange={e => setManualCode(e.target.value)}
+                        placeholder="Kadi Namba, Simu au Jina..."
+                        onKeyDown={e => e.key === 'Enter' && handleManualCheckIn()}
+                        autoFocus
+                      />
+                      <Button onClick={handleManualCheckIn} size="icon" variant="outline">
+                        <CheckCircle className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">Andika kadi namba, namba ya simu au jina kamili, kisha bonyeza Enter.</p>
+                  </div>
+                )}
               </>
             )}
           </div>
