@@ -278,8 +278,10 @@ serve(async (req) => {
           message_type: 'template',
           template_id: messageTemplateData.id,
           template_name: body.templateName || null,
+          campaign_name: body.templateName || null,
           status: result.ok ? 'sent' : 'failed',
           beem_response: data,
+          error_message: result.ok ? null : getBeemErrorMessage(result, 'Template send failed'),
         }));
         await supabase.from('whatsapp_logs').insert(logEntries);
       }
@@ -347,9 +349,11 @@ serve(async (req) => {
           message_type: 'template',
           template_id: String(template_id),
           template_name: template_name || null,
+          campaign_name: template_name || null,
           media_url: mediaUrl || null,
           status,
           beem_response: data,
+          error_message: status === 'failed' ? getBeemErrorMessage(result, 'Template send failed') : null,
         }));
         await supabase.from('whatsapp_logs').insert(logEntries);
       }
