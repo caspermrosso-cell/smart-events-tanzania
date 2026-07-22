@@ -181,9 +181,9 @@ const SendTemplateDialog = ({ template, onClose }: { template: any; onClose: () 
       : defaultParams.map((v) => (v === '{name}' ? (recipient.name || '') : v));
     for (let i = 0; i < bodyPh; i++) {
       const val = (params[i] ?? '').toString();
-      out = out.replaceAll(`{{${i + 1}}}`, val || `{{${i + 1}}}`);
+      out = out.split(`{{${i + 1}}}`).join(val || `{{${i + 1}}}`);
     }
-    if (out.includes('{name}')) out = out.replaceAll('{name}', recipient.name || '');
+    if (out.includes('{name}')) out = out.split('{name}').join(recipient.name || '');
     return out;
   };
 
