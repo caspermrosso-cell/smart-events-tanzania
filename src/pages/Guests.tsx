@@ -167,7 +167,7 @@ const Guests = () => {
         const wb = XLSX.read(evt.target?.result, { type: 'binary' });
         const ws = wb.Sheets[wb.SheetNames[0]];
         const data = XLSX.utils.sheet_to_json(ws);
-        const STANDARD = ['Jina','Name','full_name','Simu','Phone','phone','Email','email','Meza','Table','table_number','Kadi','Card','card_number'];
+        const STANDARD = ['Jina','Name','full_name','Simu','Phone','phone','Email','email','Meza','Table','table_number','Kadi','Kadi Namba','Card','card_number','Tukio','Event'];
         const parsed = data.map((row: any) => {
           const custom: Record<string, string> = {};
           Object.keys(row).forEach(k => {
