@@ -589,7 +589,12 @@ const SmsCompose = () => {
             <span className="text-sm font-medium text-foreground">Pakia Orodha (Excel/CSV)</span>
           </div>
           <p className="text-xs text-muted-foreground mb-2">
-            Safu wima za lazima: <strong>Jina</strong>, <strong>Simu</strong>. Safu wima nyingine (mfano <code>amount</code>, <code>reference</code>) zinakuwa <strong>variables</strong> — tumia <code>{'{amount}'}</code> kwenye ujumbe.
+            Bonyeza <strong>Pakua Template</strong> kupata Excel yenye safu wima za <strong>Jina</strong>, <strong>Simu</strong>
+            {detectedVars.length > 0 ? (
+              <> pamoja na variables za template uliyochagua: {detectedVars.map((v) => (<code key={v} className="mx-0.5">{`{${v}}`}</code>))}.</>
+            ) : (
+              <>. Andika/chagua template yenye <code>{'{variables}'}</code> ili safu wima zake ziongezwe kiotomatiki.</>
+            )}
           </p>
           <div className="flex gap-2">
             <input
