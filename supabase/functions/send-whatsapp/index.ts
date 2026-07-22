@@ -8,44 +8,9 @@ const corsHeaders = {
 
 const CHAT_API_URL = 'https://apichatcore.beem.africa/v1/chatapi';
 const ACTIVE_SESSIONS_URL = 'https://apichatcore.beem.africa/v1/chatapi/active-users';
-const TEMPLATES_URL = 'https://apibroadcast.beem.africa/v1/message-templates/list';
+const TEMPLATES_URL = 'https://apichatcore.beem.africa/v1/message-templates/list';
 const BROADCAST_TEMPLATE_URL = 'https://apibroadcast.beem.africa/v1/broadcast/template/api-send';
 
-// ============ Meta WhatsApp Cloud API ============
-const META_GRAPH_BASE = 'https://graph.facebook.com';
-function metaVersion() {
-  return Deno.env.get('META_GRAPH_API_VERSION') || 'v21.0';
-}
-function metaConfig() {
-  const token = Deno.env.get('META_WHATSAPP_ACCESS_TOKEN');
-  const wabaId = Deno.env.get('META_WABA_ID');
-  const phoneId = Deno.env.get('META_PHONE_NUMBER_ID');
-  if (!token) throw new Error('META_WHATSAPP_ACCESS_TOKEN is not configured');
-  return { token, wabaId, phoneId, version: metaVersion() };
-}
-async function metaFetch(url: string, init: RequestInit & { token: string }) {
-  const { token, ...rest } = init;
-  const res = await fetch(url, {
-    ...rest,
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-      ...(rest.headers || {}),
-    },
-  });
-  const text = await res.text();
-  let data: any = null;
-  try { data = text ? JSON.parse(text) : null; } catch { data = null; }
-  if (!res.ok) {
-    const msg = data?.error?.message || text || `HTTP ${res.status}`;
-    console.error('Meta API error:', res.status, msg);
-    const err: any = new Error(msg);
-    err.status = res.status;
-    err.details = data?.error || null;
-    throw err;
-  }
-  return data;
-}
 function normalizePhone(raw: string): string {
   let p = String(raw || '').replace(/[^0-9]/g, '');
   if (p.startsWith('0')) p = '255' + p.substring(1);
