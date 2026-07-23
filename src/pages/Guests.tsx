@@ -10,6 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Checkbox } from '@/components/ui/checkbox';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import DashboardLayout from '@/components/DashboardLayout';
 import PhoneInput from '@/components/PhoneInput';
@@ -32,6 +34,7 @@ const Guests = () => {
   const [bulkEventId, setBulkEventId] = useState('');
   const [bulkData, setBulkData] = useState<any[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const [form, setForm] = useState<{
     full_name: string; phone: string; email: string; event_id: string;
@@ -93,6 +96,23 @@ const Guests = () => {
       toast.success('Mgeni amehamishwa Recycle Bin');
     },
     onError: () => toast.error('Imeshindikana kufuta mgeni'),
+  });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase
+        .from('guests')
+        .update({ deleted_at: new Date().toISOString() } as any)
+        .in('id', ids);
+      if (error) throw error;
+    },
+    onSuccess: (_data, ids) => {
+      queryClient.invalidateQueries({ queryKey: ['guests'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      toast.success(`Wageni ${ids.length} wamehamishwa Recycle Bin`);
+      setSelectedIds([]);
+    },
+    onError: () => toast.error('Imeshindikana kufuta wageni'),
   });
 
   const bulkMutation = useMutation({
@@ -227,6 +247,15 @@ const Guests = () => {
     (g.email && g.email.toLowerCase().includes(search.toLowerCase())) ||
     (g.card_number && g.card_number.toLowerCase().includes(search.toLowerCase()))
   );
+
+  const allFilteredSelected = filtered.length > 0 && filtered.every((g: any) => selectedIds.includes(g.id));
+  const toggleAll = () => {
+    if (allFilteredSelected) setSelectedIds(selectedIds.filter(id => !filtered.some((g: any) => g.id === id)));
+    else setSelectedIds(Array.from(new Set([...selectedIds, ...filtered.map((g: any) => g.id)])));
+  };
+  const toggleOne = (id: string) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
 
   return (
     <DashboardLayout>
@@ -402,6 +431,36 @@ const Guests = () => {
         </Select>
       </div>
 
+      {selectedIds.length > 0 && (
+        <div className="flex items-center justify-between mb-4 p-3 rounded-lg border border-border bg-muted/30">
+          <p className="text-sm text-foreground">Umechagua wageni <strong>{selectedIds.length}</strong></p>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => setSelectedIds([])}>Ghairi</Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="sm" className="gap-2">
+                  <Trash2 className="w-4 h-4" /> Futa Wote ({selectedIds.length})
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Futa wageni {selectedIds.length}?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Wageni hawa watahamishiwa kwenye Recycle Bin. Unaweza kuwarejesha baadaye.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Ghairi</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => bulkDeleteMutation.mutate(selectedIds)}>
+                    Endelea Kufuta
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </div>
+      )}
+
       {isLoading ? (
         <div className="flex justify-center py-20">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
@@ -417,6 +476,9 @@ const Guests = () => {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-10">
+                  <Checkbox checked={allFilteredSelected} onCheckedChange={toggleAll} aria-label="Chagua wote" />
+                </TableHead>
                 <TableHead>Jina</TableHead>
                 <TableHead className="hidden sm:table-cell">Tukio</TableHead>
                 <TableHead className="hidden md:table-cell">Simu</TableHead>
@@ -432,6 +494,9 @@ const Guests = () => {
                 const RsvpIcon = rsvp.icon;
                 return (
                   <TableRow key={guest.id}>
+                    <TableCell>
+                      <Checkbox checked={selectedIds.includes(guest.id)} onCheckedChange={() => toggleOne(guest.id)} aria-label={`Chagua ${guest.full_name}`} />
+                    </TableCell>
                     <TableCell className="font-medium">{guest.full_name}</TableCell>
                     <TableCell className="hidden sm:table-cell text-muted-foreground text-sm">{guest.events?.title}</TableCell>
                     <TableCell className="hidden md:table-cell text-muted-foreground text-sm">{guest.phone || '-'}</TableCell>
