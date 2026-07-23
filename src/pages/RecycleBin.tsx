@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { RotateCcw, Trash2, Loader2, Calendar, Users, Quote } from 'lucide-react';
 import { format } from 'date-fns';
@@ -34,6 +35,8 @@ const RESOURCES: { key: ResourceKey; label: string; icon: any; select: string; t
 const RecycleBinList = ({ resource }: { resource: typeof RESOURCES[number] }) => {
   const qc = useQueryClient();
   const [busy, setBusy] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ['recycle-bin', resource.key],
@@ -79,6 +82,35 @@ const RecycleBinList = ({ resource }: { resource: typeof RESOURCES[number] }) =>
     invalidate();
   };
 
+  const toggleOne = (id: string) =>
+    setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  const allSelected = rows.length > 0 && rows.every((r: any) => selected.includes(r.id));
+  const toggleAll = () =>
+    setSelected(allSelected ? [] : rows.map((r: any) => r.id));
+
+  const bulkRestore = async () => {
+    if (selected.length === 0) return;
+    setBulkBusy(true);
+    const { error } = await (supabase as any).from(resource.key).update({ deleted_at: null }).in('id', selected);
+    setBulkBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success(`Imerudishwa ${selected.length}`);
+    setSelected([]);
+    invalidate();
+  };
+
+  const bulkPurge = async () => {
+    if (selected.length === 0) return;
+    if (!confirm(`Futa kabisa ${selected.length}? Kitendo hiki hakiwezi kurudishwa.`)) return;
+    setBulkBusy(true);
+    const { error } = await (supabase as any).from(resource.key).delete().in('id', selected);
+    setBulkBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success(`Zimefutwa kabisa ${selected.length}`);
+    setSelected([]);
+    invalidate();
+  };
+
   if (isLoading) {
     return <div className="flex items-center justify-center py-12 text-muted-foreground"><Loader2 className="w-5 h-5 animate-spin mr-2" /> Inapakia...</div>;
   }
@@ -94,8 +126,23 @@ const RecycleBinList = ({ resource }: { resource: typeof RESOURCES[number] }) =>
 
   return (
     <div className="space-y-2">
+      <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
+        <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <Checkbox checked={allSelected} onCheckedChange={toggleAll} />
+          <span>Chagua zote ({selected.length}/{rows.length})</span>
+        </label>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" disabled={selected.length === 0 || bulkBusy} onClick={bulkRestore} className="gap-1">
+            <RotateCcw className="w-3.5 h-3.5" /> Rudisha ({selected.length})
+          </Button>
+          <Button size="sm" variant="ghost" disabled={selected.length === 0 || bulkBusy} onClick={bulkPurge} className="gap-1 text-destructive hover:text-destructive">
+            <Trash2 className="w-3.5 h-3.5" /> Futa kabisa ({selected.length})
+          </Button>
+        </div>
+      </div>
       {rows.map((r: any) => (
         <div key={r.id} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card p-4">
+          <Checkbox checked={selected.includes(r.id)} onCheckedChange={() => toggleOne(r.id)} />
           <div className="min-w-0 flex-1">
             <p className="font-medium text-foreground truncate">{resource.title(r)}</p>
             <p className="text-xs text-muted-foreground truncate">{resource.subtitle(r)}</p>

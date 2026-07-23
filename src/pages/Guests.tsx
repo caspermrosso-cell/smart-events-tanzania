@@ -117,8 +117,11 @@ const Guests = () => {
 
   const bulkMutation = useMutation({
     mutationFn: async (rows: any[]) => {
-      const { error } = await supabase.from('guests').insert(rows);
-      if (error) throw error;
+      const CHUNK = 100;
+      for (let i = 0; i < rows.length; i += CHUNK) {
+        const { error } = await supabase.from('guests').insert(rows.slice(i, i + CHUNK));
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['guests'] });
@@ -128,7 +131,7 @@ const Guests = () => {
       setBulkData([]);
       setBulkEventId('');
     },
-    onError: () => toast.error('Imeshindikana kuongeza wageni'),
+    onError: (err: any) => toast.error(`Imeshindikana kuongeza wageni: ${err?.message || err}`),
   });
 
   const handleClose = () => {
