@@ -1,28 +1,33 @@
 import { motion } from 'framer-motion';
-import { Calendar, Users, CreditCard, MessageSquare, Mail, QrCode, Wallet, FileText } from 'lucide-react';
+import { Calendar, Users, CreditCard, MessageSquare, Mail, QrCode, Wallet, FileText, UserCog } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import DashboardLayout from '@/components/DashboardLayout';
+import { AppModule, usePermissions } from '@/hooks/usePermissions';
 
-const modules = [
-  { title: 'Matukio', desc: 'Tengeneza & simamia matukio', icon: Calendar, color: 'bg-primary/10 text-primary', href: '/events' },
-  { title: 'Wageni', desc: 'Simamia mialiko & RSVP', icon: Users, color: 'bg-gold/10 text-gold', href: '/guests' },
-  { title: 'Michango', desc: 'Fuatilia michango & malipo', icon: CreditCard, color: 'bg-accent/10 text-accent', href: '/pledges' },
-  { title: 'SMS', desc: 'Tuma SMS & vikumbusho', icon: MessageSquare, color: 'bg-primary/10 text-primary', href: '/sms' },
-  { title: 'E-Cards', desc: 'Buni & tuma kadi', icon: Mail, color: 'bg-gold/10 text-gold', href: '/ecards' },
-  { title: 'Check-In', desc: 'Skani barcode mlangoni', icon: QrCode, color: 'bg-accent/10 text-accent', href: '/checkin' },
-  { title: 'Malipo', desc: 'Pokea & fuatilia malipo', icon: Wallet, color: 'bg-primary/10 text-primary', href: '/payments' },
-  { title: 'Nyaraka', desc: 'Quotations, Invoices & Receipts', icon: FileText, color: 'bg-gold/10 text-gold', href: '/quotations' },
+const allModules: { title: string; desc: string; icon: any; color: string; href: string; module: AppModule }[] = [
+  { title: 'Matukio', desc: 'Tengeneza & simamia matukio', icon: Calendar, color: 'bg-primary/10 text-primary', href: '/events', module: 'events' },
+  { title: 'Wageni', desc: 'Simamia mialiko & RSVP', icon: Users, color: 'bg-gold/10 text-gold', href: '/guests', module: 'guests' },
+  { title: 'Michango', desc: 'Fuatilia michango & malipo', icon: CreditCard, color: 'bg-accent/10 text-accent', href: '/pledges', module: 'pledges' },
+  { title: 'SMS', desc: 'Tuma SMS & vikumbusho', icon: MessageSquare, color: 'bg-primary/10 text-primary', href: '/sms', module: 'sms' },
+  { title: 'E-Cards', desc: 'Buni & tuma kadi', icon: Mail, color: 'bg-gold/10 text-gold', href: '/ecards', module: 'ecards' },
+  { title: 'Check-In', desc: 'Skani barcode mlangoni', icon: QrCode, color: 'bg-accent/10 text-accent', href: '/checkin', module: 'checkin' },
+  { title: 'Malipo', desc: 'Pokea & fuatilia malipo', icon: Wallet, color: 'bg-primary/10 text-primary', href: '/payments', module: 'payments' },
+  { title: 'Nyaraka', desc: 'Quotations, Invoices & Receipts', icon: FileText, color: 'bg-gold/10 text-gold', href: '/quotations', module: 'quotations' },
+  { title: 'Watumiaji', desc: 'Simamia users & roles', icon: UserCog, color: 'bg-primary/10 text-primary', href: '/users', module: 'users' },
 ];
 
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { can, isAdmin } = usePermissions();
+  const modules = allModules.filter((m) => can(m.module));
 
   const { data: stats } = useQuery({
     queryKey: ['dashboard-stats'],
+    enabled: isAdmin,
     queryFn: async () => {
       const [eventsRes, guestsRes, pledgesRes] = await Promise.all([
         supabase.from('events').select('id', { count: 'exact', head: true }),
@@ -42,6 +47,7 @@ const Dashboard = () => {
 
   const { data: revenueStats } = useQuery({
     queryKey: ['dashboard-revenue'],
+    enabled: isAdmin,
     queryFn: async () => {
       const { data, error } = await supabase.from('events').select('subscription_amount');
       if (error) throw error;
@@ -63,7 +69,7 @@ const Dashboard = () => {
         Karibu, {user?.user_metadata?.full_name || user?.email}
       </motion.h2>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+      {isAdmin && <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
         {statCards.map((s, i) => (
           <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} className="glass-card rounded-xl p-5">
             <div className="flex items-center justify-between mb-2">
@@ -73,7 +79,7 @@ const Dashboard = () => {
             <p className="text-2xl font-bold text-foreground">{s.value}</p>
           </motion.div>
         ))}
-      </div>
+      </div>}
 
       <h3 className="font-heading text-lg font-semibold text-foreground mb-4">Modules</h3>
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
