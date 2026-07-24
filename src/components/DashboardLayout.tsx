@@ -1,28 +1,32 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Calendar, Users, CreditCard, MessageSquare, Mail, QrCode, LogOut, LayoutDashboard, BarChart3, Wallet, FileText, Package, Globe, MessageCircle, Quote, Trash2 } from 'lucide-react';
+import { Calendar, Users, CreditCard, MessageSquare, Mail, QrCode, LogOut, LayoutDashboard, BarChart3, Wallet, FileText, Package, Globe, MessageCircle, Quote, Trash2, UserCog } from 'lucide-react';
 import smartEventsLogo from '@/assets/smart-events-logo.png';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import ThemeToggle from '@/components/ThemeToggle';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { TranslationKey } from '@/data/translations';
+import { AppModule, usePermissions } from '@/hooks/usePermissions';
 
-const navItems: { labelKey?: TranslationKey; label?: string; icon: any; href: string }[] = [
-  { labelKey: 'admin.dashboard', icon: LayoutDashboard, href: '/dashboard' },
-  { labelKey: 'admin.events', icon: Calendar, href: '/events' },
-  { labelKey: 'admin.guests', icon: Users, href: '/guests' },
-  { labelKey: 'admin.pledges', icon: CreditCard, href: '/pledges' },
-  { labelKey: 'admin.sms', icon: MessageSquare, href: '/sms' },
-  { labelKey: 'admin.whatsapp', icon: MessageCircle, href: '/whatsapp' },
-  { labelKey: 'admin.ecards', icon: Mail, href: '/ecards' },
-  { labelKey: 'admin.checkin', icon: QrCode, href: '/checkin' },
-  { labelKey: 'admin.payments', icon: Wallet, href: '/payments' },
-  { labelKey: 'admin.quotations', icon: FileText, href: '/quotations' },
-  { labelKey: 'admin.packages', icon: Package, href: '/packages' },
-  { labelKey: 'admin.testimonials', icon: Quote, href: '/testimonials' },
-  { labelKey: 'admin.reports', icon: BarChart3, href: '/reports' },
-  { label: 'Recycle Bin', icon: Trash2, href: '/recycle-bin' },
+type NavItem = { labelKey?: TranslationKey; label?: string; icon: any; href: string; module: AppModule };
+
+const allNavItems: NavItem[] = [
+  { labelKey: 'admin.dashboard', icon: LayoutDashboard, href: '/dashboard', module: 'dashboard' },
+  { labelKey: 'admin.events', icon: Calendar, href: '/events', module: 'events' },
+  { labelKey: 'admin.guests', icon: Users, href: '/guests', module: 'guests' },
+  { labelKey: 'admin.pledges', icon: CreditCard, href: '/pledges', module: 'pledges' },
+  { labelKey: 'admin.sms', icon: MessageSquare, href: '/sms', module: 'sms' },
+  { labelKey: 'admin.whatsapp', icon: MessageCircle, href: '/whatsapp', module: 'whatsapp' },
+  { labelKey: 'admin.ecards', icon: Mail, href: '/ecards', module: 'ecards' },
+  { labelKey: 'admin.checkin', icon: QrCode, href: '/checkin', module: 'checkin' },
+  { labelKey: 'admin.payments', icon: Wallet, href: '/payments', module: 'payments' },
+  { labelKey: 'admin.quotations', icon: FileText, href: '/quotations', module: 'quotations' },
+  { labelKey: 'admin.packages', icon: Package, href: '/packages', module: 'packages' },
+  { labelKey: 'admin.testimonials', icon: Quote, href: '/testimonials', module: 'testimonials' },
+  { labelKey: 'admin.reports', icon: BarChart3, href: '/reports', module: 'reports' },
+  { label: 'Recycle Bin', icon: Trash2, href: '/recycle-bin', module: 'recycle_bin' },
+  { label: 'Watumiaji', icon: UserCog, href: '/users', module: 'users' },
 ];
 
 const DashboardLayout = ({ children }: { children: ReactNode }) => {
@@ -30,6 +34,8 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { language, setLanguage, t } = useLanguage();
+  const { can } = usePermissions();
+  const navItems = allNavItems.filter((n) => can(n.module));
 
   const handleLogout = async () => {
     await signOut();
