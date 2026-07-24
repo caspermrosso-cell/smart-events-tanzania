@@ -117,16 +117,55 @@ const Guests = () => {
 
   const bulkMutation = useMutation({
     mutationFn: async (rows: any[]) => {
+      // Dedupe within the batch by card_number (per event)
+      const seen = new Set<string>();
+      const deduped: any[] = [];
+      let dupInBatch = 0;
+      for (const r of rows) {
+        if (r.card_number) {
+          const key = `${r.event_id}::${String(r.card_number).toLowerCase()}`;
+          if (seen.has(key)) { dupInBatch++; continue; }
+          seen.add(key);
+        }
+        deduped.push(r);
+      }
+
+      // Skip card_numbers that already exist in DB for the same event(s)
+      const cardNumbers = deduped.map(r => r.card_number).filter(Boolean);
+      const eventIds = Array.from(new Set(deduped.map(r => r.event_id)));
+      let existingKeys = new Set<string>();
+      if (cardNumbers.length > 0) {
+        const { data: existing } = await supabase
+          .from('guests')
+          .select('event_id, card_number')
+          .in('event_id', eventIds)
+          .in('card_number', cardNumbers);
+        (existing || []).forEach((g: any) => {
+          if (g.card_number) existingKeys.add(`${g.event_id}::${String(g.card_number).toLowerCase()}`);
+        });
+      }
+      const toInsert = deduped.filter(r => {
+        if (!r.card_number) return true;
+        return !existingKeys.has(`${r.event_id}::${String(r.card_number).toLowerCase()}`);
+      });
+      const dupInDb = deduped.length - toInsert.length;
+
       const CHUNK = 100;
-      for (let i = 0; i < rows.length; i += CHUNK) {
-        const { error } = await supabase.from('guests').insert(rows.slice(i, i + CHUNK));
+      for (let i = 0; i < toInsert.length; i += CHUNK) {
+        const { error } = await supabase.from('guests').insert(toInsert.slice(i, i + CHUNK));
         if (error) throw error;
       }
+      return { inserted: toInsert.length, dupInBatch, dupInDb, total: rows.length };
     },
-    onSuccess: () => {
+    onSuccess: (res: any) => {
       queryClient.invalidateQueries({ queryKey: ['guests'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
-      toast.success(`Wageni ${bulkData.length} wameongezwa!`);
+      const skipped = (res?.dupInBatch || 0) + (res?.dupInDb || 0);
+      if (res?.inserted > 0) {
+        toast.success(`Wageni ${res.inserted} wameongezwa${skipped ? ` · ${skipped} wamerukwa (Kadi Namba tayari ipo)` : ''}`);
+      } else {
+        toast.error('Hakuna aliyeongezwa – Kadi Namba zote tayari zipo kwenye tukio hili');
+      }
       setBulkDialogOpen(false);
       setBulkData([]);
       setBulkEventId('');
