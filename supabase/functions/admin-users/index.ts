@@ -136,6 +136,8 @@ Deno.serve(async (req) => {
     }
   } catch (e) {
     console.error("admin-users error", e);
-    return json({ error: "Internal error" }, 500);
+    const msg = (e as any)?.message ?? "Internal error";
+    const status = (e as any)?.status ?? 500;
+    return json({ error: msg }, status >= 400 && status < 600 ? status : 500);
   }
 });
