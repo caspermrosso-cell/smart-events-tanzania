@@ -12,15 +12,18 @@ import { toast } from 'sonner';
 import DashboardLayout from '@/components/DashboardLayout';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { usePermissions } from '@/hooks/usePermissions';
 
 const CheckIn = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { isAdmin } = usePermissions();
   const [selectedEvent, setSelectedEvent] = useState('');
   const [scanning, setScanning] = useState(false);
   const [manualCode, setManualCode] = useState('');
   const [search, setSearch] = useState('');
   const [method, setMethod] = useState<'qr' | 'card'>('qr');
+  const [scope, setScope] = useState<'all' | 'mine'>('all');
   const scannerRef = useRef<any>(null);
   const scannerContainerRef = useRef<HTMLDivElement>(null);
 
@@ -49,7 +52,8 @@ const CheckIn = () => {
       const { error } = await supabase.from('guests').update({
         checked_in: true,
         checked_in_at: new Date().toISOString(),
-      }).eq('id', guestId);
+        checked_in_by: user?.id ?? null,
+      } as any).eq('id', guestId);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -64,7 +68,8 @@ const CheckIn = () => {
       const { error } = await supabase.from('guests').update({
         checked_in: false,
         checked_in_at: null,
-      }).eq('id', guestId);
+        checked_in_by: null,
+      } as any).eq('id', guestId);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -134,11 +139,14 @@ const CheckIn = () => {
 
   const checkedIn = guests.filter((g: any) => g.checked_in).length;
   const total = guests.length;
-  const filtered = guests.filter((g: any) =>
-    g.full_name.toLowerCase().includes(search.toLowerCase()) ||
-    (g.barcode && g.barcode.includes(search)) ||
-    (g.card_number && String(g.card_number).toLowerCase().includes(search.toLowerCase()))
-  );
+  const myCheckins = guests.filter((g: any) => g.checked_in_by === user?.id).length;
+  const filtered = guests
+    .filter((g: any) => scope === 'all' || g.checked_in_by === user?.id)
+    .filter((g: any) =>
+      g.full_name.toLowerCase().includes(search.toLowerCase()) ||
+      (g.barcode && g.barcode.includes(search)) ||
+      (g.card_number && String(g.card_number).toLowerCase().includes(search.toLowerCase()))
+    );
 
   return (
     <DashboardLayout>
@@ -224,6 +232,10 @@ const CheckIn = () => {
                   <span className="text-muted-foreground">Wameingia</span>
                   <span className="font-semibold text-green-600">{checkedIn}</span>
                 </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Nilio-check in mimi</span>
+                    <span className="font-semibold text-primary">{myCheckins}</span>
+                  </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Wanaosubiri</span>
                   <span className="font-semibold text-foreground">{total - checkedIn}</span>
@@ -240,10 +252,20 @@ const CheckIn = () => {
         {/* Guest List */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="lg:col-span-2">
           <div className="glass-card rounded-xl p-6">
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-3 mb-4 flex-wrap">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Tafuta mgeni..." className="pl-10" />
+              </div>
+              <div className="flex rounded-lg border border-border overflow-hidden text-xs">
+                <button
+                  onClick={() => setScope('all')}
+                  className={`px-3 py-1.5 ${scope === 'all' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground'}`}
+                >Wote</button>
+                <button
+                  onClick={() => setScope('mine')}
+                  className={`px-3 py-1.5 ${scope === 'mine' ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground'}`}
+                >Wangu</button>
               </div>
             </div>
 

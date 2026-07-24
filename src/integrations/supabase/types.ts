@@ -158,6 +158,7 @@ export type Database = {
           card_number: string | null
           checked_in: boolean
           checked_in_at: string | null
+          checked_in_by: string | null
           created_at: string
           custom_fields: Json
           deleted_at: string | null
@@ -176,6 +177,7 @@ export type Database = {
           card_number?: string | null
           checked_in?: boolean
           checked_in_at?: string | null
+          checked_in_by?: string | null
           created_at?: string
           custom_fields?: Json
           deleted_at?: string | null
@@ -194,6 +196,7 @@ export type Database = {
           card_number?: string | null
           checked_in?: boolean
           checked_in_at?: string | null
+          checked_in_by?: string | null
           created_at?: string
           custom_fields?: Json
           deleted_at?: string | null
@@ -783,6 +786,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_module_permissions: {
+        Row: {
+          created_at: string
+          id: string
+          module: Database["public"]["Enums"]["app_module"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          module: Database["public"]["Enums"]["app_module"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          module?: Database["public"]["Enums"]["app_module"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -985,6 +1009,13 @@ export type Database = {
       }
     }
     Functions: {
+      has_module_permission: {
+        Args: {
+          _module: Database["public"]["Enums"]["app_module"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -997,6 +1028,22 @@ export type Database = {
       next_receipt_number: { Args: never; Returns: string }
     }
     Enums: {
+      app_module:
+        | "dashboard"
+        | "events"
+        | "guests"
+        | "pledges"
+        | "sms"
+        | "whatsapp"
+        | "ecards"
+        | "checkin"
+        | "payments"
+        | "quotations"
+        | "packages"
+        | "testimonials"
+        | "reports"
+        | "recycle_bin"
+        | "users"
       app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
@@ -1125,6 +1172,23 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_module: [
+        "dashboard",
+        "events",
+        "guests",
+        "pledges",
+        "sms",
+        "whatsapp",
+        "ecards",
+        "checkin",
+        "payments",
+        "quotations",
+        "packages",
+        "testimonials",
+        "reports",
+        "recycle_bin",
+        "users",
+      ],
       app_role: ["admin", "moderator", "user"],
     },
   },
