@@ -162,6 +162,31 @@ const ECards = () => {
     setSelectedId(null);
   };
 
+  // Keyboard: Delete kufuta, arrows kusogeza kipengele kilichochaguliwa
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!selectedId) return;
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable) return;
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        e.preventDefault();
+        setElements((p) => p.filter((x) => x.id !== selectedId));
+        setSelectedId(null);
+        return;
+      }
+      const step = e.shiftKey ? 20 : 4;
+      const map: Record<string, [number, number]> = {
+        ArrowUp: [0, -step], ArrowDown: [0, step], ArrowLeft: [-step, 0], ArrowRight: [step, 0],
+      };
+      const d = map[e.key];
+      if (!d) return;
+      e.preventDefault();
+      setElements((p) => p.map((x) => (x.id === selectedId ? { ...x, x: x.x + d[0], y: x.y + d[1] } : x)));
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [selectedId]);
+
   const duplicateEl = (el: CardElement) => {
     const copy = { ...el, id: uid(), x: el.x + 24, y: el.y + 24 };
     setElements((p) => [...p, copy]);
