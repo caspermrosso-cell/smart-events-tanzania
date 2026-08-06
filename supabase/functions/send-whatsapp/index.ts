@@ -404,10 +404,6 @@ serve(async (req) => {
       });
     }
 
-    if (action === 'send-message') {
-      // placeholder anchor
-    }
-
     // Personalized template send: each recipient gets their OWN media (e.g. unique e-card) and params
     if (action === 'send-template-personalized') {
       const {
