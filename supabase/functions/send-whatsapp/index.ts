@@ -404,6 +404,76 @@ serve(async (req) => {
       });
     }
 
+    // Personalized template send: each recipient gets their OWN media (e.g. unique e-card) and params
+    if (action === 'send-template-personalized') {
+      const {
+        from_addr, template_id, template_name,
+        recipients, // [{ name, phone, mediaUrl, params: [] }]
+        userId, eventId,
+      } = body;
+
+      if (!from_addr || !template_id || !Array.isArray(recipients) || recipients.length === 0) {
+        return new Response(JSON.stringify({ success: false, error: 'from_addr, template_id and recipients[] are required' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const supabase = userId ? getSupabaseClient() : null;
+      let sent = 0;
+      let failed = 0;
+      const details: any[] = [];
+
+      for (const r of recipients) {
+        if (!r?.phone) { failed++; continue; }
+        const phone = normalizePhone(r.phone);
+        const payload: any = {
+          from_addr,
+          destination_addr: [{
+            phoneNumber: phone,
+            params: (Array.isArray(r.params) ? r.params : []).map((v: any) => String(v ?? '')),
+          }],
+          channel: 'whatsapp',
+          messageTemplateData: { id: template_id },
+        };
+        if (r.mediaUrl) payload.content = { mediaUrl: r.mediaUrl };
+
+        const result = await makeBeemRequest(BROADCAST_TEMPLATE_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': authHeader },
+          body: JSON.stringify(payload),
+        });
+
+        const ok = result.ok && !!result.data;
+        const data = result.data ?? { error: getBeemErrorMessage(result, 'Template send failed') };
+        ok ? sent++ : failed++;
+        details.push({ phone, name: r.name || null, status: ok ? 'sent' : 'failed' });
+
+        if (supabase) {
+          await supabase.from('whatsapp_logs').insert({
+            user_id: userId,
+            event_id: eventId || null,
+            recipient_phone: phone,
+            recipient_name: r.name || null,
+            channel: 'whatsapp',
+            message_type: 'template',
+            template_id: String(template_id),
+            template_name: template_name || null,
+            campaign_name: template_name || null,
+            media_url: r.mediaUrl || null,
+            status: ok ? 'sent' : 'failed',
+            beem_response: data,
+            error_message: ok ? null : getBeemErrorMessage(result, 'Template send failed'),
+          });
+        }
+      }
+
+      return new Response(JSON.stringify({
+        success: sent > 0,
+        summary: { sent, failed, total: recipients.length },
+        details,
+      }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     if (action === 'send-message') {
       const { from, to, channel, callback_url, message_type, transaction_id, text, image, document, audio, video, location, quick_reply, list_reply, userId, eventId, recipientName } = body;
 

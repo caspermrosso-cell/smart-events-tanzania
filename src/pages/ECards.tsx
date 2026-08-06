@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Image as ImageIcon, Type, QrCode, Sparkles, Download, Trash2, Copy,
-  BringToFront, SendToBack, Save, RotateCcw, Users, Loader2,
+  BringToFront, SendToBack, Save, RotateCcw, Users, Loader2, Send,
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { useQuery } from '@tanstack/react-query';
@@ -15,10 +15,11 @@ import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import DashboardLayout from '@/components/DashboardLayout';
 import CardCanvas from '@/components/ecards/CardCanvas';
-import { CARD_H, CARD_W, CardData, CardElement, newElement, TOKENS, uid } from '@/components/ecards/cardTypes';
+import { buildQrPayload, CARD_H, CARD_W, CardData, CardElement, newElement, TOKENS, uid } from '@/components/ecards/cardTypes';
 
 const STORAGE_KEY = 'ecard-studio-design';
 
@@ -47,6 +48,13 @@ const ECards = () => {
   const [uploading, setUploading] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [scale, setScale] = useState(0.42);
+
+  // WhatsApp sending
+  const [waOpen, setWaOpen] = useState(false);
+  const [waFrom, setWaFrom] = useState('255736670202');
+  const [waTemplateId, setWaTemplateId] = useState('');
+  const [waSending, setWaSending] = useState(false);
+  const [waProgress, setWaProgress] = useState(0);
 
   const wrapRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -109,10 +117,33 @@ const ECards = () => {
       ? new Date(event.event_date).toLocaleDateString('sw-TZ', { day: 'numeric', month: 'long', year: 'numeric' })
       : 'Tarehe ya Tukio',
     venue: event?.venue || 'Mahali pa Tukio',
-    qrValue: JSON.stringify({ g: guest?.id || 'demo', c: guest?.card_number || '0001', e: selectedEvent }),
+    qrValue: buildQrPayload({
+      guestId: guest?.id,
+      guestName: guest?.full_name,
+      cardNumber: guest?.card_number,
+      title: event?.title,
+      dateText: event
+        ? new Date(event.event_date).toLocaleDateString('sw-TZ', { day: 'numeric', month: 'long', year: 'numeric' })
+        : undefined,
+      venue: event?.venue,
+      eventId: selectedEvent,
+    }),
   });
 
   const previewData = useMemo(() => buildData(previewGuest), [previewGuest, event, selectedEvent]);
+
+  const { data: waTemplates = [] } = useQuery({
+    queryKey: ['ecard-wa-templates'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('whatsapp_templates')
+        .select('id, beem_id, name, status, content, type')
+        .order('name');
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const selected = elements.find((e) => e.id === selectedId) || null;
 
   const patch = (id: string, p: Partial<CardElement>) =>
@@ -207,6 +238,74 @@ const ECards = () => {
       toast.error('Imeshindikana kupakua baadhi ya kadi');
     } finally {
       setExporting(false);
+    }
+  };
+
+  /** Render the card for a guest and return a PNG blob. */
+  const captureBlob = async (guest: any): Promise<Blob | null> => {
+    setSelectedId(null);
+    setPreviewGuestId(guest?.id || '');
+    await new Promise((r) => setTimeout(r, 300));
+    const node = cardRef.current;
+    if (!node) return null;
+    const canvas = await html2canvas(node, { useCORS: true, backgroundColor: null, scale: 2, width: CARD_W, height: CARD_H });
+    return await new Promise<Blob | null>((res) => canvas.toBlob((b) => res(b), 'image/png'));
+  };
+
+  const sendCardsWhatsApp = async () => {
+    if (!user) return;
+    if (!waTemplateId) return toast.error('Chagua template ya WhatsApp');
+    if (!waFrom.trim()) return toast.error('Weka namba ya kutumia (from)');
+    const targets = guests.filter((g: any) => selectedGuests.includes(g.id) && g.phone);
+    if (targets.length === 0) return toast.error('Chagua wageni wenye namba za simu');
+
+    setWaSending(true);
+    setWaProgress(0);
+    try {
+      const recipients: any[] = [];
+      for (let i = 0; i < targets.length; i++) {
+        const g: any = targets[i];
+        const blob = await captureBlob(g);
+        if (!blob) continue;
+        const path = `${user.id}/ecards/${selectedEvent}/${g.id}-${Date.now()}.png`;
+        const { error: upErr } = await supabase.storage
+          .from('whatsapp-media')
+          .upload(path, blob, { contentType: 'image/png', upsert: true });
+        if (upErr) throw upErr;
+        const { data: signed, error: signErr } = await supabase.storage
+          .from('whatsapp-media')
+          .createSignedUrl(path, 60 * 60 * 24 * 30);
+        if (signErr) throw signErr;
+        recipients.push({
+          name: g.full_name,
+          phone: g.phone,
+          mediaUrl: signed.signedUrl,
+          params: [g.full_name || '', g.card_number || '', event?.title || ''],
+        });
+        setWaProgress(Math.round(((i + 1) / targets.length) * 100));
+      }
+
+      const tpl: any = waTemplates.find((t: any) => t.id === waTemplateId);
+      const { data, error } = await supabase.functions.invoke('send-whatsapp', {
+        body: {
+          action: 'send-template-personalized',
+          from_addr: waFrom.trim(),
+          template_id: tpl?.beem_id,
+          template_name: tpl?.name,
+          recipients,
+          userId: user.id,
+          eventId: selectedEvent || null,
+        },
+      });
+      if (error) throw error;
+      const s = data?.summary || {};
+      toast.success(`Zimetumwa: ${s.sent || 0}, Zimeshindwa: ${s.failed || 0}`);
+      setWaOpen(false);
+    } catch (err: any) {
+      toast.error(err.message || 'Imeshindikana kutuma kadi kwa WhatsApp');
+    } finally {
+      setWaSending(false);
+      setWaProgress(0);
     }
   };
 
@@ -431,12 +530,59 @@ const ECards = () => {
                   <Button className="w-full gap-2" onClick={downloadSelected} disabled={exporting}>
                     {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} Pakua Kadi ({selectedGuests.length})
                   </Button>
+                  <Button variant="secondary" className="w-full gap-2" onClick={() => setWaOpen(true)} disabled={exporting || selectedGuests.length === 0}>
+                    <Send className="h-4 w-4" /> Tuma WhatsApp ({selectedGuests.length})
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    Kila mgeni hupokea kadi yake binafsi (jina, kadi namba na QR yake) kupitia WhatsApp.
+                  </p>
                 </>
               )}
             </TabsContent>
           </Tabs>
         </div>
       </div>
+
+      <Dialog open={waOpen} onOpenChange={(o) => !waSending && setWaOpen(o)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Tuma Kadi kwa WhatsApp</DialogTitle>
+            <DialogDescription>
+              Kadi ya kila mgeni itatengenezwa peke yake na kutumwa kwake kama picha ya template.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Namba ya kutumia (from)</Label>
+              <Input value={waFrom} onChange={(e) => setWaFrom(e.target.value)} placeholder="2557XXXXXXXX" className="mt-1" />
+            </div>
+            <div>
+              <Label>Template ya WhatsApp (iliyoidhinishwa)</Label>
+              <Select value={waTemplateId} onValueChange={setWaTemplateId}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Chagua template" /></SelectTrigger>
+                <SelectContent>
+                  {waTemplates.map((t: any) => (
+                    <SelectItem key={t.id} value={t.id}>{t.name} {t.status ? `· ${t.status}` : ''}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Template inatakiwa iwe na header ya picha (IMAGE) ili kadi ionekane.
+              </p>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Wageni waliochaguliwa: {guests.filter((g: any) => selectedGuests.includes(g.id) && g.phone).length}
+            </p>
+            {waSending && <p className="text-xs text-muted-foreground">Inatengeneza kadi… {waProgress}%</p>}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setWaOpen(false)} disabled={waSending}>Ghairi</Button>
+            <Button onClick={sendCardsWhatsApp} disabled={waSending} className="gap-2">
+              {waSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Tuma
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };
