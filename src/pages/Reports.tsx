@@ -43,7 +43,7 @@ const exportToExcel = (data: any[], filename: string) => {
   XLSX.writeFile(wb, `${filename}.xlsx`);
 };
 
-import smartEventsLogo from '@/assets/smart-events-logo.png';
+import smartEventsLogo from '@/assets/smart-events-logo.png.asset.json';
 
 const exportToPDF = (title: string, headers: string[], rows: string[][]) => {
   const printWindow = window.open('', '_blank');
@@ -65,7 +65,7 @@ const exportToPDF = (title: string, headers: string[], rows: string[][]) => {
       }
     </style></head><body>
     <div class="header">
-      <img src="${smartEventsLogo}" alt="Smart Events" />
+      <img src="${smartEventsLogo.url}" alt="Smart Events" />
       <div class="address">
         Plot No. 22, Mbezi Beach A, Kinondoni<br/>
         Dar es Salaam, Tanzania<br/>
