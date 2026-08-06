@@ -109,12 +109,13 @@ const CheckIn = () => {
   };
 
   const handleScanResult = (code: string) => {
-    const norm = code.trim();
-    const lower = norm.toLowerCase();
+    const parsed = parseQrPayload(code);
+    const norm = (parsed.guestId || parsed.raw).trim();
+    const card = (parsed.cardNumber || parsed.raw).trim().toLowerCase();
     const guest = guests.find((g: any) =>
       g.barcode === norm ||
       g.id === norm ||
-      (g.card_number && String(g.card_number).toLowerCase() === lower)
+      (g.card_number && String(g.card_number).toLowerCase() === card)
     );
     if (guest) {
       if ((guest as any).checked_in) {
