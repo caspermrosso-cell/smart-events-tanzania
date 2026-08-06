@@ -15,6 +15,7 @@ export type CardElement = {
   // text only
   text?: string;
   fontSize?: number;
+  fontFamily?: string;
   color?: string;
   weight?: number;
   align?: 'left' | 'center' | 'right';
@@ -26,7 +27,21 @@ export type CardElement = {
   qrBg?: 'white' | 'transparent';
   qrFg?: string;
   qrPad?: number;
+  // logo only
+  src?: string;
 };
+
+export const FONT_OPTIONS = [
+  { label: 'Poppins', value: "'Poppins', sans-serif" },
+  { label: 'Playfair Display', value: "'Playfair Display', serif" },
+  { label: 'Cinzel', value: "'Cinzel', serif" },
+  { label: 'Great Vibes', value: "'Great Vibes', cursive" },
+  { label: 'Dancing Script', value: "'Dancing Script', cursive" },
+  { label: 'Montserrat', value: "'Montserrat', sans-serif" },
+  { label: 'Lora', value: "'Lora', serif" },
+  { label: 'Georgia', value: "Georgia, serif" },
+  { label: 'Courier', value: "'Courier New', monospace" },
+] as const;
 
 export type CardData = {
   guestName: string;

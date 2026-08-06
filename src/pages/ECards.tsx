@@ -19,7 +19,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { toast } from 'sonner';
 import DashboardLayout from '@/components/DashboardLayout';
 import CardCanvas from '@/components/ecards/CardCanvas';
-import { buildQrPayload, CARD_H, CARD_W, CardData, CardElement, newElement, TOKENS, uid } from '@/components/ecards/cardTypes';
+import { buildQrPayload, CARD_H, CARD_W, CardData, CardElement, FONT_OPTIONS, newElement, TOKENS, uid } from '@/components/ecards/cardTypes';
 
 const STORAGE_KEY = 'ecard-studio-design';
 
@@ -37,6 +37,7 @@ const ECards = () => {
   const { user } = useAuth();
   const cardRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const logoRef = useRef<HTMLInputElement>(null);
 
   const [background, setBackground] = useState<string | null>(null);
   const [overlay, setOverlay] = useState(0.35);
@@ -46,6 +47,7 @@ const ECards = () => {
   const [previewGuestId, setPreviewGuestId] = useState<string>('');
   const [selectedGuests, setSelectedGuests] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [scale, setScale] = useState(0.42);
 
@@ -160,6 +162,31 @@ const ECards = () => {
     setSelectedId(null);
   };
 
+  // Keyboard: Delete kufuta, arrows kusogeza kipengele kilichochaguliwa
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!selectedId) return;
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable) return;
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        e.preventDefault();
+        setElements((p) => p.filter((x) => x.id !== selectedId));
+        setSelectedId(null);
+        return;
+      }
+      const step = e.shiftKey ? 20 : 4;
+      const map: Record<string, [number, number]> = {
+        ArrowUp: [0, -step], ArrowDown: [0, step], ArrowLeft: [-step, 0], ArrowRight: [step, 0],
+      };
+      const d = map[e.key];
+      if (!d) return;
+      e.preventDefault();
+      setElements((p) => p.map((x) => (x.id === selectedId ? { ...x, x: x.x + d[0], y: x.y + d[1] } : x)));
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [selectedId]);
+
   const duplicateEl = (el: CardElement) => {
     const copy = { ...el, id: uid(), x: el.x + 24, y: el.y + 24 };
     setElements((p) => [...p, copy]);
@@ -195,6 +222,30 @@ const ECards = () => {
   };
 
   const saveDesign = () => {
+    return saveDesignImpl();
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user || !selected || selected.type !== 'logo') return;
+    setUploadingLogo(true);
+    try {
+      const ext = file.name.split('.').pop() || 'png';
+      const path = `${user.id}/logos/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from('ecard-templates').upload(path, file, { upsert: false });
+      if (error) throw error;
+      const { data } = supabase.storage.from('ecard-templates').getPublicUrl(path);
+      patch(selected.id, { src: data.publicUrl });
+      toast.success('Logo imepakiwa');
+    } catch (err: any) {
+      toast.error(err.message || 'Imeshindikana kupakia logo');
+    } finally {
+      setUploadingLogo(false);
+      if (logoRef.current) logoRef.current.value = '';
+    }
+  };
+
+  const saveDesignImpl = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ elements, overlay, background }));
     toast.success('Muundo umehifadhiwa');
   };
@@ -342,7 +393,7 @@ const ECards = () => {
             />
           </div>
           <p className="mt-3 text-center text-xs text-muted-foreground">
-            Buruta kipengele kukisogeza, tumia duara la pembeni kubadilisha ukubwa.
+            Buruta kipengele (maandishi, QR au logo) kukisogeza · duara la pembeni kubadilisha ukubwa · vitufe vya mishale kusogeza kidogo · Delete kufuta.
           </p>
         </div>
 
@@ -393,6 +444,22 @@ const ECards = () => {
                 <p className="mb-1 text-xs font-medium">Vigezo (tokens) unavyoweza kutumia:</p>
                 <p className="text-xs text-muted-foreground">{TOKENS.join('  ·  ')}</p>
               </div>
+
+              <div>
+                <Label>Vipengele vilivyopo</Label>
+                <div className="mt-1 max-h-52 space-y-1 overflow-y-auto pr-1">
+                  {elements.map((el) => (
+                    <div key={el.id} className={`flex items-center gap-2 rounded-lg border p-2 ${selectedId === el.id ? 'border-primary bg-primary/5' : 'border-border'}`}>
+                      <button className="flex-1 truncate text-left text-xs" onClick={() => setSelectedId(el.id)}>
+                        {el.type === 'text' ? (el.text || 'Maandishi') : el.type === 'qr' ? 'QR Code' : 'Logo'}
+                      </button>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => removeEl(el.id)}>
+                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </TabsContent>
 
             <TabsContent value="element" className="glass-card mt-3 space-y-4 rounded-xl p-4">
@@ -434,6 +501,29 @@ const ECards = () => {
                           <Slider value={[selected.weight || 500]} min={300} max={800} step={100} className="mt-2" onValueChange={([v]) => patch(selected.id, { weight: v })} />
                         </div>
                       </div>
+                      <div>
+                        <Label>Aina ya Font</Label>
+                        <Select value={selected.fontFamily || FONT_OPTIONS[0].value} onValueChange={(v) => patch(selected.id, { fontFamily: v })}>
+                          <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {FONT_OPTIONS.map((f) => (
+                              <SelectItem key={f.value} value={f.value}>
+                                <span style={{ fontFamily: f.value }}>{f.label}</span>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label>Nafasi ya herufi ({selected.letterSpacing ?? 0})</Label>
+                          <Slider value={[selected.letterSpacing ?? 0]} min={-5} max={20} step={1} className="mt-2" onValueChange={([v]) => patch(selected.id, { letterSpacing: v })} />
+                        </div>
+                        <div>
+                          <Label>Nafasi ya mistari ({(selected.lineHeight ?? 1.2).toFixed(1)})</Label>
+                          <Slider value={[(selected.lineHeight ?? 1.2) * 10]} min={8} max={25} step={1} className="mt-2" onValueChange={([v]) => patch(selected.id, { lineHeight: v / 10 })} />
+                        </div>
+                      </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <Label>Rangi</Label>
@@ -454,7 +544,25 @@ const ECards = () => {
                       <label className="flex items-center gap-2 text-sm">
                         <Checkbox checked={!!selected.shadow} onCheckedChange={(v) => patch(selected.id, { shadow: !!v })} /> Kivuli cha maandishi
                       </label>
+                      <label className="flex items-center gap-2 text-sm">
+                        <Checkbox checked={!!selected.italic} onCheckedChange={(v) => patch(selected.id, { italic: !!v })} /> Maandishi ya italiki
+                      </label>
                     </>
+                  )}
+
+                  {selected.type === 'logo' && (
+                    <div>
+                      <Label>Picha ya Logo</Label>
+                      <Button variant="outline" className="mt-1 w-full gap-2" onClick={() => logoRef.current?.click()} disabled={uploadingLogo}>
+                        {uploadingLogo ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />} Badilisha Logo
+                      </Button>
+                      <input ref={logoRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+                      {selected.src && (
+                        <Button variant="ghost" size="sm" className="mt-1 w-full" onClick={() => patch(selected.id, { src: undefined })}>
+                          Rudisha logo ya Smart Events
+                        </Button>
+                      )}
+                    </div>
                   )}
 
                   {selected.type === 'qr' && (

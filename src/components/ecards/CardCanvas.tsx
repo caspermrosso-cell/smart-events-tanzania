@@ -96,6 +96,7 @@ const CardCanvas = forwardRef<HTMLDivElement, Props>(function CardCanvas(
                 style={{
                   color: el.color,
                   fontSize: el.fontSize,
+                  fontFamily: el.fontFamily || "'Poppins', sans-serif",
                   fontWeight: el.weight,
                   letterSpacing: el.letterSpacing,
                   lineHeight: el.lineHeight,
@@ -129,7 +130,7 @@ const CardCanvas = forwardRef<HTMLDivElement, Props>(function CardCanvas(
             )}
 
 {el.type === 'logo' && (
-              <img src="/smart-events-logo.png" alt="Smart Events" crossOrigin="anonymous" className="h-full w-full object-contain" />
+              <img src={el.src || '/smart-events-logo.png'} alt="Logo" crossOrigin="anonymous" className="h-full w-full object-contain" />
             )}
 
             {selected && (
