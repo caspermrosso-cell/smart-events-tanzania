@@ -41,11 +41,11 @@ export const TOKENS = ['{jina}', '{kadi}', '{tukio}', '{tarehe}', '{mahali}'] as
 
 export function renderTokens(raw: string, d: CardData) {
   return (raw || '')
-    .replaceAll('{jina}', d.guestName || 'Jina la Mgeni')
-    .replaceAll('{kadi}', d.cardNumber || '—')
-    .replaceAll('{tukio}', d.title || '')
-    .replaceAll('{tarehe}', d.dateText || '')
-    .replaceAll('{mahali}', d.venue || '');
+    .replace(/\{jina\}/g, d.guestName || 'Jina la Mgeni')
+    .replace(/\{kadi\}/g, d.cardNumber || '—')
+    .replace(/\{tukio\}/g, d.title || '')
+    .replace(/\{tarehe\}/g, d.dateText || '')
+    .replace(/\{mahali\}/g, d.venue || '');
 }
 
 export const uid = () => Math.random().toString(36).slice(2, 10);
