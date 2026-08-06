@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Image as ImageIcon, Type, QrCode, Sparkles, Download, Trash2, Copy,
-  BringToFront, SendToBack, Save, RotateCcw, Users, Loader2,
+  BringToFront, SendToBack, Save, RotateCcw, Users, Loader2, Send,
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { useQuery } from '@tanstack/react-query';
@@ -15,10 +15,11 @@ import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import DashboardLayout from '@/components/DashboardLayout';
 import CardCanvas from '@/components/ecards/CardCanvas';
-import { CARD_H, CARD_W, CardData, CardElement, newElement, TOKENS, uid } from '@/components/ecards/cardTypes';
+import { buildQrPayload, CARD_H, CARD_W, CardData, CardElement, newElement, TOKENS, uid } from '@/components/ecards/cardTypes';
 
 const STORAGE_KEY = 'ecard-studio-design';
 
@@ -47,6 +48,13 @@ const ECards = () => {
   const [uploading, setUploading] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [scale, setScale] = useState(0.42);
+
+  // WhatsApp sending
+  const [waOpen, setWaOpen] = useState(false);
+  const [waFrom, setWaFrom] = useState('255736670202');
+  const [waTemplateId, setWaTemplateId] = useState('');
+  const [waSending, setWaSending] = useState(false);
+  const [waProgress, setWaProgress] = useState(0);
 
   const wrapRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -109,7 +117,17 @@ const ECards = () => {
       ? new Date(event.event_date).toLocaleDateString('sw-TZ', { day: 'numeric', month: 'long', year: 'numeric' })
       : 'Tarehe ya Tukio',
     venue: event?.venue || 'Mahali pa Tukio',
-    qrValue: JSON.stringify({ g: guest?.id || 'demo', c: guest?.card_number || '0001', e: selectedEvent }),
+    qrValue: buildQrPayload({
+      guestId: guest?.id,
+      guestName: guest?.full_name,
+      cardNumber: guest?.card_number,
+      title: event?.title,
+      dateText: event
+        ? new Date(event.event_date).toLocaleDateString('sw-TZ', { day: 'numeric', month: 'long', year: 'numeric' })
+        : undefined,
+      venue: event?.venue,
+      eventId: selectedEvent,
+    }),
   });
 
   const previewData = useMemo(() => buildData(previewGuest), [previewGuest, event, selectedEvent]);
