@@ -131,6 +131,19 @@ const ECards = () => {
   });
 
   const previewData = useMemo(() => buildData(previewGuest), [previewGuest, event, selectedEvent]);
+
+  const { data: waTemplates = [] } = useQuery({
+    queryKey: ['ecard-wa-templates'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('whatsapp_templates')
+        .select('id, beem_id, name, status, content, type')
+        .order('name');
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const selected = elements.find((e) => e.id === selectedId) || null;
 
   const patch = (id: string, p: Partial<CardElement>) =>
@@ -225,6 +238,74 @@ const ECards = () => {
       toast.error('Imeshindikana kupakua baadhi ya kadi');
     } finally {
       setExporting(false);
+    }
+  };
+
+  /** Render the card for a guest and return a PNG blob. */
+  const captureBlob = async (guest: any): Promise<Blob | null> => {
+    setSelectedId(null);
+    setPreviewGuestId(guest?.id || '');
+    await new Promise((r) => setTimeout(r, 300));
+    const node = cardRef.current;
+    if (!node) return null;
+    const canvas = await html2canvas(node, { useCORS: true, backgroundColor: null, scale: 2, width: CARD_W, height: CARD_H });
+    return await new Promise<Blob | null>((res) => canvas.toBlob((b) => res(b), 'image/png'));
+  };
+
+  const sendCardsWhatsApp = async () => {
+    if (!user) return;
+    if (!waTemplateId) return toast.error('Chagua template ya WhatsApp');
+    if (!waFrom.trim()) return toast.error('Weka namba ya kutumia (from)');
+    const targets = guests.filter((g: any) => selectedGuests.includes(g.id) && g.phone);
+    if (targets.length === 0) return toast.error('Chagua wageni wenye namba za simu');
+
+    setWaSending(true);
+    setWaProgress(0);
+    try {
+      const recipients: any[] = [];
+      for (let i = 0; i < targets.length; i++) {
+        const g: any = targets[i];
+        const blob = await captureBlob(g);
+        if (!blob) continue;
+        const path = `${user.id}/ecards/${selectedEvent}/${g.id}-${Date.now()}.png`;
+        const { error: upErr } = await supabase.storage
+          .from('whatsapp-media')
+          .upload(path, blob, { contentType: 'image/png', upsert: true });
+        if (upErr) throw upErr;
+        const { data: signed, error: signErr } = await supabase.storage
+          .from('whatsapp-media')
+          .createSignedUrl(path, 60 * 60 * 24 * 30);
+        if (signErr) throw signErr;
+        recipients.push({
+          name: g.full_name,
+          phone: g.phone,
+          mediaUrl: signed.signedUrl,
+          params: [g.full_name || '', g.card_number || '', event?.title || ''],
+        });
+        setWaProgress(Math.round(((i + 1) / targets.length) * 100));
+      }
+
+      const tpl: any = waTemplates.find((t: any) => t.id === waTemplateId);
+      const { data, error } = await supabase.functions.invoke('send-whatsapp', {
+        body: {
+          action: 'send-template-personalized',
+          from_addr: waFrom.trim(),
+          template_id: tpl?.beem_id,
+          template_name: tpl?.name,
+          recipients,
+          userId: user.id,
+          eventId: selectedEvent || null,
+        },
+      });
+      if (error) throw error;
+      const s = data?.summary || {};
+      toast.success(`Zimetumwa: ${s.sent || 0}, Zimeshindwa: ${s.failed || 0}`);
+      setWaOpen(false);
+    } catch (err: any) {
+      toast.error(err.message || 'Imeshindikana kutuma kadi kwa WhatsApp');
+    } finally {
+      setWaSending(false);
+      setWaProgress(0);
     }
   };
 
