@@ -52,7 +52,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
       <aside className="hidden md:flex w-60 flex-col border-r border-border bg-card">
         <div className="p-4 border-b border-border">
           <Link to="/" className="flex items-center gap-2">
-            <img src={smartEventsLogo} alt="Smart Events" className="w-14 h-auto" />
+            <img src={smartEventsLogo.url} alt="Smart Events" className="w-14 h-auto" />
             <span className="font-heading text-lg font-bold text-gradient-gold">Smart Events</span>
           </Link>
         </div>
@@ -103,7 +103,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
         <header className="md:hidden border-b border-border bg-card px-3 py-2">
           <div className="flex items-center justify-between mb-2">
             <Link to="/" className="flex items-center gap-2">
-              <img src={smartEventsLogo} alt="Smart Events" className="w-12 h-auto" />
+              <img src={smartEventsLogo.url} alt="Smart Events" className="w-12 h-auto" />
               <span className="font-heading text-base font-bold text-gradient-gold">Smart Events</span>
             </Link>
             <div className="flex items-center gap-1">

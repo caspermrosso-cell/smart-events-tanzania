@@ -1,5 +1,5 @@
 import { forwardRef } from 'react';
-import smartEventsLogo from '@/assets/smart-events-logo.png';
+import smartEventsLogo from '@/assets/smart-events-logo.png.asset.json';
 
 const NBC_MERCHANT_ID = '41048485';
 const NBC_MERCHANT_NAME = 'Smart Events Tanzania';
@@ -49,7 +49,7 @@ const DocumentPreview = forwardRef<HTMLDivElement, { data: DocumentData }>(({ da
       {/* Header */}
       <div className="flex items-start justify-between mb-6 pb-4 border-b-2 border-amber-500">
         <div className="flex items-center gap-3">
-          <img src={smartEventsLogo} alt="Smart Events" className="w-28 h-auto" />
+          <img src={smartEventsLogo.url} alt="Smart Events" className="w-28 h-auto" />
           <div>
             <h1 className="text-lg font-bold text-gray-900">{COMPANY.name}</h1>
             <p className="text-xs text-gray-600">{COMPANY.address}</p>

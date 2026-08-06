@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 import * as XLSX from 'xlsx';
-import smartEventsLogo from '@/assets/smart-events-logo.png';
+import smartEventsLogo from '@/assets/smart-events-logo.png.asset.json';
 
 const COMPANY_ADDRESS = 'Plot No. 22, Mbezi Beach A, Kinondoni\nDar es Salaam, Tanzania\ninfo@smartevents.co.tz | www.smartevents.co.tz';
 
@@ -26,7 +26,7 @@ const loadLogoAsBase64 = (): Promise<string> => {
       resolve(canvas.toDataURL('image/png'));
     };
     img.onerror = () => resolve('');
-    img.src = smartEventsLogo;
+    img.src = smartEventsLogo.url;
   });
 };
 
