@@ -485,6 +485,29 @@ const ECards = () => {
                           <Slider value={[selected.weight || 500]} min={300} max={800} step={100} className="mt-2" onValueChange={([v]) => patch(selected.id, { weight: v })} />
                         </div>
                       </div>
+                      <div>
+                        <Label>Aina ya Font</Label>
+                        <Select value={selected.fontFamily || FONT_OPTIONS[0].value} onValueChange={(v) => patch(selected.id, { fontFamily: v })}>
+                          <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {FONT_OPTIONS.map((f) => (
+                              <SelectItem key={f.value} value={f.value}>
+                                <span style={{ fontFamily: f.value }}>{f.label}</span>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label>Nafasi ya herufi ({selected.letterSpacing ?? 0})</Label>
+                          <Slider value={[selected.letterSpacing ?? 0]} min={-5} max={20} step={1} className="mt-2" onValueChange={([v]) => patch(selected.id, { letterSpacing: v })} />
+                        </div>
+                        <div>
+                          <Label>Nafasi ya mistari ({(selected.lineHeight ?? 1.2).toFixed(1)})</Label>
+                          <Slider value={[(selected.lineHeight ?? 1.2) * 10]} min={8} max={25} step={1} className="mt-2" onValueChange={([v]) => patch(selected.id, { lineHeight: v / 10 })} />
+                        </div>
+                      </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <Label>Rangi</Label>
@@ -505,7 +528,25 @@ const ECards = () => {
                       <label className="flex items-center gap-2 text-sm">
                         <Checkbox checked={!!selected.shadow} onCheckedChange={(v) => patch(selected.id, { shadow: !!v })} /> Kivuli cha maandishi
                       </label>
+                      <label className="flex items-center gap-2 text-sm">
+                        <Checkbox checked={!!selected.italic} onCheckedChange={(v) => patch(selected.id, { italic: !!v })} /> Maandishi ya italiki
+                      </label>
                     </>
+                  )}
+
+                  {selected.type === 'logo' && (
+                    <div>
+                      <Label>Picha ya Logo</Label>
+                      <Button variant="outline" className="mt-1 w-full gap-2" onClick={() => logoRef.current?.click()} disabled={uploadingLogo}>
+                        {uploadingLogo ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />} Badilisha Logo
+                      </Button>
+                      <input ref={logoRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+                      {selected.src && (
+                        <Button variant="ghost" size="sm" className="mt-1 w-full" onClick={() => patch(selected.id, { src: undefined })}>
+                          Rudisha logo ya Smart Events
+                        </Button>
+                      )}
+                    </div>
                   )}
 
                   {selected.type === 'qr' && (
