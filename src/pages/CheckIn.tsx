@@ -13,6 +13,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { usePermissions } from '@/hooks/usePermissions';
+import { parseQrPayload } from '@/components/ecards/cardTypes';
 
 const CheckIn = () => {
   const { user } = useAuth();
