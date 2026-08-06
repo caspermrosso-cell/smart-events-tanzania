@@ -1,6 +1,5 @@
 import { forwardRef, useCallback, useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import smartEventsLogo from '@/assets/smart-events-logo.png.asset.json';
 import { CARD_H, CARD_W, CardData, CardElement, renderTokens } from './cardTypes';
 
 type Props = {
@@ -130,7 +129,7 @@ const CardCanvas = forwardRef<HTMLDivElement, Props>(function CardCanvas(
             )}
 
 {el.type === 'logo' && (
-              <img src={smartEventsLogo.url} alt="Smart Events" crossOrigin="anonymous" className="h-full w-full object-contain" />
+              <img src="/smart-events-logo.png" alt="Smart Events" crossOrigin="anonymous" className="h-full w-full object-contain" />
             )}
 
             {selected && (
