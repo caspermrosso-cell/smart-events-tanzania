@@ -393,7 +393,7 @@ const ECards = () => {
             />
           </div>
           <p className="mt-3 text-center text-xs text-muted-foreground">
-            Buruta kipengele kukisogeza, tumia duara la pembeni kubadilisha ukubwa.
+            Buruta kipengele (maandishi, QR au logo) kukisogeza · duara la pembeni kubadilisha ukubwa · vitufe vya mishale kusogeza kidogo · Delete kufuta.
           </p>
         </div>
 
@@ -443,6 +443,22 @@ const ECards = () => {
               <div className="rounded-lg border border-dashed p-3">
                 <p className="mb-1 text-xs font-medium">Vigezo (tokens) unavyoweza kutumia:</p>
                 <p className="text-xs text-muted-foreground">{TOKENS.join('  ·  ')}</p>
+              </div>
+
+              <div>
+                <Label>Vipengele vilivyopo</Label>
+                <div className="mt-1 max-h-52 space-y-1 overflow-y-auto pr-1">
+                  {elements.map((el) => (
+                    <div key={el.id} className={`flex items-center gap-2 rounded-lg border p-2 ${selectedId === el.id ? 'border-primary bg-primary/5' : 'border-border'}`}>
+                      <button className="flex-1 truncate text-left text-xs" onClick={() => setSelectedId(el.id)}>
+                        {el.type === 'text' ? (el.text || 'Maandishi') : el.type === 'qr' ? 'QR Code' : 'Logo'}
+                      </button>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => removeEl(el.id)}>
+                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
               </div>
             </TabsContent>
 
