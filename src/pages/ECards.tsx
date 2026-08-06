@@ -19,7 +19,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { toast } from 'sonner';
 import DashboardLayout from '@/components/DashboardLayout';
 import CardCanvas from '@/components/ecards/CardCanvas';
-import { buildQrPayload, CARD_H, CARD_W, CardData, CardElement, newElement, TOKENS, uid } from '@/components/ecards/cardTypes';
+import { buildQrPayload, CARD_H, CARD_W, CardData, CardElement, FONT_OPTIONS, newElement, TOKENS, uid } from '@/components/ecards/cardTypes';
 
 const STORAGE_KEY = 'ecard-studio-design';
 
@@ -37,6 +37,7 @@ const ECards = () => {
   const { user } = useAuth();
   const cardRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const logoRef = useRef<HTMLInputElement>(null);
 
   const [background, setBackground] = useState<string | null>(null);
   const [overlay, setOverlay] = useState(0.35);
@@ -46,6 +47,7 @@ const ECards = () => {
   const [previewGuestId, setPreviewGuestId] = useState<string>('');
   const [selectedGuests, setSelectedGuests] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [scale, setScale] = useState(0.42);
 
