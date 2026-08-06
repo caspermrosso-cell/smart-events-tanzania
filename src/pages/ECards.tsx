@@ -530,12 +530,59 @@ const ECards = () => {
                   <Button className="w-full gap-2" onClick={downloadSelected} disabled={exporting}>
                     {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} Pakua Kadi ({selectedGuests.length})
                   </Button>
+                  <Button variant="secondary" className="w-full gap-2" onClick={() => setWaOpen(true)} disabled={exporting || selectedGuests.length === 0}>
+                    <Send className="h-4 w-4" /> Tuma WhatsApp ({selectedGuests.length})
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    Kila mgeni hupokea kadi yake binafsi (jina, kadi namba na QR yake) kupitia WhatsApp.
+                  </p>
                 </>
               )}
             </TabsContent>
           </Tabs>
         </div>
       </div>
+
+      <Dialog open={waOpen} onOpenChange={(o) => !waSending && setWaOpen(o)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Tuma Kadi kwa WhatsApp</DialogTitle>
+            <DialogDescription>
+              Kadi ya kila mgeni itatengenezwa peke yake na kutumwa kwake kama picha ya template.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Namba ya kutumia (from)</Label>
+              <Input value={waFrom} onChange={(e) => setWaFrom(e.target.value)} placeholder="2557XXXXXXXX" className="mt-1" />
+            </div>
+            <div>
+              <Label>Template ya WhatsApp (iliyoidhinishwa)</Label>
+              <Select value={waTemplateId} onValueChange={setWaTemplateId}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Chagua template" /></SelectTrigger>
+                <SelectContent>
+                  {waTemplates.map((t: any) => (
+                    <SelectItem key={t.id} value={t.id}>{t.name} {t.status ? `· ${t.status}` : ''}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Template inatakiwa iwe na header ya picha (IMAGE) ili kadi ionekane.
+              </p>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Wageni waliochaguliwa: {guests.filter((g: any) => selectedGuests.includes(g.id) && g.phone).length}
+            </p>
+            {waSending && <p className="text-xs text-muted-foreground">Inatengeneza kadi… {waProgress}%</p>}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setWaOpen(false)} disabled={waSending}>Ghairi</Button>
+            <Button onClick={sendCardsWhatsApp} disabled={waSending} className="gap-2">
+              {waSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Tuma
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };
