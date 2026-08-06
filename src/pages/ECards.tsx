@@ -222,6 +222,30 @@ const ECards = () => {
   };
 
   const saveDesign = () => {
+    return saveDesignImpl();
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user || !selected || selected.type !== 'logo') return;
+    setUploadingLogo(true);
+    try {
+      const ext = file.name.split('.').pop() || 'png';
+      const path = `${user.id}/logos/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from('ecard-templates').upload(path, file, { upsert: false });
+      if (error) throw error;
+      const { data } = supabase.storage.from('ecard-templates').getPublicUrl(path);
+      patch(selected.id, { src: data.publicUrl });
+      toast.success('Logo imepakiwa');
+    } catch (err: any) {
+      toast.error(err.message || 'Imeshindikana kupakia logo');
+    } finally {
+      setUploadingLogo(false);
+      if (logoRef.current) logoRef.current.value = '';
+    }
+  };
+
+  const saveDesignImpl = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ elements, overlay, background }));
     toast.success('Muundo umehifadhiwa');
   };
