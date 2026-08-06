@@ -128,7 +128,7 @@ const CardCanvas = forwardRef<HTMLDivElement, Props>(function CardCanvas(
               </div>
             )}
 
-            {el.type === 'logo' && (
+{el.type === 'logo' && (
               <img src="/smart-events-logo.png" alt="Smart Events" crossOrigin="anonymous" className="h-full w-full object-contain" />
             )}
 

@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, Lock, Fingerprint } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
-import smartEventsLogo from '@/assets/smart-events-logo.png';
+
 
 const BIOMETRIC_KEY = 'se_bio_cred';
 
@@ -113,7 +113,7 @@ const Login = () => {
         </Link>
 
         <div className="text-center mb-8">
-          <img src={smartEventsLogo} alt="Smart Events" className="w-80 h-auto mx-auto mb-4" />
+          <img src="/smart-events-logo.png" alt="Smart Events" className="w-80 h-auto mx-auto mb-4" />
           <h1 className="font-heading text-3xl font-bold text-foreground">Admin Login</h1>
           <p className="text-sm text-muted-foreground mt-1">Smart Events Dashboard</p>
         </div>
