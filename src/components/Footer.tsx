@@ -1,6 +1,6 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Link } from 'react-router-dom';
-import smartEventsLogo from '@/assets/smart-events-logo.png.asset.json';
+
 
 const Footer = () => {
   const { language } = useLanguage();
@@ -19,7 +19,7 @@ const Footer = () => {
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-8">
           <div className="flex items-center gap-3">
-            <img src={smartEventsLogo.url} alt="Smart Events" className="h-auto" style={{ width: '200px' }} />
+<img src="/smart-events-logo.png" alt="Smart Events" className="h-auto" style={{ width: '200px' }} />
           </div>
           <div className="flex flex-wrap justify-center gap-6">
             {links.map((link, i) => (
