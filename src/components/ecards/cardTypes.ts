@@ -50,6 +50,43 @@ export function renderTokens(raw: string, d: CardData) {
 
 export const uid = () => Math.random().toString(36).slice(2, 10);
 
+/** Human-readable QR payload carrying guest name + card details. */
+export function buildQrPayload(input: {
+  guestId?: string;
+  guestName?: string;
+  cardNumber?: string;
+  title?: string;
+  dateText?: string;
+  venue?: string;
+  eventId?: string;
+}) {
+  return [
+    'SMART EVENTS',
+    `Jina: ${input.guestName || '—'}`,
+    `Kadi: ${input.cardNumber || '—'}`,
+    `Tukio: ${input.title || '—'}`,
+    `Tarehe: ${input.dateText || '—'}`,
+    `Mahali: ${input.venue || '—'}`,
+    `ID: ${input.guestId || '—'}`,
+    `EV: ${input.eventId || '—'}`,
+  ].join('\n');
+}
+
+/** Parse a scanned code into identifiers usable for check-in. */
+export function parseQrPayload(raw: string): { guestId?: string; cardNumber?: string; raw: string } {
+  const text = (raw || '').trim();
+  const idMatch = text.match(/^ID:\s*(.+)$/mi);
+  const cardMatch = text.match(/^Kadi:\s*(.+)$/mi);
+  if (idMatch || cardMatch) {
+    return { guestId: idMatch?.[1]?.trim(), cardNumber: cardMatch?.[1]?.trim(), raw: text };
+  }
+  try {
+    const j = JSON.parse(text);
+    if (j && typeof j === 'object') return { guestId: j.g || j.id, cardNumber: j.c || j.card_number, raw: text };
+  } catch { /* plain code */ }
+  return { raw: text };
+}
+
 export function newElement(type: ElType): CardElement {
   const base = { id: uid(), type, rotation: 0, opacity: 1 } as CardElement;
   if (type === 'qr') return { ...base, x: 620, y: 900, w: 210, h: 210, qrBg: 'white', qrFg: '#111111', qrPad: 12 };
