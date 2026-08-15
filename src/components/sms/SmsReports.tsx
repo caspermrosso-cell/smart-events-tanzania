@@ -431,6 +431,31 @@ const SmsReports = () => {
         </div>
       </div>
 
+      {/* Date Filter */}
+      <div className="glass-card rounded-xl p-4 flex flex-col lg:flex-row lg:items-end gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div>
+            <label className="text-xs text-muted-foreground">Kuanzia tarehe</label>
+            <Input type="date" value={dateFrom} max={dateTo || undefined} onChange={(e) => setDateFrom(e.target.value)} className="h-9 w-full sm:w-[170px]" />
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground">Hadi tarehe</label>
+            <Input type="date" value={dateTo} min={dateFrom || undefined} onChange={(e) => setDateTo(e.target.value)} className="h-9 w-full sm:w-[170px]" />
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 lg:ml-auto">
+          <Button variant="secondary" size="sm" onClick={() => { setDateFrom(todayStr); setDateTo(todayStr); }}>Leo</Button>
+          <Button variant="secondary" size="sm" onClick={() => { setDateFrom(shiftDay(-1)); setDateTo(shiftDay(-1)); }}>Jana</Button>
+          <Button variant="secondary" size="sm" onClick={() => { setDateFrom(shiftDay(-6)); setDateTo(todayStr); }}>Siku 7</Button>
+          <Button variant="secondary" size="sm" onClick={() => { setDateFrom(shiftDay(-29)); setDateTo(todayStr); }}>Siku 30</Button>
+          <Button variant="ghost" size="sm" onClick={() => { setDateFrom(''); setDateTo(''); }}>Ondoa filter</Button>
+        </div>
+      </div>
+      <p className="text-xs text-muted-foreground -mt-3">
+        Kipindi: <span className="font-medium text-foreground">{rangeLabel}</span> · Jumla rekodi: {logs.length} · Ufanisi: {successRate}%
+        {totalPending > 0 && <> · Zinasubiri: {totalPending}</>}
+      </p>
+
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, i) => (
