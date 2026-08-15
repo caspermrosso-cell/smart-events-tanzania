@@ -33,16 +33,18 @@ const SocialProof = () => {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.12 }}
-                className="glass-card rounded-2xl p-6 text-center"
+                className="soft-card rounded-[1.5rem] p-6 text-center"
               >
-                <m.icon className="w-8 h-8 text-primary mx-auto mb-3" />
+                <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-secondary">
+                  <m.icon className="w-6 h-6 text-primary" />
+                </span>
                 <p className="font-heading text-2xl font-bold text-foreground mb-1">{m.value}</p>
                 <p className="text-muted-foreground text-sm">{m.label}</p>
               </motion.div>
             ))}
           </div>
 
-          <div className="glass-card rounded-2xl p-8 md:p-12">
+          <div className="soft-card rounded-[1.75rem] p-8 md:p-12">
             <Quote className="w-10 h-10 text-primary/40 mx-auto mb-6" />
             <blockquote className="text-lg md:text-xl text-foreground leading-relaxed italic mb-6">
               {isEn
