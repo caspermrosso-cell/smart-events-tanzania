@@ -16,14 +16,14 @@ const RotatingWord = ({ words, className, interval = 2600 }: RotatingWordProps) 
   }, [words.length, interval]);
 
   return (
-    <span className={`relative inline-flex overflow-hidden align-bottom ${className ?? ''}`}>
+    <span className={`relative inline-flex overflow-hidden pb-[0.12em] align-bottom ${className ?? ''}`}>
       <AnimatePresence mode="wait" initial={false}>
         <motion.span
           key={words[index]}
           initial={{ y: '90%', opacity: 0, filter: 'blur(6px)' }}
           animate={{ y: '0%', opacity: 1, filter: 'blur(0px)' }}
           exit={{ y: '-90%', opacity: 0, filter: 'blur(6px)' }}
-          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
           className="inline-block whitespace-nowrap"
         >
           {words[index]}
