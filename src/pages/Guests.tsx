@@ -145,7 +145,8 @@ const Guests = () => {
           .from('guests')
           .select('event_id, card_number')
           .in('event_id', eventIds)
-          .in('card_number', cardNumbers);
+          .in('card_number', cardNumbers)
+          .is('deleted_at', null);
         (existing || []).forEach((g: any) => {
           if (g.card_number) existingKeys.add(`${g.event_id}::${String(g.card_number).toLowerCase()}`);
         });
@@ -184,9 +185,9 @@ const Guests = () => {
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       const skipped = (res?.dupInBatch || 0) + (res?.dupInDb || 0);
       if (res?.inserted > 0) {
-        toast.success(`Wageni ${res.inserted} wameongezwa${skipped ? ` · ${skipped} wamerukwa (Kadi Namba tayari ipo)` : ''}`);
+        toast.success(`Wageni ${res.inserted} wameongezwa${skipped ? ` · ${skipped} wamerukwa (namba ya simu au Kadi Namba tayari ipo)` : ''}`);
       } else {
-        toast.error('Hakuna aliyeongezwa – Kadi Namba zote tayari zipo kwenye tukio hili');
+        toast.error('Hakuna aliyeongezwa – namba za simu / Kadi Namba zote tayari zipo kwenye tukio hili');
       }
       setBulkDialogOpen(false);
       setBulkData([]);
@@ -299,7 +300,11 @@ const Guests = () => {
     if (bulkData.length === 0) { toast.error('Hakuna wageni'); return; }
     const rows = bulkData.map(r => ({
       ...r,
-      phone: r.phone ? (String(r.phone).startsWith('+255') ? String(r.phone) : '+255' + String(r.phone).replace(/^0/, '')) : null,
+      phone: r.phone
+        ? (String(r.phone).replace(/\s+/g, '').startsWith('+255')
+            ? String(r.phone).replace(/\s+/g, '')
+            : '+255' + String(r.phone).replace(/\s+/g, '').replace(/^0/, ''))
+        : null,
       card_number: r.card_number ? String(r.card_number).trim() : null,
       custom_fields: r.custom_fields || {},
       event_id: bulkEventId,
