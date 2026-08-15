@@ -267,6 +267,9 @@ const SmsReports = () => {
       doc.text(`Tukio: ${selectedEventTitle}`, 14, y);
       y += 6;
       doc.setFontSize(10);
+      doc.text(`Kipindi: ${rangeLabel}`, 14, y);
+      y += 6;
+      doc.setFontSize(10);
       doc.text(`Tarehe ya Ripoti: ${now}`, 14, y);
       y += 10;
 
