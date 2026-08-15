@@ -48,7 +48,7 @@ const ContactForm = () => {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="glass-card rounded-2xl p-8 space-y-4"
+          className="soft-card rounded-2xl p-8 space-y-4"
         >
           <div className="grid sm:grid-cols-2 gap-4">
             <input required placeholder={t('contact.name')} className={inputClass} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} maxLength={100} />

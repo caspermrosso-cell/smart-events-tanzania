@@ -14,7 +14,7 @@ const ProblemSection = () => {
   ];
 
   return (
-    <section className="py-24 bg-warm-cream/40">
+    <section className="py-24 bg-secondary/60">
       <div className="container mx-auto px-4 max-w-4xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -22,8 +22,9 @@ const ProblemSection = () => {
           viewport={{ once: true }}
           className="text-center mb-12"
         >
+          <span className="eyebrow mb-5">{isEn ? 'The honest part' : 'Ukweli wa mambo'}</span>
           <h2 className="font-heading text-3xl md:text-5xl font-bold text-foreground mb-4">
-            {isEn ? 'Why Most Events Underperform' : 'Kwa Nini Matukio Mengi Hayafanikiwi'}
+            {isEn ? 'You did everything right. The hall still had gaps.' : 'Ulifanya kila kitu sawa. Ukumbi bado ulikuwa na nafasi.'}
           </h2>
           <p className="text-muted-foreground text-lg">
             {isEn
@@ -40,9 +41,11 @@ const ProblemSection = () => {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.12 }}
-              className="flex items-center gap-4 glass-card rounded-xl p-5"
+              className="flex items-center gap-4 soft-card rounded-2xl p-5"
             >
-              <p.icon className="w-6 h-6 text-destructive shrink-0" />
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-secondary">
+                <p.icon className="w-5 h-5 text-primary" />
+              </span>
               <p className="text-foreground text-lg">{p.text}</p>
             </motion.div>
           ))}
@@ -52,7 +55,7 @@ const ProblemSection = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center glass-card rounded-2xl p-8"
+          className="text-center soft-card rounded-[1.75rem] p-8"
         >
           <p className="text-primary font-heading text-xl font-semibold">
             {isEn

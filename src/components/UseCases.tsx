@@ -36,7 +36,7 @@ const UseCases = () => {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.08 }}
-              className="glass-card rounded-xl px-6 py-4 flex items-center gap-3"
+              className="soft-card rounded-xl px-6 py-4 flex items-center gap-3"
             >
               <c.icon className="w-5 h-5 text-primary" />
               <span className="font-medium text-foreground text-sm">{c.label}</span>

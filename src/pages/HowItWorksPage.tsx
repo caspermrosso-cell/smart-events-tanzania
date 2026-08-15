@@ -40,7 +40,7 @@ const HowItWorksContent = () => {
                 <div className="w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center shrink-0 font-heading font-bold text-lg">
                   {i + 1}
                 </div>
-                <div className="glass-card rounded-xl p-5 flex-1">
+                <div className="soft-card rounded-xl p-5 flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <s.icon className="w-5 h-5 text-primary" />
                     <h3 className="font-heading text-lg font-bold text-foreground">{s.title}</h3>

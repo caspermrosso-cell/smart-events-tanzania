@@ -109,7 +109,7 @@ const EventTestimonials = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.08 }}
-                  className="glass-card rounded-2xl overflow-hidden flex-shrink-0 snap-start basis-full sm:basis-[calc((100%-1.5rem)/2)] lg:basis-[calc((100%-3rem)/3)] flex flex-col shadow-warm hover:shadow-lg transition-shadow"
+                  className="soft-card rounded-2xl overflow-hidden flex-shrink-0 snap-start basis-full sm:basis-[calc((100%-1.5rem)/2)] lg:basis-[calc((100%-3rem)/3)] flex flex-col shadow-warm hover:shadow-lg transition-shadow"
                 >
                   {t.resolved_photo_url ? (
                     <div className="relative aspectio aspect-[4/5] bg-muted overflow-hidden flex items-center justify-center">

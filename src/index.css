@@ -12,44 +12,44 @@
 
 @layer base {
   :root {
-    /* Smart Events - Bouquet palette from reference image
-       chocolate #3E2A1E • mocha #6B4A33 • tan #B08968 • cream #E8C99B • ivory #F5E6C8 */
-    --background: 38 65% 87%;      /* ivory #F5E6C8 */
-    --foreground: 22 35% 18%;      /* dark chocolate #3E2A1E */
+    /* Smart Events - Warm Sand: human, airy, warm neutrals
+       sand-white #FAF8F5 • linen #F0EBE3 • tan #C9B99A • mocha #8B7355 • cocoa #2E2620 */
+    --background: 30 33% 97%;      /* sand white #FAF8F5 */
+    --foreground: 30 19% 15%;      /* cocoa #2E2620 */
 
-    --card: 40 70% 94%;
-    --card-foreground: 22 35% 18%;
+    --card: 0 0% 100%;
+    --card-foreground: 30 19% 15%;
 
-    --popover: 38 65% 87%;
-    --popover-foreground: 22 35% 18%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 30 19% 15%;
 
-    --primary: 24 35% 31%;         /* mocha #6B4A33 */
-    --primary-foreground: 40 70% 97%;
+    --primary: 30 21% 44%;         /* mocha #8B7355 */
+    --primary-foreground: 30 33% 98%;
 
-    --secondary: 36 55% 76%;       /* cream #E8C99B */
-    --secondary-foreground: 22 35% 18%;
+    --secondary: 33 27% 92%;       /* linen #F0EBE3 */
+    --secondary-foreground: 30 19% 15%;
 
-    --muted: 36 45% 88%;
-    --muted-foreground: 24 22% 32%;
+    --muted: 33 27% 94%;
+    --muted-foreground: 28 12% 40%;
 
-    --accent: 27 33% 55%;          /* warm tan #B08968 */
-    --accent-foreground: 22 35% 15%;
+    --accent: 39 29% 70%;          /* tan #C9B99A */
+    --accent-foreground: 30 19% 15%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 34 32% 80%;
-    --input: 34 32% 80%;
-    --ring: 24 35% 40%;
+    --border: 33 22% 88%;
+    --input: 33 22% 88%;
+    --ring: 30 21% 44%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
     /* Custom tokens */
-    --gold: 27 33% 55%;             /* tan #B08968 */
-    --gold-foreground: 22 35% 15%;
-    --warm-cream: 36 55% 76%;       /* cream #E8C99B */
-    --deep-brown: 22 35% 18%;       /* chocolate */
-    --sunset: 24 35% 31%;           /* mocha */
+    --gold: 39 40% 62%;             /* soft gold */
+    --gold-foreground: 30 19% 15%;
+    --warm-cream: 33 27% 92%;       /* linen #F0EBE3 */
+    --deep-brown: 28 22% 14%;       /* cocoa */
+    --sunset: 30 21% 44%;           /* mocha */
 
     --sidebar-background: 22 35% 18%;
     --sidebar-foreground: 40 70% 96%;
@@ -203,5 +203,26 @@
     background: hsl(var(--card) / 0.8);
     backdrop-filter: blur(12px);
     border: 1px solid hsl(var(--border) / 0.5);
+  }
+
+  .soft-card {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border) / 0.7);
+    box-shadow: 0 1px 2px hsl(var(--foreground) / 0.04), 0 18px 40px -28px hsl(var(--foreground) / 0.25);
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease;
+  }
+
+  .soft-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 2px 4px hsl(var(--foreground) / 0.05), 0 28px 60px -30px hsl(var(--foreground) / 0.32);
+  }
+
+  .eyebrow {
+    @apply inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-primary;
+  }
+
+  .grain {
+    background-image: radial-gradient(hsl(var(--accent) / 0.35) 1px, transparent 1px);
+    background-size: 22px 22px;
   }
 }
