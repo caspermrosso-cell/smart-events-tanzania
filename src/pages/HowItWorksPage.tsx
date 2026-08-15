@@ -2,6 +2,9 @@ import { LanguageProvider, useLanguage } from '@/contexts/LanguageContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { motion } from 'framer-motion';
+import ProductSnapshot from '@/components/ProductSnapshot';
+import ObjectionHandling from '@/components/ObjectionHandling';
+import CtaSection from '@/components/CtaSection';
 import { Upload, Send, Bell, ScanLine, BarChart3 } from 'lucide-react';
 
 const HowItWorksContent = () => {
@@ -52,6 +55,9 @@ const HowItWorksContent = () => {
           </div>
         </div>
       </div>
+      <ProductSnapshot />
+      <ObjectionHandling />
+      <CtaSection />
       <Footer />
     </div>
   );
