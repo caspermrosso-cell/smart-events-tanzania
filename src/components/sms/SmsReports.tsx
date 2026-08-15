@@ -208,7 +208,8 @@ const SmsReports = () => {
   }, [logs]);
 
   // Network breakdown
-  const networkBreakdown = logs.reduce((acc: Record<string, { total: number; sent: number; failed: number }>, log: any) => {
+  type NetStat = { total: number; sent: number; failed: number };
+  const networkBreakdown = (logs as any[]).reduce<Record<string, NetStat>>((acc, log: any) => {
     const network = detectNetwork(log.recipient_phone || '');
     if (!acc[network]) acc[network] = { total: 0, sent: 0, failed: 0 };
     acc[network].total++;
@@ -217,7 +218,7 @@ const SmsReports = () => {
     return acc;
   }, {});
 
-  const sortedNetworks = Object.entries(networkBreakdown).sort(([, a], [, b]) => b.total - a.total);
+  const sortedNetworks = (Object.entries(networkBreakdown) as [string, NetStat][]).sort(([, a], [, b]) => b.total - a.total);
   const maxNetworkCount = Math.max(...sortedNetworks.map(([, v]) => v.total), 1);
 
   const last7Days = Array.from({ length: 7 }, (_, i) => {
