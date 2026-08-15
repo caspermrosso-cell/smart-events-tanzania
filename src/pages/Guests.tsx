@@ -117,11 +117,17 @@ const Guests = () => {
 
   const bulkMutation = useMutation({
     mutationFn: async (rows: any[]) => {
-      // Dedupe within the batch by card_number (per event)
+      // Dedupe within the batch by card_number and phone (per event)
       const seen = new Set<string>();
+      const seenPhone = new Set<string>();
       const deduped: any[] = [];
       let dupInBatch = 0;
       for (const r of rows) {
+        if (r.phone) {
+          const pkey = `${r.event_id}::${String(r.phone).replace(/\s+/g, '')}`;
+          if (seenPhone.has(pkey)) { dupInBatch++; continue; }
+          seenPhone.add(pkey);
+        }
         if (r.card_number) {
           const key = `${r.event_id}::${String(r.card_number).toLowerCase()}`;
           if (seen.has(key)) { dupInBatch++; continue; }
@@ -144,7 +150,23 @@ const Guests = () => {
           if (g.card_number) existingKeys.add(`${g.event_id}::${String(g.card_number).toLowerCase()}`);
         });
       }
+      // Skip phone numbers that already exist in DB for the same event(s)
+      const phones = deduped.map(r => r.phone).filter(Boolean);
+      const existingPhones = new Set<string>();
+      if (phones.length > 0) {
+        const { data: existingP } = await supabase
+          .from('guests')
+          .select('event_id, phone')
+          .in('event_id', eventIds)
+          .in('phone', phones)
+          .is('deleted_at', null);
+        (existingP || []).forEach((g: any) => {
+          if (g.phone) existingPhones.add(`${g.event_id}::${String(g.phone).replace(/\s+/g, '')}`);
+        });
+      }
+
       const toInsert = deduped.filter(r => {
+        if (r.phone && existingPhones.has(`${r.event_id}::${String(r.phone).replace(/\s+/g, '')}`)) return false;
         if (!r.card_number) return true;
         return !existingKeys.has(`${r.event_id}::${String(r.card_number).toLowerCase()}`);
       });
