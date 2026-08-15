@@ -27,7 +27,7 @@ const AboutContent = () => {
           </motion.div>
 
           <div className="space-y-12">
-            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="glass-card rounded-2xl p-8">
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="soft-card rounded-2xl p-8">
               <h2 className="font-heading text-2xl font-bold text-foreground mb-4">{isEn ? 'Who We Are' : 'Sisi Ni Nani'}</h2>
               <p className="text-muted-foreground leading-relaxed">
                 {isEn
@@ -36,7 +36,7 @@ const AboutContent = () => {
               </p>
             </motion.div>
 
-            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="glass-card rounded-2xl p-8">
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="soft-card rounded-2xl p-8">
               <h2 className="font-heading text-2xl font-bold text-foreground mb-4">{isEn ? 'Our Mission' : 'Dhamira Yetu'}</h2>
               <p className="text-muted-foreground leading-relaxed">
                 {isEn
@@ -45,7 +45,7 @@ const AboutContent = () => {
               </p>
             </motion.div>
 
-            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="glass-card rounded-2xl p-8">
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="soft-card rounded-2xl p-8">
               <h2 className="font-heading text-2xl font-bold text-foreground mb-4">{isEn ? 'Our Vision' : 'Maono Yetu'}</h2>
               <p className="text-muted-foreground leading-relaxed">
                 {isEn
@@ -58,7 +58,7 @@ const AboutContent = () => {
               <h2 className="font-heading text-2xl font-bold text-foreground mb-6 text-center">{isEn ? 'What We Believe' : 'Tunaamini Nini'}</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {beliefs.map((b, i) => (
-                  <div key={i} className="glass-card rounded-xl p-5 flex items-center gap-4">
+                  <div key={i} className="soft-card rounded-xl p-5 flex items-center gap-4">
                     <b.icon className="w-6 h-6 text-primary shrink-0" />
                     <span className="font-medium text-foreground">{b.text}</span>
                   </div>

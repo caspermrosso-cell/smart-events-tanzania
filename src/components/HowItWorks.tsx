@@ -41,7 +41,7 @@ const HowItWorks = () => {
               <div className="w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center shrink-0 font-heading font-bold text-lg">
                 {i + 1}
               </div>
-              <div className="flex items-center gap-3 glass-card rounded-xl p-4 flex-1">
+              <div className="flex items-center gap-3 soft-card rounded-xl p-4 flex-1">
                 <s.icon className="w-5 h-5 text-primary shrink-0" />
                 <p className="text-foreground font-medium">{s.text}</p>
               </div>

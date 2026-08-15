@@ -59,7 +59,7 @@ const Pricing = () => {
               className={`relative rounded-2xl p-6 flex flex-col ${
                 pkg.is_popular
                   ? 'bg-primary text-primary-foreground shadow-warm scale-105'
-                  : 'glass-card'
+                  : 'soft-card'
               }`}
             >
               {pkg.is_popular && (

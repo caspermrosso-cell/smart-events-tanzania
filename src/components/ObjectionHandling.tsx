@@ -43,7 +43,7 @@ const ObjectionHandling = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.12 }}
-              className="glass-card rounded-xl p-6"
+              className="soft-card rounded-xl p-6"
             >
               <div className="flex items-start gap-3 mb-2">
                 <HelpCircle className="w-5 h-5 text-primary mt-0.5 shrink-0" />

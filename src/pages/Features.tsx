@@ -37,7 +37,7 @@ const FeaturesContent = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.08 }}
-                className="glass-card rounded-2xl p-6 hover:shadow-warm transition-shadow"
+                className="soft-card rounded-2xl p-6 hover:shadow-warm transition-shadow"
               >
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
                   <f.icon className="w-6 h-6 text-primary" />

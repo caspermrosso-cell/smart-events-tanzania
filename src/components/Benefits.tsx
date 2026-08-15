@@ -36,7 +36,7 @@ const Benefits = () => {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="flex items-center gap-4 glass-card rounded-xl p-5"
+              className="flex items-center gap-4 soft-card rounded-xl p-5"
             >
               <CheckCircle className="w-6 h-6 text-primary shrink-0" />
               <span className="text-foreground text-lg font-medium">{b}</span>

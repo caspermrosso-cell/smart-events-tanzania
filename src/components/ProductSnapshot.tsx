@@ -38,7 +38,7 @@ const ProductSnapshot = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.15 }}
-              className="glass-card rounded-2xl p-8 flex flex-col items-center gap-4"
+              className="soft-card rounded-2xl p-8 flex flex-col items-center gap-4"
             >
               <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center">
                 <s.icon className="w-8 h-8 text-primary" />

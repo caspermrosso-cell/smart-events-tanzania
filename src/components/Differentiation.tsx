@@ -37,7 +37,7 @@ const Differentiation = () => {
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="glass-card rounded-2xl p-6"
+            className="soft-card rounded-2xl p-6"
           >
             <h3 className="font-heading text-lg font-semibold text-muted-foreground mb-4">
               {isEn ? 'Others' : 'Wengine'}
@@ -56,7 +56,7 @@ const Differentiation = () => {
             initial={{ opacity: 0, x: 20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="glass-card rounded-2xl p-6 border-2 border-primary/20"
+            className="soft-card rounded-2xl p-6 border-2 border-primary/20"
           >
             <h3 className="font-heading text-lg font-semibold text-primary mb-4">Smart Events</h3>
             <div className="space-y-3">

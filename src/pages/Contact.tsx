@@ -48,7 +48,7 @@ const ContactContent = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
             onSubmit={handleSubmit}
-            className="glass-card rounded-2xl p-8 space-y-4"
+            className="soft-card rounded-2xl p-8 space-y-4"
           >
             <input type="text" required placeholder={isEn ? 'Name' : 'Jina'} className={inputClass} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
             <input type="text" placeholder={isEn ? 'Company' : 'Kampuni'} className={inputClass} value={form.company} onChange={e => setForm({ ...form, company: e.target.value })} />

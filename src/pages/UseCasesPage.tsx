@@ -35,7 +35,7 @@ const UseCasesContent = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="glass-card rounded-2xl p-6 flex items-start gap-5"
+                className="soft-card rounded-2xl p-6 flex items-start gap-5"
               >
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                   <c.icon className="w-6 h-6 text-primary" />
