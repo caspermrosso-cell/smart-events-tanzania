@@ -1,11 +1,12 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { BarChart3, CheckCircle, XCircle, Clock, TrendingUp, FileText, FileSpreadsheet, Signal, CalendarDays, PartyPopper, ClipboardList } from 'lucide-react';
+import { BarChart3, CheckCircle, XCircle, Clock, TrendingUp, FileText, FileSpreadsheet, Signal, CalendarDays, PartyPopper, ClipboardList, Server } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 import * as XLSX from 'xlsx';
@@ -99,6 +100,19 @@ const SmsReports = () => {
   const { user } = useAuth();
   const [exporting, setExporting] = useState<'pdf' | 'excel' | null>(null);
   const [selectedEventId, setSelectedEventId] = useState<string>('all');
+  const [dateFrom, setDateFrom] = useState<string>('');
+  const [dateTo, setDateTo] = useState<string>('');
+
+  const localDay = (iso: string) => {
+    const d = new Date(iso);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+  const todayStr = localDay(new Date().toISOString());
+  const shiftDay = (days: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() + days);
+    return localDay(d.toISOString());
+  };
 
   const { data: events = [] } = useQuery({
     queryKey: ['events-for-sms-report'],
@@ -136,12 +150,19 @@ const SmsReports = () => {
     staleTime: 60000,
   });
 
-  // Filter logs by selected event
+  // Filter logs by selected event + date range (per-day)
   const logs = useMemo(() => {
-    if (selectedEventId === 'all') return allLogs;
-    if (selectedEventId === 'no-event') return allLogs.filter((l: any) => !l.event_id);
-    return allLogs.filter((l: any) => l.event_id === selectedEventId);
-  }, [allLogs, selectedEventId]);
+    let list: any[] = allLogs as any[];
+    if (selectedEventId === 'no-event') list = list.filter((l: any) => !l.event_id);
+    else if (selectedEventId !== 'all') list = list.filter((l: any) => l.event_id === selectedEventId);
+    if (dateFrom) list = list.filter((l: any) => l.created_at && localDay(l.created_at) >= dateFrom);
+    if (dateTo) list = list.filter((l: any) => l.created_at && localDay(l.created_at) <= dateTo);
+    return list;
+  }, [allLogs, selectedEventId, dateFrom, dateTo]);
+
+  const rangeLabel = dateFrom || dateTo
+    ? `${dateFrom || '...'} → ${dateTo || '...'}`
+    : 'Siku Zote';
 
   const selectedEventTitle = selectedEventId === 'all'
     ? 'Matukio Yote'
@@ -153,9 +174,42 @@ const SmsReports = () => {
   const totalFailed = logs.filter((l: any) => l.status === 'failed').length;
   const totalScheduled = logs.filter((l: any) => l.status === 'scheduled').length;
   const totalSmsUnits = logs.reduce((sum: number, l: any) => sum + (l.sms_count || 1), 0);
+  const totalPending = logs.filter((l: any) => l.status === 'pending').length;
+  const successRate = logs.length > 0 ? Math.round((totalSent / logs.length) * 100) : 0;
+
+  // Beem API response breakdown (code + message from beem_response)
+  const beemBreakdown = useMemo(() => {
+    const acc: Record<string, { code: string; message: string; count: number; units: number }> = {};
+    (logs as any[]).forEach((log: any) => {
+      const r = log.beem_response || {};
+      const code = r.code !== undefined && r.code !== null ? String(r.code) : (r.error ? 'ERR' : '-');
+      const message = r.message || r.error || (log.status === 'sent' ? 'Imetumwa' : 'Hakuna maelezo');
+      const key = `${code}|${message}`;
+      if (!acc[key]) acc[key] = { code, message: String(message), count: 0, units: 0 };
+      acc[key].count++;
+      acc[key].units += log.sms_count || 1;
+    });
+    return Object.values(acc).sort((a, b) => b.count - a.count);
+  }, [logs]);
+
+  // Per-day breakdown
+  const dailyBreakdown = useMemo(() => {
+    const acc: Record<string, { date: string; sent: number; failed: number; scheduled: number; units: number }> = {};
+    (logs as any[]).forEach((log: any) => {
+      if (!log.created_at) return;
+      const day = localDay(log.created_at);
+      if (!acc[day]) acc[day] = { date: day, sent: 0, failed: 0, scheduled: 0, units: 0 };
+      if (log.status === 'sent') acc[day].sent++;
+      else if (log.status === 'failed') acc[day].failed++;
+      else if (log.status === 'scheduled') acc[day].scheduled++;
+      acc[day].units += log.sms_count || 1;
+    });
+    return Object.values(acc).sort((a, b) => (a.date < b.date ? 1 : -1));
+  }, [logs]);
 
   // Network breakdown
-  const networkBreakdown = logs.reduce((acc: Record<string, { total: number; sent: number; failed: number }>, log: any) => {
+  type NetStat = { total: number; sent: number; failed: number };
+  const networkBreakdown = (logs as any[]).reduce<Record<string, NetStat>>((acc, log: any) => {
     const network = detectNetwork(log.recipient_phone || '');
     if (!acc[network]) acc[network] = { total: 0, sent: 0, failed: 0 };
     acc[network].total++;
@@ -164,7 +218,7 @@ const SmsReports = () => {
     return acc;
   }, {});
 
-  const sortedNetworks = Object.entries(networkBreakdown).sort(([, a], [, b]) => b.total - a.total);
+  const sortedNetworks = (Object.entries(networkBreakdown) as [string, NetStat][]).sort(([, a], [, b]) => b.total - a.total);
   const maxNetworkCount = Math.max(...sortedNetworks.map(([, v]) => v.total), 1);
 
   const last7Days = Array.from({ length: 7 }, (_, i) => {
@@ -181,7 +235,7 @@ const SmsReports = () => {
   const maxCount = Math.max(...dailyCounts.map(d => d.count), 1);
 
   const stats = [
-    { label: 'Zimetumwa', value: totalSent, icon: CheckCircle, color: 'text-green-500' },
+    { label: 'Zimefika (Delivered)', value: totalSent, icon: CheckCircle, color: 'text-green-500' },
     { label: 'Zimeshindikana', value: totalFailed, icon: XCircle, color: 'text-destructive' },
     { label: 'Zimepangwa', value: totalScheduled, icon: Clock, color: 'text-amber-500' },
     { label: 'SMS Units', value: totalSmsUnits, icon: TrendingUp, color: 'text-primary' },
@@ -211,6 +265,9 @@ const SmsReports = () => {
       doc.setFontSize(11);
       doc.setFont('helvetica', 'normal');
       doc.text(`Tukio: ${selectedEventTitle}`, 14, y);
+      y += 6;
+      doc.setFontSize(10);
+      doc.text(`Kipindi: ${rangeLabel}`, 14, y);
       y += 6;
       doc.setFontSize(10);
       doc.text(`Tarehe ya Ripoti: ${now}`, 14, y);
@@ -315,6 +372,12 @@ const SmsReports = () => {
         summaryData.push([network, data.total, data.sent, data.failed]);
       });
 
+      summaryData.push([], ['Ripoti kwa Siku'], ['Tarehe', 'Zimefika', 'Zimeshindikana', 'Zimepangwa', 'Units']);
+      dailyBreakdown.forEach((d) => summaryData.push([d.date, d.sent, d.failed, d.scheduled, d.units]));
+
+      summaryData.push([], ['Majibu ya Beem API'], ['Code', 'Maelezo', 'Idadi', 'Units']);
+      beemBreakdown.forEach((b) => summaryData.push([b.code, b.message, b.count, b.units]));
+
       const logsData = logs.map((log: any) => ({
         'Mpokeaji': log.recipient_name || '-',
         'Namba': log.recipient_phone,
@@ -376,6 +439,31 @@ const SmsReports = () => {
           </Button>
         </div>
       </div>
+
+      {/* Date Filter */}
+      <div className="glass-card rounded-xl p-4 flex flex-col lg:flex-row lg:items-end gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div>
+            <label className="text-xs text-muted-foreground">Kuanzia tarehe</label>
+            <Input type="date" value={dateFrom} max={dateTo || undefined} onChange={(e) => setDateFrom(e.target.value)} className="h-9 w-full sm:w-[170px]" />
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground">Hadi tarehe</label>
+            <Input type="date" value={dateTo} min={dateFrom || undefined} onChange={(e) => setDateTo(e.target.value)} className="h-9 w-full sm:w-[170px]" />
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 lg:ml-auto">
+          <Button variant="secondary" size="sm" onClick={() => { setDateFrom(todayStr); setDateTo(todayStr); }}>Leo</Button>
+          <Button variant="secondary" size="sm" onClick={() => { setDateFrom(shiftDay(-1)); setDateTo(shiftDay(-1)); }}>Jana</Button>
+          <Button variant="secondary" size="sm" onClick={() => { setDateFrom(shiftDay(-6)); setDateTo(todayStr); }}>Siku 7</Button>
+          <Button variant="secondary" size="sm" onClick={() => { setDateFrom(shiftDay(-29)); setDateTo(todayStr); }}>Siku 30</Button>
+          <Button variant="ghost" size="sm" onClick={() => { setDateFrom(''); setDateTo(''); }}>Ondoa filter</Button>
+        </div>
+      </div>
+      <p className="text-xs text-muted-foreground -mt-3">
+        Kipindi: <span className="font-medium text-foreground">{rangeLabel}</span> · Jumla rekodi: {logs.length} · Ufanisi: {successRate}%
+        {totalPending > 0 && <> · Zinasubiri: {totalPending}</>}
+      </p>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -454,6 +542,78 @@ const SmsReports = () => {
       )}
 
       {/* Daily Chart */}
+      {/* Per-day breakdown */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card rounded-xl p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <CalendarDays className="w-5 h-5 text-primary" />
+          <h4 className="font-heading font-semibold text-foreground">Ripoti kwa Siku</h4>
+        </div>
+        {dailyBreakdown.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Hakuna SMS kwenye kipindi hiki.</p>
+        ) : (
+          <div className="overflow-x-auto max-h-80">
+            <table className="w-full text-sm">
+              <thead className="text-xs text-muted-foreground">
+                <tr className="border-b border-border">
+                  <th className="text-left py-2">Tarehe</th>
+                  <th className="text-right py-2">Zimefika</th>
+                  <th className="text-right py-2">Zimeshindikana</th>
+                  <th className="text-right py-2">Zimepangwa</th>
+                  <th className="text-right py-2">Units</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dailyBreakdown.map((d) => (
+                  <tr key={d.date} className="border-b border-border/50">
+                    <td className="py-2 text-foreground">{new Date(d.date).toLocaleDateString('sw-TZ', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                    <td className="py-2 text-right text-green-500 font-medium">{d.sent}</td>
+                    <td className="py-2 text-right text-destructive font-medium">{d.failed}</td>
+                    <td className="py-2 text-right text-amber-500">{d.scheduled}</td>
+                    <td className="py-2 text-right text-foreground">{d.units}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </motion.div>
+
+      {/* Beem API response breakdown */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card rounded-xl p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Server className="w-5 h-5 text-primary" />
+          <h4 className="font-heading font-semibold text-foreground">Majibu ya Beem API</h4>
+        </div>
+        {beemBreakdown.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Hakuna majibu ya API kwenye kipindi hiki.</p>
+        ) : (
+          <div className="overflow-x-auto max-h-80">
+            <table className="w-full text-sm">
+              <thead className="text-xs text-muted-foreground">
+                <tr className="border-b border-border">
+                  <th className="text-left py-2">Code</th>
+                  <th className="text-left py-2">Maelezo ya Beem</th>
+                  <th className="text-right py-2">Idadi</th>
+                  <th className="text-right py-2">Units</th>
+                  <th className="text-right py-2">%</th>
+                </tr>
+              </thead>
+              <tbody>
+                {beemBreakdown.map((b) => (
+                  <tr key={`${b.code}-${b.message}`} className="border-b border-border/50">
+                    <td className="py-2 font-mono text-xs text-foreground">{b.code}</td>
+                    <td className="py-2 text-muted-foreground">{b.message}</td>
+                    <td className="py-2 text-right text-foreground font-medium">{b.count}</td>
+                    <td className="py-2 text-right text-foreground">{b.units}</td>
+                    <td className="py-2 text-right text-muted-foreground">{logs.length > 0 ? Math.round((b.count / logs.length) * 100) : 0}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </motion.div>
+
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card rounded-xl p-6">
         <div className="flex items-center gap-2 mb-4">
           <BarChart3 className="w-5 h-5 text-primary" />
