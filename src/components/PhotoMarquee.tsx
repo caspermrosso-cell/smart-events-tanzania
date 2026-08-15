@@ -1,9 +1,9 @@
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Reveal from '@/components/Reveal';
-import imgA from '@/assets/amaizing-setting-tableware-appliances-some-romantic-place.jpg.asset.json';
-import imgB from '@/assets/bunch-flowers-leaves-table.jpg.asset.json';
-import imgC from '@/assets/festive-dinner-table-decorated-white-green-tones.jpg.asset.json';
+import imgA from '@/assets/event-table-candlelit.jpg';
+import imgB from '@/assets/event-hall-florals.jpg';
+import imgC from '@/assets/event-garden-dinner.jpg';
 import heroEvents from '@/assets/hero-events.jpg';
 import heroWelcome from '@/assets/hero-welcome.jpg';
 
@@ -41,15 +41,15 @@ const PhotoMarquee = () => {
   const isEn = language === 'en';
 
   const rowOne: Shot[] = [
-    { src: imgA.url, alt: isEn ? 'Candlelit wedding reception table' : 'Meza ya harusi yenye mishumaa' },
-    { src: imgB.url, alt: isEn ? 'Wedding hall with floral centrepieces' : 'Ukumbi wa harusi wenye maua' },
-    { src: imgC.url, alt: isEn ? 'Garden dinner table in white and green' : 'Meza ya chakula bustanini' },
+    { src: imgA, alt: isEn ? 'Candlelit wedding reception table' : 'Meza ya harusi yenye mishumaa' },
+    { src: imgB, alt: isEn ? 'Wedding hall with floral centrepieces' : 'Ukumbi wa harusi wenye maua' },
+    { src: imgC, alt: isEn ? 'Garden dinner table in white and green' : 'Meza ya chakula bustanini' },
   ];
   const rowTwo: Shot[] = [
     { src: heroWelcome, alt: isEn ? 'Guests being welcomed at check-in' : 'Wageni wakikaribishwa kwenye check-in' },
-    { src: imgC.url, alt: isEn ? 'Long banquet table set for guests' : 'Meza ndefu iliyoandaliwa kwa wageni' },
+    { src: imgC, alt: isEn ? 'Long banquet table set for guests' : 'Meza ndefu iliyoandaliwa kwa wageni' },
     { src: heroEvents, alt: isEn ? 'Event in full flow' : 'Tukio likiendelea' },
-    { src: imgA.url, alt: isEn ? 'Elegant table setting' : 'Mapambo ya meza' },
+    { src: imgA, alt: isEn ? 'Elegant table setting' : 'Mapambo ya meza' },
   ];
 
   return (
