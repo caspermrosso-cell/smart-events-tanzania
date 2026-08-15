@@ -195,7 +195,7 @@ const Guests = () => {
     setDialogOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.full_name || !form.event_id) {
       toast.error('Jaza jina na tukio');
@@ -203,6 +203,24 @@ const Guests = () => {
     }
     const payload: any = { ...form };
     if (!payload.card_number) payload.card_number = null;
+    const phone = (payload.phone || '').trim();
+    if (!phone || phone === '+255') {
+      payload.phone = null;
+    } else {
+      payload.phone = phone;
+      let q = supabase
+        .from('guests')
+        .select('id, full_name')
+        .eq('event_id', payload.event_id)
+        .eq('phone', phone)
+        .is('deleted_at', null);
+      if (editingGuest) q = q.neq('id', editingGuest.id);
+      const { data: dup } = await q.limit(1);
+      if (dup && dup.length > 0) {
+        toast.error(`Namba hii ya simu tayari ipo kwenye tukio hili (${dup[0].full_name})`);
+        return;
+      }
+    }
     saveMutation.mutate(payload);
   };
 
