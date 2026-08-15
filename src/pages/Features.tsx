@@ -2,6 +2,9 @@ import { LanguageProvider, useLanguage } from '@/contexts/LanguageContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { motion } from 'framer-motion';
+import Benefits from '@/components/Benefits';
+import ProductSnapshot from '@/components/ProductSnapshot';
+import CtaSection from '@/components/CtaSection';
 import { MessageSquare, Mail, Bell, ScanLine, Users, BarChart3, Server } from 'lucide-react';
 
 const FeaturesContent = () => {
@@ -49,6 +52,9 @@ const FeaturesContent = () => {
           </div>
         </div>
       </div>
+      <Benefits />
+      <ProductSnapshot />
+      <CtaSection />
       <Footer />
     </div>
   );

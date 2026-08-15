@@ -2,6 +2,8 @@ import { LanguageProvider, useLanguage } from '@/contexts/LanguageContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { motion } from 'framer-motion';
+import SocialProof from '@/components/SocialProof';
+import CtaSection from '@/components/CtaSection';
 import { Building2, Landmark, Mic2, Rocket, Crown } from 'lucide-react';
 
 const UseCasesContent = () => {
@@ -49,6 +51,8 @@ const UseCasesContent = () => {
           </div>
         </div>
       </div>
+      <SocialProof />
+      <CtaSection />
       <Footer />
     </div>
   );

@@ -2,6 +2,9 @@ import { LanguageProvider, useLanguage } from '@/contexts/LanguageContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { motion } from 'framer-motion';
+import ProblemSection from '@/components/ProblemSection';
+import SolutionSection from '@/components/SolutionSection';
+import CtaSection from '@/components/CtaSection';
 import { Target, Eye, TrendingUp, BarChart3 } from 'lucide-react';
 
 const AboutContent = () => {
@@ -68,6 +71,9 @@ const AboutContent = () => {
           </div>
         </div>
       </div>
+      <ProblemSection />
+      <SolutionSection />
+      <CtaSection />
       <Footer />
     </div>
   );
