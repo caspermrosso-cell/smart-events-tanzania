@@ -1,11 +1,12 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { BarChart3, CheckCircle, XCircle, Clock, TrendingUp, FileText, FileSpreadsheet, Signal, CalendarDays, PartyPopper, ClipboardList } from 'lucide-react';
+import { BarChart3, CheckCircle, XCircle, Clock, TrendingUp, FileText, FileSpreadsheet, Signal, CalendarDays, PartyPopper, ClipboardList, Server } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 import * as XLSX from 'xlsx';
@@ -99,6 +100,19 @@ const SmsReports = () => {
   const { user } = useAuth();
   const [exporting, setExporting] = useState<'pdf' | 'excel' | null>(null);
   const [selectedEventId, setSelectedEventId] = useState<string>('all');
+  const [dateFrom, setDateFrom] = useState<string>('');
+  const [dateTo, setDateTo] = useState<string>('');
+
+  const localDay = (iso: string) => {
+    const d = new Date(iso);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+  const todayStr = localDay(new Date().toISOString());
+  const shiftDay = (days: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() + days);
+    return localDay(d.toISOString());
+  };
 
   const { data: events = [] } = useQuery({
     queryKey: ['events-for-sms-report'],
@@ -136,12 +150,19 @@ const SmsReports = () => {
     staleTime: 60000,
   });
 
-  // Filter logs by selected event
+  // Filter logs by selected event + date range (per-day)
   const logs = useMemo(() => {
-    if (selectedEventId === 'all') return allLogs;
-    if (selectedEventId === 'no-event') return allLogs.filter((l: any) => !l.event_id);
-    return allLogs.filter((l: any) => l.event_id === selectedEventId);
-  }, [allLogs, selectedEventId]);
+    let list: any[] = allLogs as any[];
+    if (selectedEventId === 'no-event') list = list.filter((l: any) => !l.event_id);
+    else if (selectedEventId !== 'all') list = list.filter((l: any) => l.event_id === selectedEventId);
+    if (dateFrom) list = list.filter((l: any) => l.created_at && localDay(l.created_at) >= dateFrom);
+    if (dateTo) list = list.filter((l: any) => l.created_at && localDay(l.created_at) <= dateTo);
+    return list;
+  }, [allLogs, selectedEventId, dateFrom, dateTo]);
+
+  const rangeLabel = dateFrom || dateTo
+    ? `${dateFrom || '...'} → ${dateTo || '...'}`
+    : 'Siku Zote';
 
   const selectedEventTitle = selectedEventId === 'all'
     ? 'Matukio Yote'
@@ -153,6 +174,38 @@ const SmsReports = () => {
   const totalFailed = logs.filter((l: any) => l.status === 'failed').length;
   const totalScheduled = logs.filter((l: any) => l.status === 'scheduled').length;
   const totalSmsUnits = logs.reduce((sum: number, l: any) => sum + (l.sms_count || 1), 0);
+  const totalPending = logs.filter((l: any) => l.status === 'pending').length;
+  const successRate = logs.length > 0 ? Math.round((totalSent / logs.length) * 100) : 0;
+
+  // Beem API response breakdown (code + message from beem_response)
+  const beemBreakdown = useMemo(() => {
+    const acc: Record<string, { code: string; message: string; count: number; units: number }> = {};
+    (logs as any[]).forEach((log: any) => {
+      const r = log.beem_response || {};
+      const code = r.code !== undefined && r.code !== null ? String(r.code) : (r.error ? 'ERR' : '-');
+      const message = r.message || r.error || (log.status === 'sent' ? 'Imetumwa' : 'Hakuna maelezo');
+      const key = `${code}|${message}`;
+      if (!acc[key]) acc[key] = { code, message: String(message), count: 0, units: 0 };
+      acc[key].count++;
+      acc[key].units += log.sms_count || 1;
+    });
+    return Object.values(acc).sort((a, b) => b.count - a.count);
+  }, [logs]);
+
+  // Per-day breakdown
+  const dailyBreakdown = useMemo(() => {
+    const acc: Record<string, { date: string; sent: number; failed: number; scheduled: number; units: number }> = {};
+    (logs as any[]).forEach((log: any) => {
+      if (!log.created_at) return;
+      const day = localDay(log.created_at);
+      if (!acc[day]) acc[day] = { date: day, sent: 0, failed: 0, scheduled: 0, units: 0 };
+      if (log.status === 'sent') acc[day].sent++;
+      else if (log.status === 'failed') acc[day].failed++;
+      else if (log.status === 'scheduled') acc[day].scheduled++;
+      acc[day].units += log.sms_count || 1;
+    });
+    return Object.values(acc).sort((a, b) => (a.date < b.date ? 1 : -1));
+  }, [logs]);
 
   // Network breakdown
   const networkBreakdown = logs.reduce((acc: Record<string, { total: number; sent: number; failed: number }>, log: any) => {
@@ -181,7 +234,7 @@ const SmsReports = () => {
   const maxCount = Math.max(...dailyCounts.map(d => d.count), 1);
 
   const stats = [
-    { label: 'Zimetumwa', value: totalSent, icon: CheckCircle, color: 'text-green-500' },
+    { label: 'Zimefika (Delivered)', value: totalSent, icon: CheckCircle, color: 'text-green-500' },
     { label: 'Zimeshindikana', value: totalFailed, icon: XCircle, color: 'text-destructive' },
     { label: 'Zimepangwa', value: totalScheduled, icon: Clock, color: 'text-amber-500' },
     { label: 'SMS Units', value: totalSmsUnits, icon: TrendingUp, color: 'text-primary' },
