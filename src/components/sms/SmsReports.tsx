@@ -533,6 +533,78 @@ const SmsReports = () => {
       )}
 
       {/* Daily Chart */}
+      {/* Per-day breakdown */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card rounded-xl p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <CalendarDays className="w-5 h-5 text-primary" />
+          <h4 className="font-heading font-semibold text-foreground">Ripoti kwa Siku</h4>
+        </div>
+        {dailyBreakdown.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Hakuna SMS kwenye kipindi hiki.</p>
+        ) : (
+          <div className="overflow-x-auto max-h-80">
+            <table className="w-full text-sm">
+              <thead className="text-xs text-muted-foreground">
+                <tr className="border-b border-border">
+                  <th className="text-left py-2">Tarehe</th>
+                  <th className="text-right py-2">Zimefika</th>
+                  <th className="text-right py-2">Zimeshindikana</th>
+                  <th className="text-right py-2">Zimepangwa</th>
+                  <th className="text-right py-2">Units</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dailyBreakdown.map((d) => (
+                  <tr key={d.date} className="border-b border-border/50">
+                    <td className="py-2 text-foreground">{new Date(d.date).toLocaleDateString('sw-TZ', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                    <td className="py-2 text-right text-green-500 font-medium">{d.sent}</td>
+                    <td className="py-2 text-right text-destructive font-medium">{d.failed}</td>
+                    <td className="py-2 text-right text-amber-500">{d.scheduled}</td>
+                    <td className="py-2 text-right text-foreground">{d.units}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </motion.div>
+
+      {/* Beem API response breakdown */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card rounded-xl p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Server className="w-5 h-5 text-primary" />
+          <h4 className="font-heading font-semibold text-foreground">Majibu ya Beem API</h4>
+        </div>
+        {beemBreakdown.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Hakuna majibu ya API kwenye kipindi hiki.</p>
+        ) : (
+          <div className="overflow-x-auto max-h-80">
+            <table className="w-full text-sm">
+              <thead className="text-xs text-muted-foreground">
+                <tr className="border-b border-border">
+                  <th className="text-left py-2">Code</th>
+                  <th className="text-left py-2">Maelezo ya Beem</th>
+                  <th className="text-right py-2">Idadi</th>
+                  <th className="text-right py-2">Units</th>
+                  <th className="text-right py-2">%</th>
+                </tr>
+              </thead>
+              <tbody>
+                {beemBreakdown.map((b) => (
+                  <tr key={`${b.code}-${b.message}`} className="border-b border-border/50">
+                    <td className="py-2 font-mono text-xs text-foreground">{b.code}</td>
+                    <td className="py-2 text-muted-foreground">{b.message}</td>
+                    <td className="py-2 text-right text-foreground font-medium">{b.count}</td>
+                    <td className="py-2 text-right text-foreground">{b.units}</td>
+                    <td className="py-2 text-right text-muted-foreground">{logs.length > 0 ? Math.round((b.count / logs.length) * 100) : 0}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </motion.div>
+
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card rounded-xl p-6">
         <div className="flex items-center gap-2 mb-4">
           <BarChart3 className="w-5 h-5 text-primary" />
