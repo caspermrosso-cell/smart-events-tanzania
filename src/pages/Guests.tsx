@@ -117,11 +117,17 @@ const Guests = () => {
 
   const bulkMutation = useMutation({
     mutationFn: async (rows: any[]) => {
-      // Dedupe within the batch by card_number (per event)
+      // Dedupe within the batch by card_number and phone (per event)
       const seen = new Set<string>();
+      const seenPhone = new Set<string>();
       const deduped: any[] = [];
       let dupInBatch = 0;
       for (const r of rows) {
+        if (r.phone) {
+          const pkey = `${r.event_id}::${String(r.phone).replace(/\s+/g, '')}`;
+          if (seenPhone.has(pkey)) { dupInBatch++; continue; }
+          seenPhone.add(pkey);
+        }
         if (r.card_number) {
           const key = `${r.event_id}::${String(r.card_number).toLowerCase()}`;
           if (seen.has(key)) { dupInBatch++; continue; }
@@ -139,12 +145,29 @@ const Guests = () => {
           .from('guests')
           .select('event_id, card_number')
           .in('event_id', eventIds)
-          .in('card_number', cardNumbers);
+          .in('card_number', cardNumbers)
+          .is('deleted_at', null);
         (existing || []).forEach((g: any) => {
           if (g.card_number) existingKeys.add(`${g.event_id}::${String(g.card_number).toLowerCase()}`);
         });
       }
+      // Skip phone numbers that already exist in DB for the same event(s)
+      const phones = deduped.map(r => r.phone).filter(Boolean);
+      const existingPhones = new Set<string>();
+      if (phones.length > 0) {
+        const { data: existingP } = await supabase
+          .from('guests')
+          .select('event_id, phone')
+          .in('event_id', eventIds)
+          .in('phone', phones)
+          .is('deleted_at', null);
+        (existingP || []).forEach((g: any) => {
+          if (g.phone) existingPhones.add(`${g.event_id}::${String(g.phone).replace(/\s+/g, '')}`);
+        });
+      }
+
       const toInsert = deduped.filter(r => {
+        if (r.phone && existingPhones.has(`${r.event_id}::${String(r.phone).replace(/\s+/g, '')}`)) return false;
         if (!r.card_number) return true;
         return !existingKeys.has(`${r.event_id}::${String(r.card_number).toLowerCase()}`);
       });
@@ -162,9 +185,9 @@ const Guests = () => {
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       const skipped = (res?.dupInBatch || 0) + (res?.dupInDb || 0);
       if (res?.inserted > 0) {
-        toast.success(`Wageni ${res.inserted} wameongezwa${skipped ? ` · ${skipped} wamerukwa (Kadi Namba tayari ipo)` : ''}`);
+        toast.success(`Wageni ${res.inserted} wameongezwa${skipped ? ` · ${skipped} wamerukwa (namba ya simu au Kadi Namba tayari ipo)` : ''}`);
       } else {
-        toast.error('Hakuna aliyeongezwa – Kadi Namba zote tayari zipo kwenye tukio hili');
+        toast.error('Hakuna aliyeongezwa – namba za simu / Kadi Namba zote tayari zipo kwenye tukio hili');
       }
       setBulkDialogOpen(false);
       setBulkData([]);
@@ -195,7 +218,7 @@ const Guests = () => {
     setDialogOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.full_name || !form.event_id) {
       toast.error('Jaza jina na tukio');
@@ -203,6 +226,24 @@ const Guests = () => {
     }
     const payload: any = { ...form };
     if (!payload.card_number) payload.card_number = null;
+    const phone = (payload.phone || '').trim();
+    if (!phone || phone === '+255') {
+      payload.phone = null;
+    } else {
+      payload.phone = phone;
+      let q = supabase
+        .from('guests')
+        .select('id, full_name')
+        .eq('event_id', payload.event_id)
+        .eq('phone', phone)
+        .is('deleted_at', null);
+      if (editingGuest) q = q.neq('id', editingGuest.id);
+      const { data: dup } = await q.limit(1);
+      if (dup && dup.length > 0) {
+        toast.error(`Namba hii ya simu tayari ipo kwenye tukio hili (${dup[0].full_name})`);
+        return;
+      }
+    }
     saveMutation.mutate(payload);
   };
 
@@ -259,7 +300,11 @@ const Guests = () => {
     if (bulkData.length === 0) { toast.error('Hakuna wageni'); return; }
     const rows = bulkData.map(r => ({
       ...r,
-      phone: r.phone ? (String(r.phone).startsWith('+255') ? String(r.phone) : '+255' + String(r.phone).replace(/^0/, '')) : null,
+      phone: r.phone
+        ? (String(r.phone).replace(/\s+/g, '').startsWith('+255')
+            ? String(r.phone).replace(/\s+/g, '')
+            : '+255' + String(r.phone).replace(/\s+/g, '').replace(/^0/, ''))
+        : null,
       card_number: r.card_number ? String(r.card_number).trim() : null,
       custom_fields: r.custom_fields || {},
       event_id: bulkEventId,
