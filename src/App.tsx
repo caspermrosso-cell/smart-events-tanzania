@@ -11,6 +11,7 @@ import Features from "./pages/Features";
 import UseCasesPage from "./pages/UseCasesPage";
 import HowItWorksPage from "./pages/HowItWorksPage";
 import Contact from "./pages/Contact";
+import PricingPage from "./pages/PricingPage";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Events from "./pages/Events";
@@ -30,6 +31,7 @@ import UsersPage from "./pages/Users";
 import OAuthConsent from "./pages/OAuthConsent";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ScrollToTop from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +42,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <ScrollToTop />
           <AuthProvider>
             <Routes>
               <Route path="/" element={<Index />} />
@@ -47,6 +50,7 @@ const App = () => (
               <Route path="/features" element={<Features />} />
               <Route path="/use-cases" element={<UseCasesPage />} />
               <Route path="/how-it-works" element={<HowItWorksPage />} />
+              <Route path="/pricing" element={<PricingPage />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/login" element={<Login />} />
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

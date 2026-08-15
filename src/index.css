@@ -221,6 +221,14 @@
     @apply inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-primary;
   }
 
+  .story-link {
+    @apply relative inline-block after:absolute after:bottom-[-3px] after:left-0 after:h-[2px] after:w-full after:origin-bottom-right after:scale-x-0 after:bg-primary after:transition-transform after:duration-300 after:content-[''] hover:after:origin-bottom-left hover:after:scale-x-100;
+  }
+
+  .hover-lift {
+    @apply transition-transform duration-300 hover:-translate-y-1;
+  }
+
   .grain {
     background-image: radial-gradient(hsl(var(--accent) / 0.35) 1px, transparent 1px);
     background-size: 22px 22px;
