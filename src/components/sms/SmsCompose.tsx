@@ -15,6 +15,7 @@ import { useAuth } from '@/hooks/useAuth';
 import ContactPicker from '@/components/ContactPicker';
 import SmsTemplateManager from '@/components/sms/SmsTemplateManager';
 import SmsPreviewDialog, { PreviewRecipient } from '@/components/sms/SmsPreviewDialog';
+import SmsInvoiceDialog from '@/components/sms/SmsInvoiceDialog';
 
 const SMS_TEMPLATES = [
   { id: 'invite', label: 'Mwaliko', template: 'Habari {name}, unaalikwa kwenye {event} tarehe {date}. Karibu sana!' },
@@ -740,6 +741,14 @@ const SmsCompose = () => {
         scheduleAt={scheduleEnabled && scheduleDate && scheduleTime ? `${scheduleDate} ${scheduleTime}` : undefined}
         sending={sending}
         onConfirm={handleSend}
+      />
+
+      <SmsInvoiceDialog
+        open={invoiceOpen}
+        onOpenChange={setInvoiceOpen}
+        eventId={selectedEvent || null}
+        eventTitle={selectedEventData?.title}
+        units={invoiceUnits}
       />
     </div>
   );
