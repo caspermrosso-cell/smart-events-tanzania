@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, CheckCircle, Clock, Plus, X, Phone, MessageSquare, Upload, FileSpreadsheet, AlertTriangle, ShieldCheck, Download, BadgeCheck, Receipt } from 'lucide-react';
+import { Send, CheckCircle, Clock, Plus, X, Phone, MessageSquare, Upload, FileSpreadsheet, AlertTriangle, ShieldCheck, Download, BadgeCheck } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
