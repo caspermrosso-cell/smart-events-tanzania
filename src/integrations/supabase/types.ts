@@ -481,6 +481,42 @@ export type Database = {
           },
         ]
       }
+      pricing_settings: {
+        Row: {
+          created_at: string
+          discount_note_en: string | null
+          discount_note_sw: string | null
+          id: string
+          max_units: number
+          sms_rate: number
+          unlock_threshold: number
+          updated_at: string
+          whatsapp_rate: number
+        }
+        Insert: {
+          created_at?: string
+          discount_note_en?: string | null
+          discount_note_sw?: string | null
+          id?: string
+          max_units?: number
+          sms_rate?: number
+          unlock_threshold?: number
+          updated_at?: string
+          whatsapp_rate?: number
+        }
+        Update: {
+          created_at?: string
+          discount_note_en?: string | null
+          discount_note_sw?: string | null
+          id?: string
+          max_units?: number
+          sms_rate?: number
+          unlock_threshold?: number
+          updated_at?: string
+          whatsapp_rate?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
