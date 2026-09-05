@@ -329,11 +329,16 @@ const SmsCompose = () => {
 
       setSent(true);
       setPreviewOpen(false);
+      if (!scheduleEnabled) {
+        setInvoiceUnits((totalRecipients - failedCount) * smsCount);
+        setInvoiceOpen(true);
+      }
       setTimeout(() => {
         setSent(false);
         setSelectedGuests([]);
         setManualRecipients([]);
       }, 3000);
+
     } catch {
       toast.error('Imeshindikana kutuma SMS. Jaribu tena.');
     } finally {
