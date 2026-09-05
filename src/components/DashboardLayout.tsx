@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Calendar, Users, CreditCard, MessageSquare, Mail, QrCode, LogOut, LayoutDashboard, BarChart3, Wallet, FileText, Package, Globe, MessageCircle, Quote, Trash2, UserCog } from 'lucide-react';
+import { Calendar, Users, CreditCard, MessageSquare, Mail, QrCode, LogOut, LayoutDashboard, BarChart3, Wallet, FileText, Package, Globe, MessageCircle, Quote, Trash2, UserCog, Coins } from 'lucide-react';
 
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -27,6 +27,7 @@ const allNavItems: NavItem[] = [
   { labelKey: 'admin.reports', icon: BarChart3, href: '/reports', module: 'reports' },
   { label: 'Recycle Bin', icon: Trash2, href: '/recycle-bin', module: 'recycle_bin' },
   { label: 'Watumiaji', icon: UserCog, href: '/users', module: 'users' },
+  { label: 'Mipangilio ya Bei', icon: Coins, href: '/pricing-setup', module: 'users' },
 ];
 
 const DashboardLayout = ({ children }: { children: ReactNode }) => {
