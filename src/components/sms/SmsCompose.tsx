@@ -674,24 +674,41 @@ const SmsCompose = () => {
         {selectedEvent && (
           <>
             <div className="flex items-center justify-between">
-              <Label className="text-xs text-muted-foreground">Wageni wa Tukio ({guests.length})</Label>
-              {guests.length > 0 && (
+              <Label className="text-xs text-muted-foreground">Wageni wa Tukio ({visibleGuests.length}{excludePaid ? ` · ${paidCount} walioshalipa wameondolewa` : ''})</Label>
+              {visibleGuests.length > 0 && (
                 <Button variant="ghost" size="sm" onClick={selectAll}>
-                  {selectedGuests.length === guests.length ? 'Ondoa Yote' : 'Chagua Wote'}
+                  {selectedGuests.length === visibleGuests.length ? 'Ondoa Yote' : 'Chagua Wote'}
                 </Button>
               )}
             </div>
-            {guests.length === 0 ? (
-              <p className="text-muted-foreground text-sm text-center py-4">Hakuna wageni wenye namba ya simu</p>
+            {paidCount > 0 && (
+              <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/30">
+                <BadgeCheck className="w-4 h-4 text-green-600 shrink-0" />
+                <div className="flex-1">
+                  <Label className="text-xs">Wacha walioshalipa michango ({paidCount})</Label>
+                  <p className="text-[10px] text-muted-foreground">Wageni wenye tag ya "Amelipa" hawatapokea SMS ya kikumbusho</p>
+                </div>
+                <Switch checked={excludePaid} onCheckedChange={toggleExcludePaid} />
+              </div>
+            )}
+            {visibleGuests.length === 0 ? (
+              <p className="text-muted-foreground text-sm text-center py-4">
+                {guests.length === 0 ? 'Hakuna wageni wenye namba ya simu' : 'Wageni wote walioshalipa wameondolewa kwenye orodha'}
+              </p>
             ) : (
               <div className="space-y-1 max-h-48 overflow-y-auto">
-                {guests.map((g: any) => (
+                {visibleGuests.map((g: any) => (
                   <label key={g.id} className={`flex items-center gap-3 p-2 rounded-lg border cursor-pointer transition-colors ${selectedGuests.includes(g.id) ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'}`}>
                     <Checkbox checked={selectedGuests.includes(g.id)} onCheckedChange={() => toggleGuest(g.id)} />
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm text-foreground">{g.full_name}</p>
                       <p className="text-xs text-muted-foreground">{g.phone}</p>
                     </div>
+                    {paidGuestIds.has(g.id) && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-[10px] font-semibold shrink-0">
+                        <BadgeCheck className="w-3 h-3" /> Amelipa
+                      </span>
+                    )}
                   </label>
                 ))}
               </div>
