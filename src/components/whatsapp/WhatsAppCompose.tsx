@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, AlertCircle, ImageIcon, FileText, MapPin, Video, MessageSquare, List, Loader2, Upload, Plus, Trash2, Receipt } from 'lucide-react';
+import { Send, AlertCircle, ImageIcon, FileText, MapPin, Video, MessageSquare, List, Loader2, Upload, Plus, Trash2 } from 'lucide-react';
 import SmsInvoiceDialog from '@/components/sms/SmsInvoiceDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -546,21 +546,6 @@ const WhatsAppCompose = () => {
       {/* Send */}
       <Button onClick={handleSend} disabled={sending || validationErrors.length > 0} className="w-full" size="lg">
         {sending ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sending...</> : <><Send className="w-4 h-4 mr-2" /> Send WhatsApp Message</>}
-      </Button>
-
-      {/* Manual invoice generation */}
-      <Button
-        variant="outline"
-        className="w-full"
-        onClick={() => {
-          const count = recipientMode === 'single'
-            ? 1
-            : selectedGuests.length + manualRecipients.filter(r => r.phone.trim()).length;
-          setInvoiceUnits(Math.max(count, 1));
-          setInvoiceOpen(true);
-        }}
-      >
-        <Receipt className="w-4 h-4 mr-2" /> Tengeneza Invoice ya WhatsApp
       </Button>
 
       <SmsInvoiceDialog
