@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, CheckCircle, Clock, Plus, X, Phone, MessageSquare, Upload, FileSpreadsheet, AlertTriangle, ShieldCheck, Download, BadgeCheck } from 'lucide-react';
+import { Send, CheckCircle, Clock, Plus, X, Phone, MessageSquare, Upload, FileSpreadsheet, AlertTriangle, ShieldCheck, Download, BadgeCheck, Receipt } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -477,6 +477,18 @@ const SmsCompose = () => {
               <MessageSquare className="w-3 h-3" />
               <span>SMS zimebaki: <strong>{eventSmsRemaining.toLocaleString()}</strong> / {eventAllocation.toLocaleString()}</span>
             </div>
+          )}
+          {selectedEvent && eventSmsUsed > 0 && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="mt-2 text-xs"
+              onClick={() => { setInvoiceUnits(eventSmsUsed); setInvoiceOpen(true); }}
+            >
+              <Receipt className="w-3.5 h-3.5 mr-1.5" />
+              Tengeneza Invoice ya SMS ({eventSmsUsed.toLocaleString()} zimetumwa)
+            </Button>
           )}
         </div>
 
