@@ -217,8 +217,13 @@ const SmsCompose = () => {
   };
 
   const selectAll = () => {
-    if (selectedGuests.length === guests.length) setSelectedGuests([]);
-    else setSelectedGuests(guests.map((g: any) => g.id));
+    if (selectedGuests.length === visibleGuests.length && visibleGuests.length > 0) setSelectedGuests([]);
+    else setSelectedGuests(visibleGuests.map((g: any) => g.id));
+  };
+
+  const toggleExcludePaid = (checked: boolean) => {
+    setExcludePaid(checked);
+    if (checked) setSelectedGuests(prev => prev.filter(id => !paidGuestIds.has(id)));
   };
 
   const addManualRecipient = () => {
