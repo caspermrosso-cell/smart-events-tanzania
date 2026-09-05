@@ -10,17 +10,17 @@ import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 
-const PRICE_KEY = 'sms_unit_price';
-
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   eventId?: string | null;
   eventTitle?: string;
-  units: number; // total SMS units sent
+  units: number; // total message units sent
+  serviceName?: string; // e.g. 'SMS' or 'WhatsApp'
+  storageKey?: string; // localStorage key for remembered unit price
 }
 
-const SmsInvoiceDialog = ({ open, onOpenChange, eventId, eventTitle, units }: Props) => {
+const SmsInvoiceDialog = ({ open, onOpenChange, eventId, eventTitle, units, serviceName = 'SMS', storageKey = 'sms_unit_price' }: Props) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [qty, setQty] = useState(units);
