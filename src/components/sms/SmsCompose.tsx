@@ -15,6 +15,7 @@ import { useAuth } from '@/hooks/useAuth';
 import ContactPicker from '@/components/ContactPicker';
 import SmsTemplateManager from '@/components/sms/SmsTemplateManager';
 import SmsPreviewDialog, { PreviewRecipient } from '@/components/sms/SmsPreviewDialog';
+import SmsInvoiceDialog from '@/components/sms/SmsInvoiceDialog';
 
 const SMS_TEMPLATES = [
   { id: 'invite', label: 'Mwaliko', template: 'Habari {name}, unaalikwa kwenye {event} tarehe {date}. Karibu sana!' },
@@ -39,6 +40,9 @@ const SmsCompose = () => {
   const [selectedGuests, setSelectedGuests] = useState<string[]>([]);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [invoiceOpen, setInvoiceOpen] = useState(false);
+  const [invoiceUnits, setInvoiceUnits] = useState(0);
+
   const [scheduleEnabled, setScheduleEnabled] = useState(false);
   const [scheduleDate, setScheduleDate] = useState('');
   const [scheduleTime, setScheduleTime] = useState('');
@@ -329,11 +333,16 @@ const SmsCompose = () => {
 
       setSent(true);
       setPreviewOpen(false);
+      if (!scheduleEnabled) {
+        setInvoiceUnits((totalRecipients - failedCount) * smsCount);
+        setInvoiceOpen(true);
+      }
       setTimeout(() => {
         setSent(false);
         setSelectedGuests([]);
         setManualRecipients([]);
       }, 3000);
+
     } catch {
       toast.error('Imeshindikana kutuma SMS. Jaribu tena.');
     } finally {
@@ -732,6 +741,14 @@ const SmsCompose = () => {
         scheduleAt={scheduleEnabled && scheduleDate && scheduleTime ? `${scheduleDate} ${scheduleTime}` : undefined}
         sending={sending}
         onConfirm={handleSend}
+      />
+
+      <SmsInvoiceDialog
+        open={invoiceOpen}
+        onOpenChange={setInvoiceOpen}
+        eventId={selectedEvent || null}
+        eventTitle={selectedEventData?.title}
+        units={invoiceUnits}
       />
     </div>
   );
