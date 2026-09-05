@@ -2,6 +2,7 @@ import { LanguageProvider, useLanguage } from '@/contexts/LanguageContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Pricing from '@/components/Pricing';
+import PricingSimulator from '@/components/PricingSimulator';
 import Differentiation from '@/components/Differentiation';
 import ObjectionHandling from '@/components/ObjectionHandling';
 import CtaSection from '@/components/CtaSection';
@@ -26,6 +27,7 @@ const PricingContent = () => {
         </div>
       </header>
       <Pricing />
+      <PricingSimulator />
       <Differentiation />
       <ObjectionHandling />
       <CtaSection />
