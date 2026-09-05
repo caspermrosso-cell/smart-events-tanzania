@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Users, Search, Phone, Mail, CheckCircle, XCircle, Clock, Trash2, Pencil, Upload, X, CreditCard, Download } from 'lucide-react';
+import { Plus, Users, Search, Phone, Mail, CheckCircle, XCircle, Clock, Trash2, Pencil, Upload, X, CreditCard, Download, BadgeCheck } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -62,6 +62,23 @@ const Guests = () => {
       return data;
     },
   });
+
+  // Fetch pledges to tag guests who have fully paid
+  const { data: pledges = [] } = useQuery({
+    queryKey: ['guests-pledges', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('pledges').select('guest_id, amount, paid_amount, status');
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const paidGuestIds = new Set<string>(
+    (pledges as any[])
+      .filter((p) => p.guest_id && (p.status === 'paid' || Number(p.paid_amount || 0) >= Number(p.amount || 0)))
+      .map((p) => p.guest_id as string)
+  );
 
   const saveMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -571,6 +588,7 @@ const Guests = () => {
                 <TableHead className="hidden md:table-cell">Simu</TableHead>
                 <TableHead className="hidden md:table-cell">Kadi</TableHead>
                 <TableHead>RSVP</TableHead>
+                <TableHead className="hidden sm:table-cell">Malipo</TableHead>
                 <TableHead className="hidden md:table-cell">Meza</TableHead>
                 <TableHead className="w-20"></TableHead>
               </TableRow>
@@ -599,6 +617,17 @@ const Guests = () => {
                         <RsvpIcon className={`w-4 h-4 ${rsvp.class}`} />
                         <span className="text-sm capitalize">{guest.rsvp_status}</span>
                       </div>
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      {paidGuestIds.has(guest.id) ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-xs font-semibold">
+                          <BadgeCheck className="w-3 h-3" /> Amelipa
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 text-xs font-semibold">
+                          <Clock className="w-3 h-3" /> Hajalipa
+                        </span>
+                      )}
                     </TableCell>
                     <TableCell className="hidden md:table-cell text-muted-foreground text-sm">{guest.table_number || '-'}</TableCell>
                     <TableCell>

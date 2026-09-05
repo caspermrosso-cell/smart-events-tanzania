@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, CheckCircle, Clock, Plus, X, Phone, MessageSquare, Upload, FileSpreadsheet, AlertTriangle, ShieldCheck, Download } from 'lucide-react';
+import { Send, CheckCircle, Clock, Plus, X, Phone, MessageSquare, Upload, FileSpreadsheet, AlertTriangle, ShieldCheck, Download, BadgeCheck } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -48,6 +48,7 @@ const SmsCompose = () => {
   const [newVars, setNewVars] = useState<Record<string, string>>({});
   const bulkFileRef = useRef<HTMLInputElement>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [excludePaid, setExcludePaid] = useState(false);
 
   // Detect custom {variable} tokens in message (excluding built-ins)
   const BUILTIN_VARS = ['name', 'event', 'date'];
@@ -183,6 +184,27 @@ const SmsCompose = () => {
     enabled: !!selectedEvent,
   });
 
+  // Fetch pledges for selected event to identify guests who have fully paid
+  const { data: eventPledges = [] } = useQuery({
+    queryKey: ['sms-event-pledges', selectedEvent],
+    queryFn: async () => {
+      if (!selectedEvent) return [];
+      const { data, error } = await supabase.from('pledges').select('guest_id, amount, paid_amount, status').eq('event_id', selectedEvent);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!selectedEvent,
+  });
+
+  const paidGuestIds = useMemo(() => new Set<string>(
+    (eventPledges as any[])
+      .filter((p) => p.guest_id && (p.status === 'paid' || Number(p.paid_amount || 0) >= Number(p.amount || 0)))
+      .map((p) => p.guest_id as string)
+  ), [eventPledges]);
+
+  const paidCount = guests.filter((g: any) => paidGuestIds.has(g.id)).length;
+  const visibleGuests = excludePaid ? guests.filter((g: any) => !paidGuestIds.has(g.id)) : guests;
+
   const handleTemplateChange = (templateId: string) => {
     setSelectedTemplate(templateId);
     const tpl = SMS_TEMPLATES.find((t) => t.id === templateId);
@@ -195,8 +217,13 @@ const SmsCompose = () => {
   };
 
   const selectAll = () => {
-    if (selectedGuests.length === guests.length) setSelectedGuests([]);
-    else setSelectedGuests(guests.map((g: any) => g.id));
+    if (selectedGuests.length === visibleGuests.length && visibleGuests.length > 0) setSelectedGuests([]);
+    else setSelectedGuests(visibleGuests.map((g: any) => g.id));
+  };
+
+  const toggleExcludePaid = (checked: boolean) => {
+    setExcludePaid(checked);
+    if (checked) setSelectedGuests(prev => prev.filter(id => !paidGuestIds.has(id)));
   };
 
   const addManualRecipient = () => {
@@ -647,24 +674,41 @@ const SmsCompose = () => {
         {selectedEvent && (
           <>
             <div className="flex items-center justify-between">
-              <Label className="text-xs text-muted-foreground">Wageni wa Tukio ({guests.length})</Label>
-              {guests.length > 0 && (
+              <Label className="text-xs text-muted-foreground">Wageni wa Tukio ({visibleGuests.length}{excludePaid ? ` · ${paidCount} walioshalipa wameondolewa` : ''})</Label>
+              {visibleGuests.length > 0 && (
                 <Button variant="ghost" size="sm" onClick={selectAll}>
-                  {selectedGuests.length === guests.length ? 'Ondoa Yote' : 'Chagua Wote'}
+                  {selectedGuests.length === visibleGuests.length ? 'Ondoa Yote' : 'Chagua Wote'}
                 </Button>
               )}
             </div>
-            {guests.length === 0 ? (
-              <p className="text-muted-foreground text-sm text-center py-4">Hakuna wageni wenye namba ya simu</p>
+            {paidCount > 0 && (
+              <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/30">
+                <BadgeCheck className="w-4 h-4 text-green-600 shrink-0" />
+                <div className="flex-1">
+                  <Label className="text-xs">Wacha walioshalipa michango ({paidCount})</Label>
+                  <p className="text-[10px] text-muted-foreground">Wageni wenye tag ya "Amelipa" hawatapokea SMS ya kikumbusho</p>
+                </div>
+                <Switch checked={excludePaid} onCheckedChange={toggleExcludePaid} />
+              </div>
+            )}
+            {visibleGuests.length === 0 ? (
+              <p className="text-muted-foreground text-sm text-center py-4">
+                {guests.length === 0 ? 'Hakuna wageni wenye namba ya simu' : 'Wageni wote walioshalipa wameondolewa kwenye orodha'}
+              </p>
             ) : (
               <div className="space-y-1 max-h-48 overflow-y-auto">
-                {guests.map((g: any) => (
+                {visibleGuests.map((g: any) => (
                   <label key={g.id} className={`flex items-center gap-3 p-2 rounded-lg border cursor-pointer transition-colors ${selectedGuests.includes(g.id) ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'}`}>
                     <Checkbox checked={selectedGuests.includes(g.id)} onCheckedChange={() => toggleGuest(g.id)} />
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm text-foreground">{g.full_name}</p>
                       <p className="text-xs text-muted-foreground">{g.phone}</p>
                     </div>
+                    {paidGuestIds.has(g.id) && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-[10px] font-semibold shrink-0">
+                        <BadgeCheck className="w-3 h-3" /> Amelipa
+                      </span>
+                    )}
                   </label>
                 ))}
               </div>
