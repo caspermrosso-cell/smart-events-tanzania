@@ -49,7 +49,7 @@ const SmsInvoiceDialog = ({ open, onOpenChange, eventId, eventTitle, units, serv
     if (qty <= 0 || unitPrice <= 0) return toast.error('Weka idadi na bei sahihi');
     setSaving(true);
     try {
-      localStorage.setItem(PRICE_KEY, String(unitPrice));
+      localStorage.setItem(storageKey, String(unitPrice));
       const { data: numData, error: numErr } = await supabase.rpc('next_invoice_number');
       if (numErr) throw numErr;
       const { error } = await supabase.from('invoices').insert({
@@ -59,7 +59,7 @@ const SmsInvoiceDialog = ({ open, onOpenChange, eventId, eventTitle, units, serv
         contact_person: contactPerson || null,
         client_phone: clientPhone || null,
         items: [{
-          description: `Huduma ya SMS${eventTitle ? ` - ${eventTitle}` : ''}`,
+          description: `Huduma ya ${serviceName}${eventTitle ? ` - ${eventTitle}` : ''}`,
           qty,
           unitPrice,
           total: subtotal,
@@ -89,7 +89,7 @@ const SmsInvoiceDialog = ({ open, onOpenChange, eventId, eventTitle, units, serv
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Receipt className="w-4 h-4 text-primary" /> Tengeneza Invoice ya SMS
+            <Receipt className="w-4 h-4 text-primary" /> Tengeneza Invoice ya {serviceName}
           </DialogTitle>
         </DialogHeader>
 
@@ -110,11 +110,11 @@ const SmsInvoiceDialog = ({ open, onOpenChange, eventId, eventTitle, units, serv
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label className="text-xs">Idadi ya SMS</Label>
+              <Label className="text-xs">Idadi ya {serviceName}</Label>
               <Input type="number" min={1} value={qty} onChange={(e) => setQty(Number(e.target.value))} />
             </div>
             <div>
-              <Label className="text-xs">Bei kwa SMS (TZS)</Label>
+              <Label className="text-xs">Bei kwa {serviceName} (TZS)</Label>
               <Input type="number" min={1} value={unitPrice} onChange={(e) => setUnitPrice(Number(e.target.value))} />
             </div>
           </div>
