@@ -2,34 +2,38 @@ import { useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageSquare, MessagesSquare, Minus, Plus, BadgePercent, Gift, IdCard, QrCode, FileBarChart } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { usePricingSettings } from '@/hooks/usePricingSettings';
 
 type Channel = 'sms' | 'whatsapp';
-const UNLOCK_THRESHOLD = 300000;
-
-const RATES: Record<Channel, number> = { sms: 50, whatsapp: 1000 };
 const MIN_UNITS = 0;
-const MAX_UNITS = 5000;
 const STEP = 10;
-
-// Map units -> knob angle (-135deg .. 135deg)
-const toAngle = (units: number) => -135 + (units / MAX_UNITS) * 270;
 
 const PricingSimulator = () => {
   const { language } = useLanguage();
   const isEn = language === 'en';
+  const { settings } = usePricingSettings();
+
+  const UNLOCK_THRESHOLD = settings.unlock_threshold;
+  const MAX_UNITS = settings.max_units || 5000;
+  const RATES: Record<Channel, number> = { sms: settings.sms_rate, whatsapp: settings.whatsapp_rate };
+  const toAngle = (u: number) => -135 + (u / MAX_UNITS) * 270;
 
   const [channel, setChannel] = useState<Channel>('sms');
   const [units, setUnits] = useState(500);
+  const fmt = (n: number) => n.toLocaleString();
 
   const knobRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
 
   const clamp = (v: number) => Math.min(MAX_UNITS, Math.max(MIN_UNITS, Math.round(v / STEP) * STEP));
+  const maxUnitsRef = useRef(MAX_UNITS);
+  maxUnitsRef.current = MAX_UNITS;
 
   const handlePointer = useCallback((clientY: number, startY: number, startUnits: number) => {
     // Dragging up increases volume — like turning a radio knob
     const delta = startY - clientY;
-    setUnits(clamp(startUnits + delta * (MAX_UNITS / 300)));
+    const max = maxUnitsRef.current;
+    setUnits(Math.min(max, Math.max(MIN_UNITS, Math.round((startUnits + delta * (max / 300)) / STEP) * STEP)));
   }, []);
 
   const onPointerDown = (e: React.PointerEvent) => {
@@ -50,7 +54,6 @@ const PricingSimulator = () => {
   };
 
   const total = units * RATES[channel];
-  const fmt = (n: number) => n.toLocaleString();
 
   const tickAngles = Array.from({ length: 11 }, (_, i) => -135 + i * 27);
 
@@ -91,7 +94,7 @@ const PricingSimulator = () => {
               }`}
             >
               <MessageSquare className="w-4 h-4" />
-              SMS · TZS {RATES.sms}/unit
+              SMS · TZS {fmt(RATES.sms)}/unit
             </button>
             <button
               onClick={() => setChannel('whatsapp')}
@@ -102,7 +105,7 @@ const PricingSimulator = () => {
               }`}
             >
               <MessagesSquare className="w-4 h-4" />
-              WhatsApp · TZS {fmt(RATES[channel === 'whatsapp' ? 'whatsapp' : 'whatsapp'])}/unit
+              WhatsApp · TZS {fmt(RATES.whatsapp)}/unit
             </button>
           </div>
 
@@ -193,8 +196,8 @@ const PricingSimulator = () => {
             <BadgePercent className="w-5 h-5 text-gold shrink-0 mt-0.5" />
             <p className="text-sm text-foreground">
               {isEn
-                ? 'Good news — discounts are available depending on your volume and how we negotiate. Talk to us and we will find a price that works for you.'
-                : 'Habari njema — unaweza kupata punguzo (discount) kulingana na idadi ya ujumbe wako na mazungumzo yetu. Wasiliana nasi tupate bei inayokufaa.'}
+                ? settings.discount_note_en || 'Good news — discounts are available depending on your volume and how we negotiate. Talk to us and we will find a price that works for you.'
+                : settings.discount_note_sw || 'Habari njema — unaweza kupata punguzo (discount) kulingana na idadi ya ujumbe wako na mazungumzo yetu. Wasiliana nasi tupate bei inayokufaa.'}
             </p>
           </div>
 

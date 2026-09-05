@@ -27,6 +27,7 @@ import Quotations from "./pages/Quotations";
 import Packages from "./pages/Packages";
 import Testimonials from "./pages/Testimonials";
 import RecycleBin from "./pages/RecycleBin";
+import PricingSetup from './pages/PricingSetup';
 import UsersPage from "./pages/Users";
 import OAuthConsent from "./pages/OAuthConsent";
 import NotFound from "./pages/NotFound";
@@ -68,6 +69,7 @@ const App = () => (
               <Route path="/testimonials" element={<ProtectedRoute><Testimonials /></ProtectedRoute>} />
               <Route path="/recycle-bin" element={<ProtectedRoute><RecycleBin /></ProtectedRoute>} />
               <Route path="/users" element={<ProtectedRoute adminOnly><UsersPage /></ProtectedRoute>} />
+              <Route path="/pricing-setup" element={<ProtectedRoute adminOnly><PricingSetup /></ProtectedRoute>} />
               <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
