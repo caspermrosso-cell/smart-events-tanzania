@@ -184,6 +184,27 @@ const SmsCompose = () => {
     enabled: !!selectedEvent,
   });
 
+  // Fetch pledges for selected event to identify guests who have fully paid
+  const { data: eventPledges = [] } = useQuery({
+    queryKey: ['sms-event-pledges', selectedEvent],
+    queryFn: async () => {
+      if (!selectedEvent) return [];
+      const { data, error } = await supabase.from('pledges').select('guest_id, amount, paid_amount, status').eq('event_id', selectedEvent);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!selectedEvent,
+  });
+
+  const paidGuestIds = useMemo(() => new Set<string>(
+    (eventPledges as any[])
+      .filter((p) => p.guest_id && (p.status === 'paid' || Number(p.paid_amount || 0) >= Number(p.amount || 0)))
+      .map((p) => p.guest_id as string)
+  ), [eventPledges]);
+
+  const paidCount = guests.filter((g: any) => paidGuestIds.has(g.id)).length;
+  const visibleGuests = excludePaid ? guests.filter((g: any) => !paidGuestIds.has(g.id)) : guests;
+
   const handleTemplateChange = (templateId: string) => {
     setSelectedTemplate(templateId);
     const tpl = SMS_TEMPLATES.find((t) => t.id === templateId);
