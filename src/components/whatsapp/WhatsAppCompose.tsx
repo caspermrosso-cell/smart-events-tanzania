@@ -548,21 +548,6 @@ const WhatsAppCompose = () => {
         {sending ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sending...</> : <><Send className="w-4 h-4 mr-2" /> Send WhatsApp Message</>}
       </Button>
 
-      {/* Manual invoice generation */}
-      <Button
-        variant="outline"
-        className="w-full"
-        onClick={() => {
-          const count = recipientMode === 'single'
-            ? 1
-            : selectedGuests.length + manualRecipients.filter(r => r.phone.trim()).length;
-          setInvoiceUnits(Math.max(count, 1));
-          setInvoiceOpen(true);
-        }}
-      >
-        <Receipt className="w-4 h-4 mr-2" /> Tengeneza Invoice ya WhatsApp
-      </Button>
-
       <SmsInvoiceDialog
         open={invoiceOpen}
         onOpenChange={setInvoiceOpen}

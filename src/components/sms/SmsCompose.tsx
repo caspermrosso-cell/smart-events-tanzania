@@ -478,18 +478,6 @@ const SmsCompose = () => {
               <span>SMS zimebaki: <strong>{eventSmsRemaining.toLocaleString()}</strong> / {eventAllocation.toLocaleString()}</span>
             </div>
           )}
-          {selectedEvent && eventSmsUsed > 0 && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="mt-2 text-xs"
-              onClick={() => { setInvoiceUnits(eventSmsUsed); setInvoiceOpen(true); }}
-            >
-              <Receipt className="w-3.5 h-3.5 mr-1.5" />
-              Tengeneza Invoice ya SMS ({eventSmsUsed.toLocaleString()} zimetumwa)
-            </Button>
-          )}
         </div>
 
         <div>
