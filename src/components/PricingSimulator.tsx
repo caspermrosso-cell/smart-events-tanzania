@@ -1,9 +1,10 @@
 import { useRef, useState, useCallback } from 'react';
-import { motion } from 'framer-motion';
-import { MessageSquare, MessagesSquare, Minus, Plus, BadgePercent } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { MessageSquare, MessagesSquare, Minus, Plus, BadgePercent, Gift, IdCard, QrCode, FileBarChart } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 type Channel = 'sms' | 'whatsapp';
+const UNLOCK_THRESHOLD = 300000;
 
 const RATES: Record<Channel, number> = { sms: 50, whatsapp: 1000 };
 const MIN_UNITS = 0;
