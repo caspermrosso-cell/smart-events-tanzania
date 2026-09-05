@@ -210,16 +210,40 @@ const Quotations = () => {
       } as any);
       if (error) throw error;
       await supabase.from('invoices').update({ status: 'paid' } as any).eq('id', receiptInvoiceId);
+
+      // Rekodi malipo moja kwa moja (automatic) baada ya kuthibitisha receipt
+      let paymentRecorded = false;
+      if (inv.event_id) {
+        const { error: payErr } = await supabase.from('payments').insert({
+          event_id: inv.event_id,
+          user_id: user.id,
+          payer_name: inv.client_name,
+          amount: inv.grand_total,
+          payment_method: receiptPaymentMethod,
+          reference: `${numData} / ${inv.invoice_number}`,
+        } as any);
+        if (payErr) throw payErr;
+        paymentRecorded = true;
+      }
+      return { numData, paymentRecorded };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['receipts', 'invoices'] });
-      toast.success('Receipt imehifadhiwa!');
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ['receipts'] });
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-revenue'] });
+      toast.success(
+        res?.paymentRecorded
+          ? 'Receipt imehifadhiwa na malipo yamerekodiwa moja kwa moja!'
+          : 'Receipt imehifadhiwa! (Hakuna tukio kwenye invoice, malipo hayakurekodiwa)'
+      );
       setShowReceiptForm(false);
       setReceiptInvoiceId('');
       setReceiptAmountInWords('');
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
 
   const buildPreviewData = useCallback((doc: any, type: 'quotation' | 'invoice' | 'receipt'): DocumentData => {
     if (type === 'receipt') {
