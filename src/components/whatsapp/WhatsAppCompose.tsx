@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, AlertCircle, ImageIcon, FileText, MapPin, Video, MessageSquare, List, Loader2, Upload, Plus, Trash2 } from 'lucide-react';
+import { Send, AlertCircle, ImageIcon, FileText, MapPin, Video, MessageSquare, List, Loader2, Upload, Plus, Trash2, Receipt } from 'lucide-react';
+import SmsInvoiceDialog from '@/components/sms/SmsInvoiceDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -46,6 +47,8 @@ const WhatsAppCompose = () => {
   const [recipientMode, setRecipientMode] = useState<'single' | 'bulk'>('single');
   const [singlePhone, setSinglePhone] = useState('');
   const [singleName, setSingleName] = useState('');
+  const [invoiceOpen, setInvoiceOpen] = useState(false);
+  const [invoiceUnits, setInvoiceUnits] = useState(0);
 
   // Quick Reply state
   const [qrHeader, setQrHeader] = useState('');
