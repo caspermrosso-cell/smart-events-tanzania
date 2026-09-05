@@ -215,6 +215,8 @@ const WhatsAppCompose = () => {
           });
         } else {
           toast({ title: 'Message sent successfully!' });
+          setInvoiceUnits(1);
+          setInvoiceOpen(true);
         }
       } else {
         // Bulk send
@@ -241,6 +243,10 @@ const WhatsAppCompose = () => {
         const sent = results.filter((r: any) => r.status === 'sent').length;
         const failed = results.filter((r: any) => r.status === 'failed').length;
         toast({ title: `Sent: ${sent}, Failed: ${failed}` });
+        if (sent > 0) {
+          setInvoiceUnits(sent);
+          setInvoiceOpen(true);
+        }
       }
 
       queryClient.invalidateQueries({ queryKey: ['whatsapp-logs'] });
