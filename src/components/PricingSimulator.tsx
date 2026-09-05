@@ -197,6 +197,65 @@ const PricingSimulator = () => {
                 : 'Habari njema — unaweza kupata punguzo (discount) kulingana na idadi ya ujumbe wako na mazungumzo yetu. Wasiliana nasi tupate bei inayokufaa.'}
             </p>
           </div>
+
+          {/* Unlock bonus services */}
+          <AnimatePresence>
+            {total >= UNLOCK_THRESHOLD && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="mt-8 rounded-3xl bg-primary/10 border border-primary/30 p-6 md:p-8">
+                  <div className="flex items-start gap-4 mb-6">
+                    <div className="w-12 h-12 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center shrink-0">
+                      <Gift className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-heading text-xl md:text-2xl font-bold text-foreground">
+                        {isEn ? 'Bonus services unlocked!' : 'Huduma za ziara zimevashwa!'}
+                      </h3>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {isEn
+                          ? `Because your budget reached TZS ${UNLOCK_THRESHOLD.toLocaleString()}, you also get these features at no extra charge.`
+                          : `Kwa kuwa bajeti yako imefikia TZS ${UNLOCK_THRESHOLD.toLocaleString()}, unapata huduma hizi bila malipo ya ziada.`}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid sm:grid-cols-3 gap-4">
+                    {[
+                      {
+                        icon: IdCard,
+                        title: isEn ? 'E-Cards' : 'E-Cards',
+                        desc: isEn ? 'Custom digital invitations' : 'Mialiko ya kidijitali',
+                      },
+                      {
+                        icon: QrCode,
+                        title: isEn ? 'Check-In & QR' : 'Check-In & QR',
+                        desc: isEn ? 'Smart guest check-in with QR codes' : 'Kuingizwa kwa wageni kwa QR',
+                      },
+                      {
+                        icon: FileBarChart,
+                        title: isEn ? 'Full Reports' : 'Ripoti Kamili',
+                        desc: isEn ? 'Complete event & payment reports' : 'Ripoti kamili za tukio na malipo',
+                      },
+                    ].map((item) => (
+                      <div
+                        key={item.title}
+                        className="flex flex-col items-center text-center rounded-2xl bg-background/70 p-5 shadow-warm"
+                      >
+                        <item.icon className="w-7 h-7 text-primary mb-3" />
+                        <p className="font-semibold text-foreground">{item.title}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{item.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
       </div>
     </section>
