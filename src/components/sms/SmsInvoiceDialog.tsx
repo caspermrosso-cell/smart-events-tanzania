@@ -35,7 +35,7 @@ const SmsInvoiceDialog = ({ open, onOpenChange, eventId, eventTitle, units, serv
     if (!open) return;
     setQty(units);
     setClientName(eventTitle || '');
-    const stored = Number(localStorage.getItem(PRICE_KEY));
+    const stored = Number(localStorage.getItem(storageKey));
     setUnitPrice(stored > 0 ? stored : 100);
   }, [open, units, eventTitle]);
 
