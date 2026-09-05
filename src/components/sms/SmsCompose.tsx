@@ -39,6 +39,9 @@ const SmsCompose = () => {
   const [selectedGuests, setSelectedGuests] = useState<string[]>([]);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [invoiceOpen, setInvoiceOpen] = useState(false);
+  const [invoiceUnits, setInvoiceUnits] = useState(0);
+
   const [scheduleEnabled, setScheduleEnabled] = useState(false);
   const [scheduleDate, setScheduleDate] = useState('');
   const [scheduleTime, setScheduleTime] = useState('');
