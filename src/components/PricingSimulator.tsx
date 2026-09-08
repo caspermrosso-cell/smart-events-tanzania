@@ -1,8 +1,9 @@
-import { useRef, useState, useCallback } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageSquare, MessagesSquare, Minus, Plus, BadgePercent, Gift, IdCard, QrCode, FileBarChart } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { usePricingSettings } from '@/hooks/usePricingSettings';
+import { Slider } from '@/components/ui/slider';
 
 type Channel = 'sms' | 'whatsapp';
 const MIN_UNITS = 0;
@@ -16,46 +17,14 @@ const PricingSimulator = () => {
   const UNLOCK_THRESHOLD = settings.unlock_threshold;
   const MAX_UNITS = settings.max_units || 5000;
   const RATES: Record<Channel, number> = { sms: settings.sms_rate, whatsapp: settings.whatsapp_rate };
-  const toAngle = (u: number) => -135 + (u / MAX_UNITS) * 270;
 
   const [channel, setChannel] = useState<Channel>('sms');
   const [units, setUnits] = useState(500);
   const fmt = (n: number) => n.toLocaleString();
 
-  const knobRef = useRef<HTMLDivElement>(null);
-  const dragging = useRef(false);
-
   const clamp = (v: number) => Math.min(MAX_UNITS, Math.max(MIN_UNITS, Math.round(v / STEP) * STEP));
-  const maxUnitsRef = useRef(MAX_UNITS);
-  maxUnitsRef.current = MAX_UNITS;
-
-  const handlePointer = useCallback((clientY: number, startY: number, startUnits: number) => {
-    // Dragging up increases volume — like turning a radio knob
-    const delta = startY - clientY;
-    const max = maxUnitsRef.current;
-    setUnits(Math.min(max, Math.max(MIN_UNITS, Math.round((startUnits + delta * (max / 300)) / STEP) * STEP)));
-  }, []);
-
-  const onPointerDown = (e: React.PointerEvent) => {
-    dragging.current = true;
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
-    const startY = e.clientY;
-    const startUnits = units;
-    const move = (ev: PointerEvent) => {
-      if (dragging.current) handlePointer(ev.clientY, startY, startUnits);
-    };
-    const up = () => {
-      dragging.current = false;
-      window.removeEventListener('pointermove', move);
-      window.removeEventListener('pointerup', up);
-    };
-    window.addEventListener('pointermove', move);
-    window.addEventListener('pointerup', up);
-  };
 
   const total = units * RATES[channel];
-
-  const tickAngles = Array.from({ length: 11 }, (_, i) => -135 + i * 27);
 
   return (
     <section className="py-24 bg-secondary/40">
