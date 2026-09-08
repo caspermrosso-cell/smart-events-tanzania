@@ -125,7 +125,7 @@ const PricingSimulator = () => {
                 <Plus className="w-4 h-4" />
               </button>
             </div>
-            <div className="flex justify-between mt-2 px-13 text-xs text-muted-foreground">
+            <div className="flex justify-between mt-2 px-12 text-xs text-muted-foreground">
               <span>0</span>
               <span>{fmt(MAX_UNITS)}</span>
             </div>
