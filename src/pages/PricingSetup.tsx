@@ -23,7 +23,7 @@ const PricingSetup = () => {
   const [noteSw, setNoteSw] = useState('');
   const [noteEn, setNoteEn] = useState('');
   const [previewUnits, setPreviewUnits] = useState(500);
-  const [previewChannel, setPreviewChannel] = useState<'sms' | 'whatsapp'>('sms');
+  const [previewChannel, setPreviewChannel] = useState<'sms' | 'whatsapp' | 'both'>('sms');
 
   useEffect(() => {
     if (isLoading) return;
