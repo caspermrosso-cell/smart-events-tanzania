@@ -54,7 +54,7 @@ const PricingSimulator = () => {
           className="soft-card rounded-3xl p-8 md:p-12 max-w-3xl mx-auto"
         >
           {/* Channel selector */}
-          <div className="flex justify-center gap-3 mb-10">
+          <div className="flex flex-wrap justify-center gap-3 mb-10">
             <button
               onClick={() => setChannel('sms')}
               className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-colors ${
@@ -76,6 +76,20 @@ const PricingSimulator = () => {
             >
               <MessagesSquare className="w-4 h-4" />
               WhatsApp · TZS {fmt(RATES.whatsapp)}/unit
+            </button>
+            <button
+              onClick={() => setChannel('both')}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-colors ${
+                channel === 'both'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/70'
+              }`}
+            >
+              <span className="flex -space-x-1.5">
+                <MessageSquare className="w-4 h-4" />
+                <MessagesSquare className="w-4 h-4" />
+              </span>
+              {isEn ? 'Both' : 'Vyote'} · TZS {fmt(RATES.sms + RATES.whatsapp)}/unit
             </button>
           </div>
 
