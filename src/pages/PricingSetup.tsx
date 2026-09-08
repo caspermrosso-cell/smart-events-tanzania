@@ -126,15 +126,15 @@ const PricingSetup = () => {
             <CardTitle className="text-base">Jaribio la haraka</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex gap-2">
-              {(['sms', 'whatsapp'] as const).map((c) => (
+            <div className="flex flex-wrap gap-2">
+              {(['sms', 'whatsapp', 'both'] as const).map((c) => (
                 <Button
                   key={c}
                   size="sm"
                   variant={previewChannel === c ? 'default' : 'outline'}
                   onClick={() => setPreviewChannel(c)}
                 >
-                  {c === 'sms' ? 'SMS' : 'WhatsApp'}
+                  {c === 'sms' ? 'SMS' : c === 'whatsapp' ? 'WhatsApp' : 'Vyote / Both'}
                 </Button>
               ))}
             </div>
