@@ -60,7 +60,7 @@ const PricingSetup = () => {
     onError: (e: any) => toast.error(e.message || 'Imeshindikana kuhifadhi'),
   });
 
-  const rate = previewChannel === 'sms' ? smsRate : waRate;
+  const rate = previewChannel === 'sms' ? smsRate : previewChannel === 'whatsapp' ? waRate : smsRate + waRate;
   const total = previewUnits * rate;
   const fmt = (n: number) => n.toLocaleString();
 
