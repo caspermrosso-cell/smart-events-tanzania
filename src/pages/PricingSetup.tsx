@@ -23,7 +23,7 @@ const PricingSetup = () => {
   const [noteSw, setNoteSw] = useState('');
   const [noteEn, setNoteEn] = useState('');
   const [previewUnits, setPreviewUnits] = useState(500);
-  const [previewChannel, setPreviewChannel] = useState<'sms' | 'whatsapp'>('sms');
+  const [previewChannel, setPreviewChannel] = useState<'sms' | 'whatsapp' | 'both'>('sms');
 
   useEffect(() => {
     if (isLoading) return;
@@ -60,7 +60,7 @@ const PricingSetup = () => {
     onError: (e: any) => toast.error(e.message || 'Imeshindikana kuhifadhi'),
   });
 
-  const rate = previewChannel === 'sms' ? smsRate : waRate;
+  const rate = previewChannel === 'sms' ? smsRate : previewChannel === 'whatsapp' ? waRate : smsRate + waRate;
   const total = previewUnits * rate;
   const fmt = (n: number) => n.toLocaleString();
 
@@ -126,15 +126,15 @@ const PricingSetup = () => {
             <CardTitle className="text-base">Jaribio la haraka</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex gap-2">
-              {(['sms', 'whatsapp'] as const).map((c) => (
+            <div className="flex flex-wrap gap-2">
+              {(['sms', 'whatsapp', 'both'] as const).map((c) => (
                 <Button
                   key={c}
                   size="sm"
                   variant={previewChannel === c ? 'default' : 'outline'}
                   onClick={() => setPreviewChannel(c)}
                 >
-                  {c === 'sms' ? 'SMS' : 'WhatsApp'}
+                  {c === 'sms' ? 'SMS' : c === 'whatsapp' ? 'WhatsApp' : 'Vyote / Both'}
                 </Button>
               ))}
             </div>
