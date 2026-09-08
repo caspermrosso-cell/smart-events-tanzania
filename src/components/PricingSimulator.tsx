@@ -16,7 +16,7 @@ const PricingSimulator = () => {
 
   const UNLOCK_THRESHOLD = settings.unlock_threshold;
   const MAX_UNITS = settings.max_units || 5000;
-  const RATES: Record<Channel, number> = { sms: settings.sms_rate, whatsapp: settings.whatsapp_rate };
+  const RATES: Record<Exclude<Channel, 'both'>, number> = { sms: settings.sms_rate, whatsapp: settings.whatsapp_rate };
 
   const [channel, setChannel] = useState<Channel>('sms');
   const [units, setUnits] = useState(500);
@@ -24,7 +24,8 @@ const PricingSimulator = () => {
 
   const clamp = (v: number) => Math.min(MAX_UNITS, Math.max(MIN_UNITS, Math.round(v / STEP) * STEP));
 
-  const total = units * RATES[channel];
+  const unitRate = channel === 'both' ? RATES.sms + RATES.whatsapp : RATES[channel];
+  const total = units * unitRate;
 
   return (
     <section className="py-24 bg-secondary/40">
