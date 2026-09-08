@@ -78,85 +78,56 @@ const PricingSimulator = () => {
             </button>
           </div>
 
-          <div className="flex flex-col md:flex-row items-center justify-center gap-10">
-            {/* Knob */}
-            <div className="relative select-none">
-              {/* tick marks */}
-              <div className="absolute inset-0 pointer-events-none">
-                {tickAngles.map((a, i) => (
-                  <div
-                    key={i}
-                    className="absolute left-1/2 top-1/2 w-0.5 h-3 bg-muted-foreground/40 rounded-full"
-                    style={{
-                      transform: `rotate(${a}deg) translateY(-118px)`,
-                      transformOrigin: '0 0',
-                    }}
-                  />
-                ))}
+          <div className="max-w-xl mx-auto">
+            {/* Readout */}
+            <div className="flex items-end justify-between mb-8">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">
+                  {isEn ? 'Messages' : 'Ujumbe'}
+                </p>
+                <p className="font-heading text-5xl font-bold text-foreground">
+                  {fmt(units)}
+                </p>
               </div>
-
-              <div
-                ref={knobRef}
-                onPointerDown={onPointerDown}
-                role="slider"
-                aria-valuemin={MIN_UNITS}
-                aria-valuemax={MAX_UNITS}
-                aria-valuenow={units}
-                aria-label={isEn ? 'Message volume' : 'Idadi ya ujumbe'}
-                className="relative w-48 h-48 rounded-full cursor-grab active:cursor-grabbing touch-none shadow-warm border-4 border-background"
-                style={{
-                  background:
-                    'radial-gradient(circle at 35% 30%, hsl(var(--secondary)), hsl(var(--muted)) 70%)',
-                }}
-              >
-                {/* indicator line */}
-                <div
-                  className="absolute inset-0 transition-transform duration-75"
-                  style={{ transform: `rotate(${toAngle(units)}deg)` }}
-                >
-                  <div className="absolute left-1/2 top-2 -translate-x-1/2 w-1.5 h-8 rounded-full bg-primary" />
-                </div>
-                {/* center cap */}
-                <div className="absolute inset-0 m-auto w-20 h-20 rounded-full bg-background shadow-inner flex items-center justify-center">
-                  <span className="text-xs font-bold text-muted-foreground">
-                    {isEn ? 'VOLUME' : 'IDADI'}
-                  </span>
-                </div>
-              </div>
-
-              {/* +/- buttons */}
-              <div className="flex justify-center gap-4 mt-6">
-                <button
-                  onClick={() => setUnits(clamp(units - 50))}
-                  className="w-9 h-9 rounded-full bg-muted hover:bg-muted/70 flex items-center justify-center"
-                  aria-label={isEn ? 'Decrease' : 'Punguza'}
-                >
-                  <Minus className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setUnits(clamp(units + 50))}
-                  className="w-9 h-9 rounded-full bg-muted hover:bg-muted/70 flex items-center justify-center"
-                  aria-label={isEn ? 'Increase' : 'Ongeza'}
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
+              <div className="text-right">
+                <p className="text-sm text-muted-foreground mb-1">
+                  {isEn ? 'Estimated total' : 'Jumla ya gharama'}
+                </p>
+                <p className="font-heading text-4xl font-bold text-primary">
+                  TZS {fmt(total)}
+                </p>
               </div>
             </div>
 
-            {/* Readout */}
-            <div className="text-center md:text-left">
-              <p className="text-sm text-muted-foreground mb-1">
-                {isEn ? 'Messages' : 'Ujumbe'}
-              </p>
-              <p className="font-heading text-5xl font-bold text-foreground mb-4">
-                {fmt(units)}
-              </p>
-              <p className="text-sm text-muted-foreground mb-1">
-                {isEn ? 'Estimated total' : 'Jumla ya gharama'}
-              </p>
-              <p className="font-heading text-4xl font-bold text-primary">
-                TZS {fmt(total)}
-              </p>
+            {/* Slider */}
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setUnits(clamp(units - 50))}
+                className="w-9 h-9 shrink-0 rounded-full bg-muted hover:bg-muted/70 flex items-center justify-center"
+                aria-label={isEn ? 'Decrease' : 'Punguza'}
+              >
+                <Minus className="w-4 h-4" />
+              </button>
+              <Slider
+                value={[units]}
+                min={MIN_UNITS}
+                max={MAX_UNITS}
+                step={STEP}
+                onValueChange={(v) => setUnits(clamp(v[0]))}
+                aria-label={isEn ? 'Message volume' : 'Idadi ya ujumbe'}
+                className="flex-1"
+              />
+              <button
+                onClick={() => setUnits(clamp(units + 50))}
+                className="w-9 h-9 shrink-0 rounded-full bg-muted hover:bg-muted/70 flex items-center justify-center"
+                aria-label={isEn ? 'Increase' : 'Ongeza'}
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex justify-between mt-2 px-13 text-xs text-muted-foreground">
+              <span>0</span>
+              <span>{fmt(MAX_UNITS)}</span>
             </div>
           </div>
 
