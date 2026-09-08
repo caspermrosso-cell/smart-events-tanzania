@@ -5,7 +5,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { usePricingSettings } from '@/hooks/usePricingSettings';
 import { Slider } from '@/components/ui/slider';
 
-type Channel = 'sms' | 'whatsapp';
+type Channel = 'sms' | 'whatsapp' | 'both';
 const MIN_UNITS = 0;
 const STEP = 10;
 
