@@ -492,6 +492,9 @@ const SmsReports = () => {
           </motion.div>
         ))}
       </div>
+      <p className="text-xs text-muted-foreground -mt-2">
+        Mzozo wa gharama: <span className="font-medium text-foreground">{totalSmsUnits.toLocaleString()} SMS units × TZS {smsRate.toLocaleString()} = TZS {totalCost.toLocaleString()}</span>
+      </p>
 
       {/* Network Breakdown */}
       {sortedNetworks.length > 0 && (
