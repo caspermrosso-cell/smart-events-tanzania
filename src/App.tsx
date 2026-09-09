@@ -29,6 +29,7 @@ import Testimonials from "./pages/Testimonials";
 import RecycleBin from "./pages/RecycleBin";
 import PricingSetup from './pages/PricingSetup';
 import FinancialStatements from './pages/FinancialStatements';
+import Purchases from './pages/Purchases';
 import UsersPage from "./pages/Users";
 import OAuthConsent from "./pages/OAuthConsent";
 import NotFound from "./pages/NotFound";
@@ -66,6 +67,7 @@ const App = () => (
               <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
               <Route path="/payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
               <Route path="/quotations" element={<ProtectedRoute><Quotations /></ProtectedRoute>} />
+              <Route path="/purchases" element={<ProtectedRoute><Purchases /></ProtectedRoute>} />
               <Route path="/packages" element={<ProtectedRoute><Packages /></ProtectedRoute>} />
               <Route path="/testimonials" element={<ProtectedRoute><Testimonials /></ProtectedRoute>} />
               <Route path="/recycle-bin" element={<ProtectedRoute><RecycleBin /></ProtectedRoute>} />
