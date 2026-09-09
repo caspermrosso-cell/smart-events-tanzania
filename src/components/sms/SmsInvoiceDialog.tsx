@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Receipt } from 'lucide-react';
+import { Receipt, RotateCcw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
+import { usePricingSettings } from '@/hooks/usePricingSettings';
 
 interface Props {
   open: boolean;
@@ -23,8 +24,15 @@ interface Props {
 const SmsInvoiceDialog = ({ open, onOpenChange, eventId, eventTitle, units, serviceName = 'SMS', storageKey = 'sms_unit_price' }: Props) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { settings } = usePricingSettings();
+
+  const isWhatsApp = serviceName.toLowerCase().includes('whatsapp');
+  const defaultUnitPrice = isWhatsApp
+    ? (settings?.whatsapp_rate ?? 1000)
+    : (settings?.sms_rate ?? 50);
+
   const [qty, setQty] = useState(units);
-  const [unitPrice, setUnitPrice] = useState(100);
+  const [unitPrice, setUnitPrice] = useState(defaultUnitPrice);
   const [clientName, setClientName] = useState(eventTitle || '');
   const [contactPerson, setContactPerson] = useState('');
   const [clientPhone, setClientPhone] = useState('');
@@ -36,8 +44,8 @@ const SmsInvoiceDialog = ({ open, onOpenChange, eventId, eventTitle, units, serv
     setQty(units);
     setClientName(eventTitle || '');
     const stored = Number(localStorage.getItem(storageKey));
-    setUnitPrice(stored > 0 ? stored : 100);
-  }, [open, units, eventTitle]);
+    setUnitPrice(stored > 0 ? stored : defaultUnitPrice);
+  }, [open, units, eventTitle, defaultUnitPrice, storageKey]);
 
   const subtotal = useMemo(() => Math.max(0, Math.round(qty * unitPrice)), [qty, unitPrice]);
   const vatAmount = vatEnabled ? Math.round(subtotal * 0.18) : 0;
@@ -114,8 +122,21 @@ const SmsInvoiceDialog = ({ open, onOpenChange, eventId, eventTitle, units, serv
               <Input type="number" min={1} value={qty} onChange={(e) => setQty(Number(e.target.value))} />
             </div>
             <div>
-              <Label className="text-xs">Bei kwa {serviceName} (TZS)</Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Bei kwa {serviceName} (TZS)</Label>
+                <button
+                  type="button"
+                  onClick={() => setUnitPrice(defaultUnitPrice)}
+                  className="text-[10px] flex items-center gap-0.5 text-primary hover:underline"
+                  title="Rejesha bei ya chaguo-msingi"
+                >
+                  <RotateCcw className="w-3 h-3" /> Rejesha TZS {defaultUnitPrice.toLocaleString()}
+                </button>
+              </div>
               <Input type="number" min={1} value={unitPrice} onChange={(e) => setUnitPrice(Number(e.target.value))} />
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Bei ya chaguo-msingi: TZS {defaultUnitPrice.toLocaleString()} kwa {serviceName} unit
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
