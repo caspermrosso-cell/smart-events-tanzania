@@ -66,16 +66,31 @@ const FinancialStatements = () => {
     queryFn: async () => {
       const from = `${year}-01-01T00:00:00Z`;
       const to = `${year + 1}-01-01T00:00:00Z`;
-      const [inv, pay] = await Promise.all([
+      const [inv, pay, pur] = await Promise.all([
         supabase.from('invoices').select('subtotal, vat_amount, grand_total, status, created_at').gte('created_at', from).lt('created_at', to),
         supabase.from('payments').select('amount, created_at').gte('created_at', from).lt('created_at', to),
+        (supabase as any).from('supplier_purchases').select('amount_excl_vat, vat_amount, total_amount, units, purchase_date')
+          .gte('purchase_date', `${year}-01-01`).lte('purchase_date', `${year}-12-31`),
       ]);
       const invoices = inv.data || [];
-      const revenue = invoices.reduce((s: number, i: any) => s + (Number(i.grand_total) || 0) - (Number(i.vat_amount) || 0), 0);
+      // VAT 18% inahesabiwa ndani ya bei ya kuuza (jumla x 18/118)
+      const outputVat = invoices.reduce(
+        (s: number, i: any) => s + (Number(i.vat_amount) || vatFromGross(Number(i.grand_total) || 0)),
+        0,
+      );
+      const revenue = invoices.reduce((s: number, i: any) => s + (Number(i.grand_total) || 0), 0) - outputVat;
       const paid = invoices.filter((i: any) => i.status === 'paid').reduce((s: number, i: any) => s + (Number(i.grand_total) || 0), 0);
       const receipts = (pay.data || []).reduce((s: number, p: any) => s + (Number(p.amount) || 0), 0);
       const receivables = revenue - paid;
-      return { revenue, paid, receipts, receivables, count: invoices.length };
+      const purchases = (pur as any).data || [];
+      const directCost = purchases.reduce((s: number, p: any) => s + (Number(p.amount_excl_vat) || 0), 0);
+      const inputVat = purchases.reduce((s: number, p: any) => s + (Number(p.vat_amount) || 0), 0);
+      const purchasedUnits = purchases.reduce((s: number, p: any) => s + (Number(p.units) || 0), 0);
+      return {
+        revenue, paid, receipts, receivables, count: invoices.length,
+        outputVat, directCost, inputVat, purchasedUnits,
+        netVat: outputVat - inputVat, purchaseCount: purchases.length,
+      };
     },
   });
 
