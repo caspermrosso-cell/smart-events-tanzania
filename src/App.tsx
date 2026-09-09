@@ -29,6 +29,7 @@ import Testimonials from "./pages/Testimonials";
 import RecycleBin from "./pages/RecycleBin";
 import PricingSetup from './pages/PricingSetup';
 import FinancialStatements from './pages/FinancialStatements';
+import Purchases from './pages/Purchases';
 import UsersPage from "./pages/Users";
 import OAuthConsent from "./pages/OAuthConsent";
 import NotFound from "./pages/NotFound";
