@@ -383,8 +383,8 @@ const SmsReports = () => {
         summaryData.push([network, data.total, data.sent, data.failed]);
       });
 
-      summaryData.push([], ['Ripoti kwa Siku'], ['Tarehe', 'Zimefika', 'Zimeshindikana', 'Zimepangwa', 'Units']);
-      dailyBreakdown.forEach((d) => summaryData.push([d.date, d.sent, d.failed, d.scheduled, d.units]));
+      summaryData.push([], ['Ripoti kwa Siku'], ['Tarehe', 'Zimefika', 'Zimeshindikana', 'Zimepangwa', 'Units', 'Gharama (TZS)']);
+      dailyBreakdown.forEach((d) => summaryData.push([d.date, d.sent, d.failed, d.scheduled, d.units, d.cost]));
 
       summaryData.push([], ['Majibu ya Beem API'], ['Code', 'Maelezo', 'Idadi', 'Units']);
       beemBreakdown.forEach((b) => summaryData.push([b.code, b.message, b.count, b.units]));
