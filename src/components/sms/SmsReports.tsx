@@ -177,6 +177,7 @@ const SmsReports = () => {
   const totalFailed = logs.filter((l: any) => l.status === 'failed').length;
   const totalScheduled = logs.filter((l: any) => l.status === 'scheduled').length;
   const totalSmsUnits = logs.reduce((sum: number, l: any) => sum + (l.sms_count || 1), 0);
+  const totalCost = totalSmsUnits * smsRate;
   const totalPending = logs.filter((l: any) => l.status === 'pending').length;
   const successRate = logs.length > 0 ? Math.round((totalSent / logs.length) * 100) : 0;
 
