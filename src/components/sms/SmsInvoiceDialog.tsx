@@ -122,8 +122,21 @@ const SmsInvoiceDialog = ({ open, onOpenChange, eventId, eventTitle, units, serv
               <Input type="number" min={1} value={qty} onChange={(e) => setQty(Number(e.target.value))} />
             </div>
             <div>
-              <Label className="text-xs">Bei kwa {serviceName} (TZS)</Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Bei kwa {serviceName} (TZS)</Label>
+                <button
+                  type="button"
+                  onClick={() => setUnitPrice(defaultUnitPrice)}
+                  className="text-[10px] flex items-center gap-0.5 text-primary hover:underline"
+                  title="Rejesha bei ya chaguo-msingi"
+                >
+                  <RotateCcw className="w-3 h-3" /> Rejesha TZS {defaultUnitPrice.toLocaleString()}
+                </button>
+              </div>
               <Input type="number" min={1} value={unitPrice} onChange={(e) => setUnitPrice(Number(e.target.value))} />
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Bei ya chaguo-msingi: TZS {defaultUnitPrice.toLocaleString()} kwa {serviceName} unit
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
