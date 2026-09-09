@@ -240,6 +240,11 @@ const SmsReports = () => {
 
   const maxCount = Math.max(...dailyCounts.map(d => d.count), 1);
 
+  const billedSmsUnits = logs
+    .filter((l: any) => l.status === 'sent')
+    .reduce((sum: number, l: any) => sum + (l.sms_count || 1), 0);
+  const totalCost = billedSmsUnits * smsRate;
+
   const stats = [
     { label: 'Zimefika (Delivered)', value: totalSent, icon: CheckCircle, color: 'text-green-500' },
     { label: 'Zimeshindikana', value: totalFailed, icon: XCircle, color: 'text-destructive' },
