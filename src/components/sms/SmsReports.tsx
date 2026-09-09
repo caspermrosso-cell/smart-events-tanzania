@@ -1,9 +1,10 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { BarChart3, CheckCircle, XCircle, Clock, TrendingUp, FileText, FileSpreadsheet, Signal, CalendarDays, PartyPopper, ClipboardList, Server } from 'lucide-react';
+import { BarChart3, CheckCircle, XCircle, Clock, TrendingUp, FileText, FileSpreadsheet, Signal, CalendarDays, PartyPopper, ClipboardList, Server, Banknote } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
+import { usePricingSettings } from '@/hooks/usePricingSettings';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
@@ -98,6 +99,8 @@ const NETWORK_COLORS: Record<string, { color: string; bg: string }> = {
 
 const SmsReports = () => {
   const { user } = useAuth();
+  const { settings } = usePricingSettings();
+  const smsRate = settings?.sms_rate ?? 50;
   const [exporting, setExporting] = useState<'pdf' | 'excel' | null>(null);
   const [selectedEventId, setSelectedEventId] = useState<string>('all');
   const [dateFrom, setDateFrom] = useState<string>('');
@@ -174,6 +177,7 @@ const SmsReports = () => {
   const totalFailed = logs.filter((l: any) => l.status === 'failed').length;
   const totalScheduled = logs.filter((l: any) => l.status === 'scheduled').length;
   const totalSmsUnits = logs.reduce((sum: number, l: any) => sum + (l.sms_count || 1), 0);
+  const totalCost = totalSmsUnits * smsRate;
   const totalPending = logs.filter((l: any) => l.status === 'pending').length;
   const successRate = logs.length > 0 ? Math.round((totalSent / logs.length) * 100) : 0;
 
@@ -194,18 +198,20 @@ const SmsReports = () => {
 
   // Per-day breakdown
   const dailyBreakdown = useMemo(() => {
-    const acc: Record<string, { date: string; sent: number; failed: number; scheduled: number; units: number }> = {};
+    const acc: Record<string, { date: string; sent: number; failed: number; scheduled: number; units: number; cost: number }> = {};
     (logs as any[]).forEach((log: any) => {
       if (!log.created_at) return;
       const day = localDay(log.created_at);
-      if (!acc[day]) acc[day] = { date: day, sent: 0, failed: 0, scheduled: 0, units: 0 };
+      const units = log.sms_count || 1;
+      if (!acc[day]) acc[day] = { date: day, sent: 0, failed: 0, scheduled: 0, units: 0, cost: 0 };
       if (log.status === 'sent') acc[day].sent++;
       else if (log.status === 'failed') acc[day].failed++;
       else if (log.status === 'scheduled') acc[day].scheduled++;
-      acc[day].units += log.sms_count || 1;
+      acc[day].units += units;
+      acc[day].cost += units * smsRate;
     });
     return Object.values(acc).sort((a, b) => (a.date < b.date ? 1 : -1));
-  }, [logs]);
+  }, [logs, smsRate]);
 
   // Network breakdown
   type NetStat = { total: number; sent: number; failed: number };
@@ -239,6 +245,7 @@ const SmsReports = () => {
     { label: 'Zimeshindikana', value: totalFailed, icon: XCircle, color: 'text-destructive' },
     { label: 'Zimepangwa', value: totalScheduled, icon: Clock, color: 'text-amber-500' },
     { label: 'SMS Units', value: totalSmsUnits, icon: TrendingUp, color: 'text-primary' },
+    { label: 'Gharama TZS', value: `TZS ${totalCost.toLocaleString()}`, icon: Banknote, color: 'text-emerald-600' },
   ];
 
   const formatDate = (dateStr: string) => {
@@ -282,7 +289,9 @@ const SmsReports = () => {
       doc.text(`SMS Zimetumwa: ${totalSent}`, 14, y); y += 7;
       doc.text(`SMS Zimeshindikana: ${totalFailed}`, 14, y); y += 7;
       doc.text(`SMS Zimepangwa: ${totalScheduled}`, 14, y); y += 7;
-      doc.text(`Jumla SMS Units: ${totalSmsUnits}`, 14, y); y += 10;
+      doc.text(`Jumla SMS Units: ${totalSmsUnits}`, 14, y); y += 7;
+      doc.text(`Bei kwa Unit: TZS ${smsRate}`, 14, y); y += 7;
+      doc.text(`Jumla Gharama: TZS ${totalCost.toLocaleString()}`, 14, y); y += 10;
 
       if (balance) {
         const creditBal = Number(balance?.credit_balance || 0);
@@ -361,6 +370,8 @@ const SmsReports = () => {
         ['SMS Zimeshindikana', totalFailed],
         ['SMS Zimepangwa', totalScheduled],
         ['Jumla SMS Units', totalSmsUnits],
+        ['Bei kwa Unit (TZS)', smsRate],
+        ['Jumla Gharama (TZS)', totalCost],
       ];
 
       if (balance) {
@@ -372,8 +383,8 @@ const SmsReports = () => {
         summaryData.push([network, data.total, data.sent, data.failed]);
       });
 
-      summaryData.push([], ['Ripoti kwa Siku'], ['Tarehe', 'Zimefika', 'Zimeshindikana', 'Zimepangwa', 'Units']);
-      dailyBreakdown.forEach((d) => summaryData.push([d.date, d.sent, d.failed, d.scheduled, d.units]));
+      summaryData.push([], ['Ripoti kwa Siku'], ['Tarehe', 'Zimefika', 'Zimeshindikana', 'Zimepangwa', 'Units', 'Gharama (TZS)']);
+      dailyBreakdown.forEach((d) => summaryData.push([d.date, d.sent, d.failed, d.scheduled, d.units, d.cost]));
 
       summaryData.push([], ['Majibu ya Beem API'], ['Code', 'Maelezo', 'Idadi', 'Units']);
       beemBreakdown.forEach((b) => summaryData.push([b.code, b.message, b.count, b.units]));
@@ -466,7 +477,7 @@ const SmsReports = () => {
       </p>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {stats.map((stat, i) => (
           <motion.div
             key={stat.label}
@@ -535,7 +546,7 @@ const SmsReports = () => {
             </div>
             <div>
               <p className="text-xs text-muted-foreground">SMS Zinazokadiriwa</p>
-              <p className="text-xl font-bold text-foreground">~{Math.floor(Number(balance?.credit_balance || 0) / 25).toLocaleString()}</p>
+              <p className="text-xl font-bold text-foreground">~{smsRate > 0 ? Math.floor(Number(balance?.credit_balance || 0) / smsRate).toLocaleString() : '—'}</p>
             </div>
           </div>
         </motion.div>
@@ -560,6 +571,7 @@ const SmsReports = () => {
                   <th className="text-right py-2">Zimeshindikana</th>
                   <th className="text-right py-2">Zimepangwa</th>
                   <th className="text-right py-2">Units</th>
+                  <th className="text-right py-2">Gharama (TZS)</th>
                 </tr>
               </thead>
               <tbody>
@@ -570,6 +582,7 @@ const SmsReports = () => {
                     <td className="py-2 text-right text-destructive font-medium">{d.failed}</td>
                     <td className="py-2 text-right text-amber-500">{d.scheduled}</td>
                     <td className="py-2 text-right text-foreground">{d.units}</td>
+                    <td className="py-2 text-right text-emerald-600 font-medium">{d.cost.toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>
