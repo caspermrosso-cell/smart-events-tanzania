@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Receipt } from 'lucide-react';
+import { Receipt, RotateCcw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
+import { usePricingSettings } from '@/hooks/usePricingSettings';
 
 interface Props {
   open: boolean;
@@ -23,8 +24,15 @@ interface Props {
 const SmsInvoiceDialog = ({ open, onOpenChange, eventId, eventTitle, units, serviceName = 'SMS', storageKey = 'sms_unit_price' }: Props) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { settings } = usePricingSettings();
+
+  const isWhatsApp = serviceName.toLowerCase().includes('whatsapp');
+  const defaultUnitPrice = isWhatsApp
+    ? (settings?.whatsapp_rate ?? 1000)
+    : (settings?.sms_rate ?? 50);
+
   const [qty, setQty] = useState(units);
-  const [unitPrice, setUnitPrice] = useState(100);
+  const [unitPrice, setUnitPrice] = useState(defaultUnitPrice);
   const [clientName, setClientName] = useState(eventTitle || '');
   const [contactPerson, setContactPerson] = useState('');
   const [clientPhone, setClientPhone] = useState('');
@@ -36,8 +44,8 @@ const SmsInvoiceDialog = ({ open, onOpenChange, eventId, eventTitle, units, serv
     setQty(units);
     setClientName(eventTitle || '');
     const stored = Number(localStorage.getItem(storageKey));
-    setUnitPrice(stored > 0 ? stored : 100);
-  }, [open, units, eventTitle]);
+    setUnitPrice(stored > 0 ? stored : defaultUnitPrice);
+  }, [open, units, eventTitle, defaultUnitPrice, storageKey]);
 
   const subtotal = useMemo(() => Math.max(0, Math.round(qty * unitPrice)), [qty, unitPrice]);
   const vatAmount = vatEnabled ? Math.round(subtotal * 0.18) : 0;
