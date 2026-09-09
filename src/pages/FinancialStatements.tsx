@@ -182,11 +182,22 @@ const FinancialStatements = () => {
           </div>
           <div className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
             <div>
-              <p className="text-sm font-medium">Revenue ya kiotomatiki</p>
-              <p className="text-xs text-muted-foreground">Kutoka invoices za {year} (bila VAT)</p>
+              <p className="text-sm font-medium">Revenue &amp; Direct Cost za kiotomatiki</p>
+              <p className="text-xs text-muted-foreground">
+                Invoices za {year} (bila VAT 18%) na risiti za manunuzi ya units
+              </p>
             </div>
             <Switch checked={form.auto_revenue} onCheckedChange={(v) => setForm({ ...form, auto_revenue: v })} />
           </div>
+          {auto && (
+            <div className="rounded-lg border border-border p-3 space-y-1 text-sm">
+              <p className="text-xs font-semibold uppercase text-muted-foreground">VAT 18% (ndani ya bei)</p>
+              <div className="flex justify-between"><span>VAT ya mauzo (output)</span><span className="tabular-nums">{fmt(auto.outputVat)}</span></div>
+              <div className="flex justify-between"><span>VAT ya manunuzi (input)</span><span className="tabular-nums">{fmt(auto.inputVat)}</span></div>
+              <div className="flex justify-between font-semibold border-t border-border pt-1"><span>VAT ya kulipa TRA</span><span className="tabular-nums">{fmt(auto.netVat)}</span></div>
+              <p className="text-xs text-muted-foreground pt-1">Units zilizonunuliwa: {auto.purchasedUnits.toLocaleString()}</p>
+            </div>
+          )}
           {GROUPS.map((g) => (
             <div key={g} className="space-y-2">
               <p className="text-xs font-semibold uppercase text-muted-foreground">{g}</p>
