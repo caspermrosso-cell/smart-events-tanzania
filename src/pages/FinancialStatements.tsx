@@ -100,7 +100,11 @@ const FinancialStatements = () => {
 
   useEffect(() => {
     if (form.auto_revenue && auto) {
-      setForm((f) => (f.revenue === auto.revenue ? f : { ...f, revenue: auto.revenue }));
+      setForm((f) =>
+        f.revenue === auto.revenue && f.direct_cost === auto.directCost
+          ? f
+          : { ...f, revenue: auto.revenue, direct_cost: auto.directCost },
+      );
     }
   }, [auto, form.auto_revenue]);
 
