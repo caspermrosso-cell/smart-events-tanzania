@@ -567,6 +567,7 @@ const SmsReports = () => {
                   <th className="text-right py-2">Zimeshindikana</th>
                   <th className="text-right py-2">Zimepangwa</th>
                   <th className="text-right py-2">Units</th>
+                  <th className="text-right py-2">Gharama (TZS)</th>
                 </tr>
               </thead>
               <tbody>
@@ -577,6 +578,7 @@ const SmsReports = () => {
                     <td className="py-2 text-right text-destructive font-medium">{d.failed}</td>
                     <td className="py-2 text-right text-amber-500">{d.scheduled}</td>
                     <td className="py-2 text-right text-foreground">{d.units}</td>
+                    <td className="py-2 text-right text-emerald-600 font-medium">{d.cost.toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>
