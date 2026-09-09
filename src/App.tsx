@@ -71,6 +71,7 @@ const App = () => (
               <Route path="/recycle-bin" element={<ProtectedRoute><RecycleBin /></ProtectedRoute>} />
               <Route path="/users" element={<ProtectedRoute adminOnly><UsersPage /></ProtectedRoute>} />
               <Route path="/pricing-setup" element={<ProtectedRoute adminOnly><PricingSetup /></ProtectedRoute>} />
+              <Route path="/financial-statements" element={<ProtectedRoute adminOnly><FinancialStatements /></ProtectedRoute>} />
               <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
