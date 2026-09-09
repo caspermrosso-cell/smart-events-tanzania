@@ -846,6 +846,63 @@ export type Database = {
         }
         Relationships: []
       }
+      supplier_purchases: {
+        Row: {
+          amount_excl_vat: number
+          channel: string
+          created_at: string
+          id: string
+          notes: string | null
+          payment_method: string | null
+          purchase_date: string
+          receipt_number: string | null
+          receipt_url: string | null
+          supplier: string
+          total_amount: number
+          unit_cost: number
+          units: number
+          updated_at: string
+          user_id: string
+          vat_amount: number
+        }
+        Insert: {
+          amount_excl_vat?: number
+          channel?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          purchase_date?: string
+          receipt_number?: string | null
+          receipt_url?: string | null
+          supplier?: string
+          total_amount?: number
+          unit_cost?: number
+          units?: number
+          updated_at?: string
+          user_id: string
+          vat_amount?: number
+        }
+        Update: {
+          amount_excl_vat?: number
+          channel?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          purchase_date?: string
+          receipt_number?: string | null
+          receipt_url?: string | null
+          supplier?: string
+          total_amount?: number
+          unit_cost?: number
+          units?: number
+          updated_at?: string
+          user_id?: string
+          vat_amount?: number
+        }
+        Relationships: []
+      }
       testimonials: {
         Row: {
           client_name: string
