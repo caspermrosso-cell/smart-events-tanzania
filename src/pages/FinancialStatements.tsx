@@ -142,10 +142,11 @@ const FinancialStatements = () => {
     setForm((f) => ({
       ...f,
       revenue: auto.revenue,
+      direct_cost: auto.directCost,
       tax_receivables: Math.max(0, auto.receivables),
       cash_and_bank: auto.receipts,
     }));
-    toast({ title: 'Takwimu zimechukuliwa', description: `Invoices ${auto.count} za mwaka ${year}.` });
+    toast({ title: 'Takwimu zimechukuliwa', description: `Invoices ${auto.count} na risiti ${auto.purchaseCount} za mwaka ${year}.` });
   };
 
   return (
