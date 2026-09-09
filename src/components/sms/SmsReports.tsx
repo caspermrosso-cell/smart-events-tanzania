@@ -99,6 +99,8 @@ const NETWORK_COLORS: Record<string, { color: string; bg: string }> = {
 
 const SmsReports = () => {
   const { user } = useAuth();
+  const { settings } = usePricingSettings();
+  const smsRate = settings?.sms_rate ?? 50;
   const [exporting, setExporting] = useState<'pdf' | 'excel' | null>(null);
   const [selectedEventId, setSelectedEventId] = useState<string>('all');
   const [dateFrom, setDateFrom] = useState<string>('');
