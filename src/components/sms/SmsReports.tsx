@@ -198,18 +198,20 @@ const SmsReports = () => {
 
   // Per-day breakdown
   const dailyBreakdown = useMemo(() => {
-    const acc: Record<string, { date: string; sent: number; failed: number; scheduled: number; units: number }> = {};
+    const acc: Record<string, { date: string; sent: number; failed: number; scheduled: number; units: number; cost: number }> = {};
     (logs as any[]).forEach((log: any) => {
       if (!log.created_at) return;
       const day = localDay(log.created_at);
-      if (!acc[day]) acc[day] = { date: day, sent: 0, failed: 0, scheduled: 0, units: 0 };
+      const units = log.sms_count || 1;
+      if (!acc[day]) acc[day] = { date: day, sent: 0, failed: 0, scheduled: 0, units: 0, cost: 0 };
       if (log.status === 'sent') acc[day].sent++;
       else if (log.status === 'failed') acc[day].failed++;
       else if (log.status === 'scheduled') acc[day].scheduled++;
-      acc[day].units += log.sms_count || 1;
+      acc[day].units += units;
+      acc[day].cost += units * smsRate;
     });
     return Object.values(acc).sort((a, b) => (a.date < b.date ? 1 : -1));
-  }, [logs]);
+  }, [logs, smsRate]);
 
   // Network breakdown
   type NetStat = { total: number; sent: number; failed: number };
