@@ -243,6 +243,7 @@ const SmsReports = () => {
     { label: 'Zimeshindikana', value: totalFailed, icon: XCircle, color: 'text-destructive' },
     { label: 'Zimepangwa', value: totalScheduled, icon: Clock, color: 'text-amber-500' },
     { label: 'SMS Units', value: totalSmsUnits, icon: TrendingUp, color: 'text-primary' },
+    { label: 'Gharama TZS', value: `TZS ${totalCost.toLocaleString()}`, icon: Banknote, color: 'text-emerald-600' },
   ];
 
   const formatDate = (dateStr: string) => {
