@@ -289,7 +289,9 @@ const SmsReports = () => {
       doc.text(`SMS Zimetumwa: ${totalSent}`, 14, y); y += 7;
       doc.text(`SMS Zimeshindikana: ${totalFailed}`, 14, y); y += 7;
       doc.text(`SMS Zimepangwa: ${totalScheduled}`, 14, y); y += 7;
-      doc.text(`Jumla SMS Units: ${totalSmsUnits}`, 14, y); y += 10;
+      doc.text(`Jumla SMS Units: ${totalSmsUnits}`, 14, y); y += 7;
+      doc.text(`Bei kwa Unit: TZS ${smsRate}`, 14, y); y += 7;
+      doc.text(`Jumla Gharama: TZS ${totalCost.toLocaleString()}`, 14, y); y += 10;
 
       if (balance) {
         const creditBal = Number(balance?.credit_balance || 0);
