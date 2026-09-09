@@ -28,6 +28,7 @@ const allNavItems: NavItem[] = [
   { label: 'Recycle Bin', icon: Trash2, href: '/recycle-bin', module: 'recycle_bin' },
   { label: 'Watumiaji', icon: UserCog, href: '/users', module: 'users' },
   { label: 'Mipangilio ya Bei', icon: Coins, href: '/pricing-setup', module: 'users' },
+  { label: 'Financial Statements', icon: Landmark, href: '/financial-statements', module: 'users' },
 ];
 
 const DashboardLayout = ({ children }: { children: ReactNode }) => {
