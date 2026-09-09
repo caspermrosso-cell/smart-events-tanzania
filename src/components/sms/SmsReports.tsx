@@ -546,7 +546,7 @@ const SmsReports = () => {
             </div>
             <div>
               <p className="text-xs text-muted-foreground">SMS Zinazokadiriwa</p>
-              <p className="text-xl font-bold text-foreground">~{Math.floor(Number(balance?.credit_balance || 0) / 25).toLocaleString()}</p>
+              <p className="text-xl font-bold text-foreground">~{smsRate > 0 ? Math.floor(Number(balance?.credit_balance || 0) / smsRate).toLocaleString() : '—'}</p>
             </div>
           </div>
         </motion.div>
