@@ -152,6 +152,81 @@ export type Database = {
         }
         Relationships: []
       }
+      financial_statements: {
+        Row: {
+          auto_revenue: boolean
+          cash_and_bank: number
+          change_in_payables: number
+          company_name: string
+          created_at: string
+          depreciation: number
+          direct_cost: number
+          id: string
+          opening_accumulated_profit: number
+          opening_cash: number
+          operating_expenses: number
+          property_equipment: number
+          purchase_of_assets: number
+          revenue: number
+          share_capital: number
+          shares_issued_during_year: number
+          tax_charge: number
+          tax_receivables: number
+          taxation_paid: number
+          trade_payables: number
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          auto_revenue?: boolean
+          cash_and_bank?: number
+          change_in_payables?: number
+          company_name?: string
+          created_at?: string
+          depreciation?: number
+          direct_cost?: number
+          id?: string
+          opening_accumulated_profit?: number
+          opening_cash?: number
+          operating_expenses?: number
+          property_equipment?: number
+          purchase_of_assets?: number
+          revenue?: number
+          share_capital?: number
+          shares_issued_during_year?: number
+          tax_charge?: number
+          tax_receivables?: number
+          taxation_paid?: number
+          trade_payables?: number
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          auto_revenue?: boolean
+          cash_and_bank?: number
+          change_in_payables?: number
+          company_name?: string
+          created_at?: string
+          depreciation?: number
+          direct_cost?: number
+          id?: string
+          opening_accumulated_profit?: number
+          opening_cash?: number
+          operating_expenses?: number
+          property_equipment?: number
+          purchase_of_assets?: number
+          revenue?: number
+          share_capital?: number
+          shares_issued_during_year?: number
+          tax_charge?: number
+          tax_receivables?: number
+          taxation_paid?: number
+          trade_payables?: number
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
       guests: {
         Row: {
           barcode: string | null
