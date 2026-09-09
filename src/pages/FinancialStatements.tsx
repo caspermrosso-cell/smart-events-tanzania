@@ -207,7 +207,7 @@ const FinancialStatements = () => {
                   <Input
                     type="number"
                     value={String(form[f.key] as number)}
-                    disabled={f.key === 'revenue' && form.auto_revenue}
+                    disabled={(f.key === 'revenue' || f.key === 'direct_cost') && form.auto_revenue}
                     onChange={(e) => setNum(f.key, e.target.value)}
                   />
                 </div>
