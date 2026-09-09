@@ -12,6 +12,7 @@ import { toast } from '@/hooks/use-toast';
 import { Download, Save, RefreshCw, Loader2 } from 'lucide-react';
 import { computeFinancials, emptyFinancials, fmt, neg, type FinancialInput } from '@/lib/financialStatements';
 import { buildFinancialStatementsDocx, downloadBlob } from '@/lib/financialStatementsDocx';
+import { vatFromGross } from '@/pages/Purchases';
 
 const NUMERIC_FIELDS: { key: keyof FinancialInput; label: string; group: string }[] = [
   { key: 'revenue', label: 'Revenue / Mapato', group: 'Profit & Loss' },
