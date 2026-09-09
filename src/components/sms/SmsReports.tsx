@@ -370,6 +370,8 @@ const SmsReports = () => {
         ['SMS Zimeshindikana', totalFailed],
         ['SMS Zimepangwa', totalScheduled],
         ['Jumla SMS Units', totalSmsUnits],
+        ['Bei kwa Unit (TZS)', smsRate],
+        ['Jumla Gharama (TZS)', totalCost],
       ];
 
       if (balance) {
