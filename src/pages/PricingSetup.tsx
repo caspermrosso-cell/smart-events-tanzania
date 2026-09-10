@@ -9,15 +9,18 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
-import { Save, SlidersHorizontal, Gift } from 'lucide-react';
-import { usePricingSettings } from '@/hooks/usePricingSettings';
+import { Save, SlidersHorizontal, Gift, TrendingUp, EyeOff } from 'lucide-react';
+import { usePricingSettings, useBuyRates } from '@/hooks/usePricingSettings';
 
 const PricingSetup = () => {
   const { settings, isLoading } = usePricingSettings();
+  const { buyRates, isLoading: buyLoading } = useBuyRates();
   const queryClient = useQueryClient();
 
   const [smsRate, setSmsRate] = useState(50);
   const [waRate, setWaRate] = useState(1000);
+  const [smsBuy, setSmsBuy] = useState(0);
+  const [waBuy, setWaBuy] = useState(0);
   const [threshold, setThreshold] = useState(300000);
   const [maxUnits, setMaxUnits] = useState(5000);
   const [noteSw, setNoteSw] = useState('');
@@ -35,11 +38,19 @@ const PricingSetup = () => {
     setNoteEn(settings.discount_note_en ?? '');
   }, [isLoading, settings]);
 
+  useEffect(() => {
+    if (buyLoading) return;
+    setSmsBuy(buyRates.sms_buy_rate);
+    setWaBuy(buyRates.whatsapp_buy_rate);
+  }, [buyLoading, buyRates]);
+
   const save = useMutation({
     mutationFn: async () => {
       const payload = {
         sms_rate: smsRate,
         whatsapp_rate: waRate,
+        sms_buy_rate: smsBuy,
+        whatsapp_buy_rate: waBuy,
         unlock_threshold: threshold,
         max_units: maxUnits,
         discount_note_sw: noteSw || null,
@@ -55,6 +66,7 @@ const PricingSetup = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pricing-settings'] });
+      queryClient.invalidateQueries({ queryKey: ['pricing-buy-rates'] });
       toast.success('Bei zimehifadhiwa');
     },
     onError: (e: any) => toast.error(e.message || 'Imeshindikana kuhifadhi'),
@@ -63,6 +75,9 @@ const PricingSetup = () => {
   const rate = previewChannel === 'sms' ? smsRate : previewChannel === 'whatsapp' ? waRate : smsRate + waRate;
   const total = previewUnits * rate;
   const fmt = (n: number) => n.toLocaleString();
+
+  const margin = (sell: number, buy: number) => sell - buy;
+  const marginPct = (sell: number, buy: number) => (sell > 0 ? ((sell - buy) / sell) * 100 : 0);
 
   return (
     <DashboardLayout>
@@ -100,6 +115,70 @@ const PricingSetup = () => {
               <Label>Idadi ya juu ya ujumbe (simulator)</Label>
               <Input type="number" min={100} value={maxUnits} onChange={(e) => setMaxUnits(Number(e.target.value))} />
             </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-primary/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <TrendingUp className="w-4 h-4" /> Bei ya kununua vs bei ya kuuza (faida)
+            </CardTitle>
+            <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <EyeOff className="w-3.5 h-3.5" /> Taarifa hizi ni za ndani tu — hazionekani kwenye tovuti wala kwa wateja.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Bei ya kununua SMS (TZS kwa unit)</Label>
+                <Input type="number" min={0} value={smsBuy} onChange={(e) => setSmsBuy(Number(e.target.value))} />
+              </div>
+              <div className="space-y-2">
+                <Label>Bei ya kununua WhatsApp (TZS kwa unit)</Label>
+                <Input type="number" min={0} value={waBuy} onChange={(e) => setWaBuy(Number(e.target.value))} />
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-xs text-muted-foreground border-b border-border">
+                    <th className="py-2">Huduma</th>
+                    <th className="text-right">Kununua / unit</th>
+                    <th className="text-right">Kuuza / unit</th>
+                    <th className="text-right">Faida / unit</th>
+                    <th className="text-right">Faida %</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    ['SMS', smsBuy, smsRate] as const,
+                    ['WhatsApp', waBuy, waRate] as const,
+                  ].map(([label, buy, sell]) => {
+                    const m = margin(sell, buy);
+                    return (
+                      <tr key={label} className="border-b border-border/60">
+                        <td className="py-2">{label}</td>
+                        <td className="text-right tabular-nums">{fmt(buy)}</td>
+                        <td className="text-right tabular-nums">{fmt(sell)}</td>
+                        <td className={`text-right tabular-nums font-medium ${m < 0 ? 'text-destructive' : 'text-primary'}`}>
+                          {fmt(m)}
+                        </td>
+                        <td className={`text-right tabular-nums ${m < 0 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                          {marginPct(sell, buy).toFixed(1)}%
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {(margin(smsRate, smsBuy) < 0 || margin(waRate, waBuy) < 0) && (
+              <p className="text-sm text-destructive rounded-lg bg-destructive/10 border border-destructive/30 p-3">
+                Onyo: bei ya kuuza iko chini ya bei ya kununua — unauza kwa hasara.
+              </p>
+            )}
           </CardContent>
         </Card>
 

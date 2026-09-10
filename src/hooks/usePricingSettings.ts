@@ -5,6 +5,9 @@ export interface PricingSettings {
   id: string;
   sms_rate: number;
   whatsapp_rate: number;
+  /** Bei ya kununua — inaonekana kwa watumiaji wa mfumo pekee, si kwenye tovuti */
+  sms_buy_rate: number;
+  whatsapp_buy_rate: number;
   unlock_threshold: number;
   max_units: number;
   discount_note_en: string | null;
@@ -15,6 +18,8 @@ export const DEFAULT_PRICING: PricingSettings = {
   id: '',
   sms_rate: 50,
   whatsapp_rate: 1000,
+  sms_buy_rate: 0,
+  whatsapp_buy_rate: 0,
   unlock_threshold: 300000,
   max_units: 5000,
   discount_note_en: null,
@@ -27,7 +32,8 @@ export const usePricingSettings = () => {
     queryFn: async (): Promise<PricingSettings> => {
       const { data, error } = await supabase
         .from('pricing_settings')
-        .select('*')
+        // Bei za kununua haziombwi hapa — tovuti isionyeshe gharama zetu
+        .select('id, sms_rate, whatsapp_rate, unlock_threshold, max_units, discount_note_en, discount_note_sw')
         .order('created_at', { ascending: true })
         .limit(1)
         .maybeSingle();
@@ -37,6 +43,8 @@ export const usePricingSettings = () => {
         id: data.id,
         sms_rate: Number(data.sms_rate),
         whatsapp_rate: Number(data.whatsapp_rate),
+        sms_buy_rate: 0,
+        whatsapp_buy_rate: 0,
         unlock_threshold: Number(data.unlock_threshold),
         max_units: Number(data.max_units),
         discount_note_en: data.discount_note_en,
@@ -46,4 +54,25 @@ export const usePricingSettings = () => {
   });
 
   return { settings: query.data ?? DEFAULT_PRICING, ...query };
+};
+
+/** Bei za kununua — kwa watumiaji wa mfumo pekee (haziombwi kwenye tovuti) */
+export const useBuyRates = () => {
+  const query = useQuery({
+    queryKey: ['pricing-buy-rates'],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from('pricing_settings')
+        .select('id, sms_buy_rate, whatsapp_buy_rate')
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return {
+        sms_buy_rate: Number(data?.sms_buy_rate ?? 0),
+        whatsapp_buy_rate: Number(data?.whatsapp_buy_rate ?? 0),
+      };
+    },
+  });
+  return { buyRates: query.data ?? { sms_buy_rate: 0, whatsapp_buy_rate: 0 }, ...query };
 };
