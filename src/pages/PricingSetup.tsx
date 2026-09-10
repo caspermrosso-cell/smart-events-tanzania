@@ -38,11 +38,19 @@ const PricingSetup = () => {
     setNoteEn(settings.discount_note_en ?? '');
   }, [isLoading, settings]);
 
+  useEffect(() => {
+    if (buyLoading) return;
+    setSmsBuy(buyRates.sms_buy_rate);
+    setWaBuy(buyRates.whatsapp_buy_rate);
+  }, [buyLoading, buyRates]);
+
   const save = useMutation({
     mutationFn: async () => {
       const payload = {
         sms_rate: smsRate,
         whatsapp_rate: waRate,
+        sms_buy_rate: smsBuy,
+        whatsapp_buy_rate: waBuy,
         unlock_threshold: threshold,
         max_units: maxUnits,
         discount_note_sw: noteSw || null,
