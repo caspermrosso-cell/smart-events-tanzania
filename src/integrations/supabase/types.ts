@@ -563,9 +563,11 @@ export type Database = {
           discount_note_sw: string | null
           id: string
           max_units: number
+          sms_buy_rate: number
           sms_rate: number
           unlock_threshold: number
           updated_at: string
+          whatsapp_buy_rate: number
           whatsapp_rate: number
         }
         Insert: {
@@ -574,9 +576,11 @@ export type Database = {
           discount_note_sw?: string | null
           id?: string
           max_units?: number
+          sms_buy_rate?: number
           sms_rate?: number
           unlock_threshold?: number
           updated_at?: string
+          whatsapp_buy_rate?: number
           whatsapp_rate?: number
         }
         Update: {
@@ -585,9 +589,11 @@ export type Database = {
           discount_note_sw?: string | null
           id?: string
           max_units?: number
+          sms_buy_rate?: number
           sms_rate?: number
           unlock_threshold?: number
           updated_at?: string
+          whatsapp_buy_rate?: number
           whatsapp_rate?: number
         }
         Relationships: []
