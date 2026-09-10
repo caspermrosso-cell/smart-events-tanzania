@@ -117,6 +117,70 @@ const PricingSetup = () => {
           </CardContent>
         </Card>
 
+        <Card className="border-primary/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <TrendingUp className="w-4 h-4" /> Bei ya kununua vs bei ya kuuza (faida)
+            </CardTitle>
+            <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <EyeOff className="w-3.5 h-3.5" /> Taarifa hizi ni za ndani tu — hazionekani kwenye tovuti wala kwa wateja.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Bei ya kununua SMS (TZS kwa unit)</Label>
+                <Input type="number" min={0} value={smsBuy} onChange={(e) => setSmsBuy(Number(e.target.value))} />
+              </div>
+              <div className="space-y-2">
+                <Label>Bei ya kununua WhatsApp (TZS kwa unit)</Label>
+                <Input type="number" min={0} value={waBuy} onChange={(e) => setWaBuy(Number(e.target.value))} />
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-xs text-muted-foreground border-b border-border">
+                    <th className="py-2">Huduma</th>
+                    <th className="text-right">Kununua / unit</th>
+                    <th className="text-right">Kuuza / unit</th>
+                    <th className="text-right">Faida / unit</th>
+                    <th className="text-right">Faida %</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    ['SMS', smsBuy, smsRate] as const,
+                    ['WhatsApp', waBuy, waRate] as const,
+                  ].map(([label, buy, sell]) => {
+                    const m = margin(sell, buy);
+                    return (
+                      <tr key={label} className="border-b border-border/60">
+                        <td className="py-2">{label}</td>
+                        <td className="text-right tabular-nums">{fmt(buy)}</td>
+                        <td className="text-right tabular-nums">{fmt(sell)}</td>
+                        <td className={`text-right tabular-nums font-medium ${m < 0 ? 'text-destructive' : 'text-primary'}`}>
+                          {fmt(m)}
+                        </td>
+                        <td className={`text-right tabular-nums ${m < 0 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                          {marginPct(sell, buy).toFixed(1)}%
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {(margin(smsRate, smsBuy) < 0 || margin(waRate, waBuy) < 0) && (
+              <p className="text-sm text-destructive rounded-lg bg-destructive/10 border border-destructive/30 p-3">
+                Onyo: bei ya kuuza iko chini ya bei ya kununua — unauza kwa hasara.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
