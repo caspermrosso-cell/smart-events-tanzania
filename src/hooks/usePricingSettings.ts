@@ -32,7 +32,8 @@ export const usePricingSettings = () => {
     queryFn: async (): Promise<PricingSettings> => {
       const { data, error } = await supabase
         .from('pricing_settings')
-        .select('*')
+        // Bei za kununua haziombwi hapa — tovuti isionyeshe gharama zetu
+        .select('id, sms_rate, whatsapp_rate, unlock_threshold, max_units, discount_note_en, discount_note_sw')
         .order('created_at', { ascending: true })
         .limit(1)
         .maybeSingle();
