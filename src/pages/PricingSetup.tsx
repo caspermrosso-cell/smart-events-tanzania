@@ -9,15 +9,18 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
-import { Save, SlidersHorizontal, Gift } from 'lucide-react';
-import { usePricingSettings } from '@/hooks/usePricingSettings';
+import { Save, SlidersHorizontal, Gift, TrendingUp, EyeOff } from 'lucide-react';
+import { usePricingSettings, useBuyRates } from '@/hooks/usePricingSettings';
 
 const PricingSetup = () => {
   const { settings, isLoading } = usePricingSettings();
+  const { buyRates, isLoading: buyLoading } = useBuyRates();
   const queryClient = useQueryClient();
 
   const [smsRate, setSmsRate] = useState(50);
   const [waRate, setWaRate] = useState(1000);
+  const [smsBuy, setSmsBuy] = useState(0);
+  const [waBuy, setWaBuy] = useState(0);
   const [threshold, setThreshold] = useState(300000);
   const [maxUnits, setMaxUnits] = useState(5000);
   const [noteSw, setNoteSw] = useState('');
