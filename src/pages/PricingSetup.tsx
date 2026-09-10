@@ -75,6 +75,9 @@ const PricingSetup = () => {
   const total = previewUnits * rate;
   const fmt = (n: number) => n.toLocaleString();
 
+  const margin = (sell: number, buy: number) => sell - buy;
+  const marginPct = (sell: number, buy: number) => (sell > 0 ? ((sell - buy) / sell) * 100 : 0);
+
   return (
     <DashboardLayout>
       <div className="max-w-4xl space-y-6">
