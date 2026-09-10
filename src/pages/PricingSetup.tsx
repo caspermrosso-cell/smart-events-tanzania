@@ -66,6 +66,7 @@ const PricingSetup = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pricing-settings'] });
+      queryClient.invalidateQueries({ queryKey: ['pricing-buy-rates'] });
       toast.success('Bei zimehifadhiwa');
     },
     onError: (e: any) => toast.error(e.message || 'Imeshindikana kuhifadhi'),
