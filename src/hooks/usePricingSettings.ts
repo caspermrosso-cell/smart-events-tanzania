@@ -55,3 +55,24 @@ export const usePricingSettings = () => {
 
   return { settings: query.data ?? DEFAULT_PRICING, ...query };
 };
+
+/** Bei za kununua — kwa watumiaji wa mfumo pekee (haziombwi kwenye tovuti) */
+export const useBuyRates = () => {
+  const query = useQuery({
+    queryKey: ['pricing-buy-rates'],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from('pricing_settings')
+        .select('id, sms_buy_rate, whatsapp_buy_rate')
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return {
+        sms_buy_rate: Number(data?.sms_buy_rate ?? 0),
+        whatsapp_buy_rate: Number(data?.whatsapp_buy_rate ?? 0),
+      };
+    },
+  });
+  return { buyRates: query.data ?? { sms_buy_rate: 0, whatsapp_buy_rate: 0 }, ...query };
+};
