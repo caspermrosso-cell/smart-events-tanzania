@@ -43,6 +43,8 @@ export const usePricingSettings = () => {
         id: data.id,
         sms_rate: Number(data.sms_rate),
         whatsapp_rate: Number(data.whatsapp_rate),
+        sms_buy_rate: 0,
+        whatsapp_buy_rate: 0,
         unlock_threshold: Number(data.unlock_threshold),
         max_units: Number(data.max_units),
         discount_note_en: data.discount_note_en,
