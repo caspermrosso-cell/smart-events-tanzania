@@ -5,6 +5,9 @@ export interface PricingSettings {
   id: string;
   sms_rate: number;
   whatsapp_rate: number;
+  /** Bei ya kununua — inaonekana kwa watumiaji wa mfumo pekee, si kwenye tovuti */
+  sms_buy_rate: number;
+  whatsapp_buy_rate: number;
   unlock_threshold: number;
   max_units: number;
   discount_note_en: string | null;
@@ -15,6 +18,8 @@ export const DEFAULT_PRICING: PricingSettings = {
   id: '',
   sms_rate: 50,
   whatsapp_rate: 1000,
+  sms_buy_rate: 0,
+  whatsapp_buy_rate: 0,
   unlock_threshold: 300000,
   max_units: 5000,
   discount_note_en: null,
