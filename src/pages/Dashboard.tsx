@@ -45,27 +45,31 @@ const STEPS: Step[] = [
 ];
 
 const ORDER_KEY = 'dashboard-playbook-order';
+const STAGE_KEY = 'dashboard-playbook-stages';
 
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { can, isAdmin } = usePermissions();
   const [order, setOrder] = useState<string[]>([]);
+  const [stageMap, setStageMap] = useState<Record<string, string>>({});
   const [dragId, setDragId] = useState<string | null>(null);
 
   useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(ORDER_KEY) || 'null');
       if (Array.isArray(saved)) setOrder(saved);
+      const savedStages = JSON.parse(localStorage.getItem(STAGE_KEY) || 'null');
+      if (savedStages && typeof savedStages === 'object') setStageMap(savedStages);
     } catch { /* ignore */ }
   }, []);
 
   const steps = useMemo(() => {
-    const allowed = STEPS.filter((s) => can(s.module));
+    const allowed = STEPS.filter((s) => can(s.module)).map((s) => ({ ...s, stage: stageMap[s.id] || s.stage }));
     if (!order.length) return allowed;
     const rank = (id: string) => (order.indexOf(id) === -1 ? 999 : order.indexOf(id));
     return [...allowed].sort((a, b) => rank(a.id) - rank(b.id));
-  }, [order, can]);
+  }, [order, stageMap, can]);
 
   const persist = (ids: string[]) => {
     setOrder(ids);
@@ -74,6 +78,13 @@ const Dashboard = () => {
 
   const onDrop = (targetId: string) => {
     if (!dragId || dragId === targetId) return;
+    const target = steps.find((s) => s.id === targetId);
+    const dragged = steps.find((s) => s.id === dragId);
+    if (target && dragged && target.stage !== dragged.stage) {
+      const next = { ...stageMap, [dragId]: target.stage };
+      setStageMap(next);
+      localStorage.setItem(STAGE_KEY, JSON.stringify(next));
+    }
     const ids = steps.map((s) => s.id);
     const from = ids.indexOf(dragId);
     const to = ids.indexOf(targetId);
@@ -84,7 +95,9 @@ const Dashboard = () => {
 
   const resetOrder = () => {
     localStorage.removeItem(ORDER_KEY);
+    localStorage.removeItem(STAGE_KEY);
     setOrder([]);
+    setStageMap({});
   };
 
   const { data: stats } = useQuery({
@@ -147,7 +160,7 @@ const Dashboard = () => {
             Fuata hatua kutoka maandalizi hadi ripoti. Buruta kadi kupanga mpangilio unaokufaa.
           </p>
         </div>
-        {!!order.length && (
+        {(!!order.length || !!Object.keys(stageMap).length) && (
           <Button variant="outline" size="sm" onClick={resetOrder}>
             <RotateCcw className="w-4 h-4 mr-2" /> Rudisha mpangilio wa awali
           </Button>
