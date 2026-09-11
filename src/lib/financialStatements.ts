@@ -46,6 +46,38 @@ export const emptyFinancials = (year: number): FinancialInput => ({
   auto_revenue: true,
 });
 
+export const MONTHS = [
+  'JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
+  'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER',
+];
+
+const clampDay = (month: number, day: number) => {
+  const max = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][Math.min(Math.max(month, 1), 12) - 1];
+  return Math.min(Math.max(day || 1, 1), max);
+};
+
+/** e.g. "31 DECEMBER 2027" — follows whatever year end the company uses. */
+export const yearEndLabel = (d: Pick<FinancialInput, 'year' | 'year_end_month' | 'year_end_day'>) => {
+  const m = Math.min(Math.max(d.year_end_month || 12, 1), 12);
+  return `${clampDay(m, d.year_end_day || 31)} ${MONTHS[m - 1]} ${d.year}`;
+};
+
+/** e.g. "FOR THE YEAR ENDED 31 DECEMBER 2027" */
+export const periodLabel = (d: Pick<FinancialInput, 'year' | 'year_end_month' | 'year_end_day'>) =>
+  `FOR THE YEAR ENDED ${yearEndLabel(d)}`;
+
+/** e.g. "AS AT 31 DECEMBER 2027" */
+export const asAtLabel = (d: Pick<FinancialInput, 'year' | 'year_end_month' | 'year_end_day'>) =>
+  `AS AT ${yearEndLabel(d)}`;
+
+/** Start of the financial year, e.g. "1 JANUARY 2027" */
+export const yearStartLabel = (d: Pick<FinancialInput, 'year' | 'year_end_month' | 'year_end_day'>) => {
+  const m = Math.min(Math.max(d.year_end_month || 12, 1), 12);
+  const startMonth = (m % 12) + 1;
+  const startYear = m === 12 ? d.year : d.year - 1;
+  return `1 ${MONTHS[startMonth - 1]} ${startYear}`;
+};
+
 export const fmt = (n: number) => {
   const v = Math.abs(Number(n) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   return (Number(n) || 0) < 0 ? `(${v})` : v;
