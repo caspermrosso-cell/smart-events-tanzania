@@ -2,7 +2,7 @@ import {
   Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
   AlignmentType, WidthType, BorderStyle, ShadingType, PageBreak,
 } from 'docx';
-import { computeFinancials, fmt, neg, type FinancialInput } from './financialStatements';
+import { computeFinancials, fmt, neg, periodLabel, asAtLabel, yearEndLabel, yearStartLabel, type FinancialInput } from './financialStatements';
 
 const CONTENT_W = 9360;
 const COLS3 = [5160, 1600, 2600];
@@ -44,10 +44,10 @@ function row3(label: string, note: string, value: string, opts: { bold?: boolean
 const table = (rows: TableRow[], cols: number[]) =>
   new Table({ width: { size: CONTENT_W, type: WidthType.DXA }, columnWidths: cols, rows });
 
-function header(company: string, year: number, title: string, subtitle: string) {
+function header(company: string, period: string, title: string, subtitle: string) {
   return [
     p(company.toUpperCase(), { bold: true, align: AlignmentType.CENTER }),
-    p(`ANNUAL REPORT AND AUDITED FINANCIAL STATEMENTS FOR THE YEAR ENDED 31 DECEMBER ${year}`, { align: AlignmentType.CENTER }),
+    p(`ANNUAL REPORT AND AUDITED FINANCIAL STATEMENTS ${period}`, { align: AlignmentType.CENTER }),
     new Paragraph({ children: [] }),
     p(title, { bold: true }),
     p(subtitle),
@@ -58,9 +58,13 @@ function header(company: string, year: number, title: string, subtitle: string) 
 export async function buildFinancialStatementsDocx(d: FinancialInput): Promise<Blob> {
   const c = computeFinancials(d);
   const y = d.year;
+  const period = periodLabel(d);
+  const asAt = asAtLabel(d);
+  const endLabel = yearEndLabel(d);
+  const startLabel = yearStartLabel(d);
 
   const pl = [
-    ...header(d.company_name, y, 'STATEMENT OF PROFIT AND LOSS AND OTHER COMPREHENSIVE INCOME', `FOR THE YEAR ENDED 31 DECEMBER ${y}`),
+    ...header(d.company_name, period, 'STATEMENT OF PROFIT AND LOSS AND OTHER COMPREHENSIVE INCOME', period),
     table([
       row3('', 'Notes', String(y), { bold: true, shade: 'F2EDE6' }),
       row3('', '', 'TZS', { bold: true }),
@@ -75,7 +79,7 @@ export async function buildFinancialStatementsDocx(d: FinancialInput): Promise<B
   ];
 
   const sfp = [
-    ...header(d.company_name, y, 'STATEMENT OF FINANCIAL POSITION', `AS AT 31 DECEMBER ${y}`),
+    ...header(d.company_name, period, 'STATEMENT OF FINANCIAL POSITION', asAt),
     table([
       row3('', 'Notes', String(y), { bold: true, shade: 'F2EDE6' }),
       row3('ASSETS', '', 'TZS', { bold: true }),
@@ -111,19 +115,19 @@ export async function buildFinancialStatementsDocx(d: FinancialInput): Promise<B
     });
 
   const soce = [
-    ...header(d.company_name, y, 'STATEMENT OF CHANGES IN EQUITY', `FOR THE YEAR ENDED 31 DECEMBER ${y}`),
+    ...header(d.company_name, period, 'STATEMENT OF CHANGES IN EQUITY', period),
     table([
       eqRow('', 'Share Capital TZS', 'Accumulated Profit TZS', 'Total TZS', { bold: true, shade: 'F2EDE6' }),
-      eqRow(`Year ended 31 December ${y}`, '', '', '', { bold: true }),
-      eqRow('Balance at the beginning of the year', fmt(d.share_capital - d.shares_issued_during_year), fmt(d.opening_accumulated_profit), fmt(d.share_capital - d.shares_issued_during_year + d.opening_accumulated_profit)),
+      eqRow(`Year ended ${endLabel}`, '', '', '', { bold: true }),
+      eqRow(`Balance as at ${startLabel}`, fmt(d.share_capital - d.shares_issued_during_year), fmt(d.opening_accumulated_profit), fmt(d.share_capital - d.shares_issued_during_year + d.opening_accumulated_profit)),
       eqRow('Issued during the year', fmt(d.shares_issued_during_year), '-', fmt(d.shares_issued_during_year)),
       eqRow('Profit of the year', '-', fmt(c.profitForYear), fmt(c.profitForYear)),
-      eqRow(`Balance at the end of year ${y}`, fmt(d.share_capital), fmt(c.closingAccumulatedProfit), fmt(c.totalEquity), { bold: true, borders: doubleLine }),
+      eqRow(`Balance as at ${endLabel}`, fmt(d.share_capital), fmt(c.closingAccumulatedProfit), fmt(c.totalEquity), { bold: true, borders: doubleLine }),
     ], COLS4),
   ];
 
   const scf = [
-    ...header(d.company_name, y, 'STATEMENT OF CASH FLOWS', `FOR THE YEAR ENDED 31 DECEMBER ${y}`),
+    ...header(d.company_name, period, 'STATEMENT OF CASH FLOWS', period),
     table([
       row3('', '', String(y), { bold: true, shade: 'F2EDE6' }),
       row3('CASH FLOWS FROM OPERATING ACTIVITIES', '', 'TZS', { bold: true }),
@@ -143,8 +147,8 @@ export async function buildFinancialStatementsDocx(d: FinancialInput): Promise<B
       row3('Issues of shares', '', fmt(d.shares_issued_during_year)),
       row3('Net cash generated from financing activities', '', fmt(c.netFinancing), { bold: true, borders: topLine }),
       row3('Net increase in cash and cash equivalent', '', fmt(c.netIncrease), { bold: true }),
-      row3('Balance at the beginning of the period', '', fmt(d.opening_cash)),
-      row3('Cash and cash equivalent at the end of the period', '', fmt(c.closingCash), { bold: true, borders: doubleLine }),
+      row3(`Balance as at ${startLabel}`, '', fmt(d.opening_cash)),
+      row3(`Cash and cash equivalent as at ${endLabel}`, '', fmt(c.closingCash), { bold: true, borders: doubleLine }),
     ], COLS3),
   ];
 
@@ -157,7 +161,7 @@ export async function buildFinancialStatementsDocx(d: FinancialInput): Promise<B
       children: [
         p('FINANCIAL STATEMENTS', { bold: true, align: AlignmentType.CENTER }),
         p(d.company_name.toUpperCase(), { align: AlignmentType.CENTER }),
-        p(`FOR THE YEAR ENDED 31 DECEMBER ${y}`, { align: AlignmentType.CENTER }),
+        p(period, { align: AlignmentType.CENTER }),
         new Paragraph({ children: [] }),
         p('1. STATEMENT OF PROFIT AND LOSS AND OTHER COMPREHENSIVE INCOME'),
         p('2. STATEMENT OF FINANCIAL POSITION'),

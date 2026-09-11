@@ -176,6 +176,8 @@ export type Database = {
           trade_payables: number
           updated_at: string
           year: number
+          year_end_day: number
+          year_end_month: number
         }
         Insert: {
           auto_revenue?: boolean
@@ -200,6 +202,8 @@ export type Database = {
           trade_payables?: number
           updated_at?: string
           year: number
+          year_end_day?: number
+          year_end_month?: number
         }
         Update: {
           auto_revenue?: boolean
@@ -224,6 +228,8 @@ export type Database = {
           trade_payables?: number
           updated_at?: string
           year?: number
+          year_end_day?: number
+          year_end_month?: number
         }
         Relationships: []
       }

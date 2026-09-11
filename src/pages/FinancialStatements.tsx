@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
 import { Download, Save, RefreshCw, Loader2 } from 'lucide-react';
-import { computeFinancials, emptyFinancials, fmt, neg, type FinancialInput } from '@/lib/financialStatements';
+import { computeFinancials, emptyFinancials, fmt, neg, periodLabel, asAtLabel, yearEndLabel, yearStartLabel, MONTHS, type FinancialInput } from '@/lib/financialStatements';
 import { buildFinancialStatementsDocx, downloadBlob } from '@/lib/financialStatementsDocx';
 import { vatFromGross } from '@/pages/Purchases';
 
@@ -129,7 +129,7 @@ const FinancialStatements = () => {
     setExporting(true);
     try {
       const blob = await buildFinancialStatementsDocx(form);
-      downloadBlob(blob, `Financial-Statements-${year}.docx`);
+      downloadBlob(blob, `Financial-Statements-${yearEndLabel(form).replace(/ /g, '-')}.docx`);
       toast({ title: 'Imepakuliwa', description: 'Faili la Word limetengenezwa.' });
     } catch (e: any) {
       toast({ title: 'Imeshindikana', description: e.message, variant: 'destructive' });
@@ -181,6 +181,26 @@ const FinancialStatements = () => {
             <Label className="text-xs">Jina la kampuni</Label>
             <Input value={form.company_name} onChange={(e) => setForm({ ...form, company_name: e.target.value })} />
           </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label className="text-xs">Mwezi wa mwisho wa mwaka</Label>
+              <select
+                className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                value={form.year_end_month}
+                onChange={(e) => setForm({ ...form, year_end_month: Number(e.target.value) })}
+              >
+                {MONTHS.map((m, i) => (
+                  <option key={m} value={i + 1}>{m.charAt(0) + m.slice(1).toLowerCase()}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <Label className="text-xs">Tarehe</Label>
+              <Input type="number" min={1} max={31} value={form.year_end_day}
+                onChange={(e) => setForm({ ...form, year_end_day: Number(e.target.value) || 31 })} />
+            </div>
+            <p className="col-span-2 text-xs text-muted-foreground">Maneno yote kwenye taarifa yatabadilika: {periodLabel(form)}</p>
+          </div>
           <div className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
             <div>
               <p className="text-sm font-medium">Revenue &amp; Direct Cost za kiotomatiki</p>
@@ -230,11 +250,11 @@ const FinancialStatements = () => {
 
             <div className="mt-4 text-center mb-4">
               <p className="font-semibold">{form.company_name.toUpperCase()}</p>
-              <p className="text-xs text-muted-foreground">ANNUAL REPORT AND AUDITED FINANCIAL STATEMENTS FOR THE YEAR ENDED 31 DECEMBER {year}</p>
+              <p className="text-xs text-muted-foreground">ANNUAL REPORT AND AUDITED FINANCIAL STATEMENTS {periodLabel(form)}</p>
             </div>
 
             <TabsContent value="pl">
-              <Row label="STATEMENT OF PROFIT AND LOSS AND OTHER COMPREHENSIVE INCOME" note="Notes" value={`${year} TZS`} bold />
+              <><p className="text-xs text-muted-foreground mb-2">{periodLabel(form)}</p><Row label="STATEMENT OF PROFIT AND LOSS AND OTHER COMPREHENSIVE INCOME" note="Notes" value={`${year} TZS`} bold /></>
               <Row label="Revenue" value={fmt(form.revenue)} />
               <Row label="Direct Cost" note="5" value={neg(form.direct_cost)} />
               <Row label="Operating profit before expenses" value={fmt(c.operatingProfitBeforeExpenses)} bold />
@@ -245,7 +265,7 @@ const FinancialStatements = () => {
             </TabsContent>
 
             <TabsContent value="sfp">
-              <Row label="STATEMENT OF FINANCIAL POSITION" note="Notes" value={`${year} TZS`} bold />
+              <><p className="text-xs text-muted-foreground mb-2">{asAtLabel(form)}</p><Row label="STATEMENT OF FINANCIAL POSITION" note="Notes" value={`${year} TZS`} bold /></>
               <Row label="Non-current assets" bold />
               <Row label="Property and equipments" value={fmt(form.property_equipment)} indent />
               <Row label="Total non-current assets" value={fmt(c.totalNonCurrentAssets)} bold />
@@ -271,16 +291,16 @@ const FinancialStatements = () => {
 
             <TabsContent value="soce">
               <div className="grid grid-cols-[1fr_110px_130px_130px] gap-2 py-2 text-xs font-semibold border-b border-border">
-                <span>STATEMENT OF CHANGES IN EQUITY</span>
+                <span>STATEMENT OF CHANGES IN EQUITY — {periodLabel(form)}</span>
                 <span className="text-right">Share Capital</span>
                 <span className="text-right">Accumulated Profit</span>
                 <span className="text-right">Total</span>
               </div>
               {[
-                ['Balance at the beginning of the year', form.share_capital - form.shares_issued_during_year, form.opening_accumulated_profit],
+                [`Balance as at ${yearStartLabel(form)}`, form.share_capital - form.shares_issued_during_year, form.opening_accumulated_profit],
                 ['Issued during the year', form.shares_issued_during_year, 0],
                 ['Profit of the year', 0, c.profitForYear],
-                [`Balance at the end of year ${year}`, form.share_capital, c.closingAccumulatedProfit],
+                [`Balance as at ${yearEndLabel(form)}`, form.share_capital, c.closingAccumulatedProfit],
               ].map(([label, a, b], i, arr) => (
                 <div key={i} className={`grid grid-cols-[1fr_110px_130px_130px] gap-2 py-1.5 text-sm ${i === arr.length - 1 ? 'font-semibold border-t border-border' : ''}`}>
                   <span>{label as string}</span>
@@ -292,7 +312,7 @@ const FinancialStatements = () => {
             </TabsContent>
 
             <TabsContent value="scf">
-              <Row label="STATEMENT OF CASH FLOWS" value={`${year} TZS`} bold />
+              <><p className="text-xs text-muted-foreground mb-2">{periodLabel(form)}</p><Row label="STATEMENT OF CASH FLOWS" value={`${year} TZS`} bold /></>
               <Row label="CASH FLOWS FROM OPERATING ACTIVITIES" bold />
               <Row label="Profit / Loss before taxation" value={fmt(c.profitBeforeTax)} indent />
               <Row label="Depreciation" value={fmt(form.depreciation)} indent />
@@ -308,8 +328,8 @@ const FinancialStatements = () => {
               <Row label="Issues of shares" value={fmt(form.shares_issued_during_year)} indent />
               <Row label="Net cash generated from financing activities" value={fmt(c.netFinancing)} bold />
               <Row label="Net increase in cash and cash equivalent" value={fmt(c.netIncrease)} bold />
-              <Row label="Balance at the beginning of the period" value={fmt(form.opening_cash)} indent />
-              <Row label="Cash and cash equivalent at the end of the period" value={fmt(c.closingCash)} bold />
+              <Row label={`Balance as at ${yearStartLabel(form)}`} value={fmt(form.opening_cash)} indent />
+              <Row label={`Cash and cash equivalent as at ${yearEndLabel(form)}`} value={fmt(c.closingCash)} bold />
               {c.cashCheck !== 0 && (
                 <p className="mt-3 text-xs text-destructive">
                   Salio la mwisho la fedha linatofautiana na "Cash and bank" kwa TZS {fmt(c.cashCheck)}.
