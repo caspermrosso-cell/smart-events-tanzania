@@ -1,5 +1,7 @@
 export type FinancialInput = {
   year: number;
+  year_end_month: number;
+  year_end_day: number;
   company_name: string;
   revenue: number;
   direct_cost: number;
