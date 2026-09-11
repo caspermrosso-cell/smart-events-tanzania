@@ -24,6 +24,8 @@ export type FinancialInput = {
 
 export const emptyFinancials = (year: number): FinancialInput => ({
   year,
+  year_end_month: 12,
+  year_end_day: 31,
   company_name: 'SMART EVENTS TANZANIA LIMITED',
   revenue: 0,
   direct_cost: 0,
