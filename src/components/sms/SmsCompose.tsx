@@ -330,6 +330,8 @@ const SmsCompose = () => {
       queryClient.invalidateQueries({ queryKey: ['beem-balance'] });
       queryClient.invalidateQueries({ queryKey: ['event-sms-used'] });
       queryClient.invalidateQueries({ queryKey: ['events-sms-allocation'] });
+      queryClient.invalidateQueries({ queryKey: ['events-sms-usage'] });
+      queryClient.invalidateQueries({ queryKey: ['events'] });
 
       setSent(true);
       setPreviewOpen(false);

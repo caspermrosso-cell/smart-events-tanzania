@@ -85,6 +85,8 @@ const SmsErrorLogs = () => {
       queryClient.invalidateQueries({ queryKey: ['sms-error-logs'] });
       queryClient.invalidateQueries({ queryKey: ['sms-logs'] });
       queryClient.invalidateQueries({ queryKey: ['events-sms-allocation'] });
+      queryClient.invalidateQueries({ queryKey: ['events-sms-usage'] });
+      queryClient.invalidateQueries({ queryKey: ['event-sms-used'] });
       setSelectedIds(new Set());
       toast.success(`SMS ${ids.length} zilizoshindikana zimefutwa`);
     },

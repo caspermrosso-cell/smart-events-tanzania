@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Wallet, MessageSquare, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MessageSquare, ChevronLeft, ChevronRight, Send, LayoutTemplate, History, AlertTriangle, BarChart3 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,6 +10,15 @@ import SmsDeliveryLogs from '@/components/sms/SmsDeliveryLogs';
 import SmsReports from '@/components/sms/SmsReports';
 import SmsErrorLogs from '@/components/sms/SmsErrorLogs';
 import SmsTemplateManager from '@/components/sms/SmsTemplateManager';
+import ChannelHeader from '@/components/ChannelHeader';
+
+const smsTabs = [
+  { value: 'compose', label: 'Tuma SMS', icon: Send },
+  { value: 'templates', label: 'Templates', icon: LayoutTemplate },
+  { value: 'logs', label: 'Delivery Logs', icon: History },
+  { value: 'errors', label: 'Error Log', icon: AlertTriangle },
+  { value: 'reports', label: 'Ripoti', icon: BarChart3 },
+];
 
 const SMS = () => {
   const queryClient = useQueryClient();
@@ -72,23 +81,11 @@ const SMS = () => {
 
   return (
     <DashboardLayout>
-      <div className="flex items-center justify-between mb-3">
-        <motion.h2 initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-heading text-xl font-bold text-foreground">
-          SMS Management
-        </motion.h2>
-        {balance && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2 glass-card rounded-lg px-3 py-1.5">
-            <Wallet className="w-3.5 h-3.5 text-primary" />
-            <span className="text-xs font-medium text-foreground">
-              Salio: TZS {creditBalance.toLocaleString()}
-            </span>
-          </motion.div>
-        )}
-      </div>
+      <ChannelHeader channel="sms" title="SMS Management" description="Tengeneza, hakiki, tuma na fuatilia ujumbe wa kila tukio." metric={balance ? `TZS ${creditBalance.toLocaleString()}` : undefined} metricLabel="salio la SMS" />
 
       {/* Per-Event SMS Allocation Cards */}
       {eventsWithAllocation.length > 0 && (
-        <div className="relative mb-4">
+        <div className="relative my-5">
           <button
             onClick={() => scrollBy('left')}
             aria-label="Scroll left"
@@ -150,12 +147,8 @@ const SMS = () => {
       )}
 
       <Tabs defaultValue="compose" className="space-y-3">
-        <TabsList className="grid grid-cols-5 w-full max-w-xl h-9">
-          <TabsTrigger value="compose" className="text-xs">Tuma SMS</TabsTrigger>
-          <TabsTrigger value="templates" className="text-xs">Templates</TabsTrigger>
-          <TabsTrigger value="logs" className="text-xs">Delivery Logs</TabsTrigger>
-          <TabsTrigger value="errors" className="text-xs">Error Log</TabsTrigger>
-          <TabsTrigger value="reports" className="text-xs">Ripoti</TabsTrigger>
+        <TabsList className="grid h-auto w-full grid-cols-5 gap-1 bg-muted/60 p-1">
+          {smsTabs.map((tab) => <TabsTrigger key={tab.value} value={tab.value} className="min-h-11 gap-2 text-xs"><tab.icon className="h-4 w-4" /><span className="hidden sm:inline">{tab.label}</span></TabsTrigger>)}
         </TabsList>
 
         <TabsContent value="compose">
