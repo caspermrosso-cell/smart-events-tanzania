@@ -20,6 +20,7 @@ import Pledges from "./pages/Pledges";
 import SMS from "./pages/SMS";
 import ECards from "./pages/ECards";
 import WhatsApp from "./pages/WhatsApp";
+import Communications from "./pages/Communications";
 import CheckIn from "./pages/CheckIn";
 import Reports from "./pages/Reports";
 import Payments from "./pages/Payments";
@@ -62,6 +63,7 @@ const App = () => (
               <Route path="/pledges" element={<ProtectedRoute><Pledges /></ProtectedRoute>} />
               <Route path="/sms" element={<ProtectedRoute><SMS /></ProtectedRoute>} />
               <Route path="/whatsapp" element={<ProtectedRoute><WhatsApp /></ProtectedRoute>} />
+              <Route path="/communications" element={<ProtectedRoute><Communications /></ProtectedRoute>} />
               <Route path="/ecards" element={<ProtectedRoute><ECards /></ProtectedRoute>} />
               <Route path="/checkin" element={<ProtectedRoute><CheckIn /></ProtectedRoute>} />
               <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />

@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        heading: ['Poppins', 'sans-serif'],
-        body: ['Poppins', 'sans-serif'],
+        heading: ['Outfit', 'sans-serif'],
+        body: ['Figtree', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -57,6 +57,12 @@ export default {
         },
         "warm-cream": "hsl(var(--warm-cream))",
         "deep-brown": "hsl(var(--deep-brown))",
+        status: {
+          success: "hsl(var(--status-success))",
+          warning: "hsl(var(--status-warning))",
+          info: "hsl(var(--status-info))",
+          neutral: "hsl(var(--status-neutral))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

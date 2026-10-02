@@ -63,7 +63,7 @@ const Events = () => {
       const { data: logs, error } = await supabase
         .from('sms_logs')
         .select('event_id, sms_count')
-        .eq('status', 'sent');
+        .in('status', ['sent', 'scheduled']);
       if (error) throw error;
       const map: Record<string, number> = {};
       (logs || []).forEach((log: any) => {
