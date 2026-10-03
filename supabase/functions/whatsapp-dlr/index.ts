@@ -39,16 +39,18 @@ function mapStatus(raw: string): { status: string; field?: "delivered_at" | "rea
   if (s === "delivered") return { status: "delivered", field: "delivered_at" };
   if (s === "failed" || s === "undelivered" || s === "rejected") return { status: "failed" };
   if (s === "sent") return { status: "sent" };
+  if (s === "accepted") return { status: "pending" };
   return { status: s || "unknown" };
 }
 
 async function handleReport(supabase: ReturnType<typeof getSupabase>, r: any) {
-  const broadcastId = r.broadcast_id || r.broadcastId || r.jobId;
-  const messageId = r.message_id || r.messageId;
-  const phone = normPhone(r.destination || r.to || r.phoneNumber || "");
-  const { status, field } = mapStatus(r.status);
-  const ts = parseTs(r.timestamp);
-  const message = r.message || null;
+  const report = r?.data && !Array.isArray(r.data) ? r.data : r;
+  const broadcastId = report.broadcast_id || report.broadcastId || report.jobId;
+  const messageId = report.message_id || report.messageId;
+  const phone = normPhone(report.destination || report.to || report.phoneNumber || "");
+  const { status, field } = mapStatus(report.status);
+  const ts = parseTs(report.timestamp);
+  const message = report.message || null;
 
   const update: Record<string, unknown> = { status, updated_at: new Date().toISOString() };
   if (field) update[field] = ts;
@@ -89,7 +91,7 @@ async function handleReport(supabase: ReturnType<typeof getSupabase>, r: any) {
       message_type: "template",
       status,
       message_content: message,
-      beem_response: r,
+      beem_response: report,
       error_message: status === "failed" ? String(message || "") : null,
       delivered_at: field === "delivered_at" ? ts : null,
       read_at: field === "read_at" ? ts : null,

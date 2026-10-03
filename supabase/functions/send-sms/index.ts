@@ -159,6 +159,7 @@ serve(async (req) => {
         }
         // Clean up any unresolved placeholders
         personalizedMsg = personalizedMsg.replace(/\{[a-zA-Z0-9_]+\}/g, '');
+        const personalizedSmsCount = personalizedMsg.length <= 160 ? 1 : Math.ceil(personalizedMsg.length / 153);
 
         try {
           const response = await fetch(BEEM_API_URL, {
@@ -196,7 +197,7 @@ serve(async (req) => {
               status,
               scheduled_at: isScheduled ? new Date(scheduleTime.replace(' ', 'T')).toISOString() : null,
               beem_response: data,
-              sms_count: smsCount,
+              sms_count: personalizedSmsCount,
             });
           }
         } catch (err) {
@@ -214,7 +215,7 @@ serve(async (req) => {
               message: personalizedMsg,
               status: 'failed',
               beem_response: { error: err.message },
-              sms_count: smsCount,
+              sms_count: personalizedSmsCount,
             });
           }
         }
@@ -239,11 +240,12 @@ serve(async (req) => {
 
         const data = await response.json();
         const status = response.ok ? (isScheduled ? 'scheduled' : 'sent') : 'failed';
-        results.push({ 
-          status, 
-          count: beemRecipients.length, 
-          response: data 
-        });
+        results.push(...beemRecipients.map((recipient: any, index: number) => ({
+          phone: recipient.dest_addr,
+          name: recipients[index]?.name,
+          status,
+          response: data,
+        })));
 
         // Log each recipient
         if (supabaseClient) {
@@ -261,7 +263,12 @@ serve(async (req) => {
           await supabaseClient.from('sms_logs').insert(logEntries);
         }
       } catch (err) {
-        results.push({ status: 'failed', error: err.message });
+        results.push(...beemRecipients.map((recipient: any, index: number) => ({
+          phone: recipient.dest_addr,
+          name: recipients[index]?.name,
+          status: 'failed',
+          error: err.message,
+        })));
         if (supabaseClient) {
           const logEntries = recipients.map((r: any, i: number) => ({
             user_id: userId,

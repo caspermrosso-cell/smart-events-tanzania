@@ -14,6 +14,7 @@ const TEMPLATE_URL_CANDIDATES = [
   'https://apichatcore.beem.africa/v1/message-templates/list',
 ];
 const BROADCAST_TEMPLATE_URL = 'https://apibroadcast.beem.africa/v1/broadcast/template/api-send';
+const CREDIT_BALANCE_URL = 'https://apitopup.beem.africa/v1/credit-balance';
 
 function normalizePhone(raw: string): string {
   let p = String(raw || '').replace(/[^0-9]/g, '');
@@ -110,6 +111,23 @@ serve(async (req) => {
 
     // ============ Beem Moja API actions ============
     const authHeader = getAuthHeader();
+
+    if (action === 'balance') {
+      const product = body.product === 'BROADCAST' ? 'BROADCAST' : 'MOJA';
+      const result = await makeBeemRequest(`${CREDIT_BALANCE_URL}?app_name=${product}`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json', 'Authorization': authHeader },
+      });
+      if (!result.ok || !result.data) {
+        return new Response(JSON.stringify({ success: false, error: getBeemErrorMessage(result, 'WhatsApp balance fetch failed') }), {
+          status: result.status || 502,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      return new Response(JSON.stringify({ success: true, product, data: result.data }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     if (action === 'active-sessions') {
       const result = await makeBeemRequest(ACTIVE_SESSIONS_URL, {
@@ -641,7 +659,7 @@ serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ success: false, error: 'Invalid action. Use: active-sessions, templates, send-message, send-bulk, send-template, send-template-bulk' }), {
+    return new Response(JSON.stringify({ success: false, error: 'Invalid action. Use: balance, active-sessions, templates, send-message, send-bulk, send-template, send-template-bulk' }), {
       status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
