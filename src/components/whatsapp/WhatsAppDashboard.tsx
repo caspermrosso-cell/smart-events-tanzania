@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   BarChart3, CheckCircle2, CheckCheck, Eye, XCircle, Clock, MessageSquare,
-  Filter, RefreshCw, Send, Loader2, Reply, Trash2,
+  Filter, RefreshCw, Send, Loader2, Reply, Trash2, WalletCards,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -37,10 +37,10 @@ type LogRow = {
 
 const STATUS_COLORS: Record<string, string> = {
   sent: 'hsl(var(--primary))',
-  delivered: '#3b82f6',
-  read: '#22c55e',
-  failed: '#ef4444',
-  pending: '#f59e0b',
+  delivered: 'hsl(var(--status-info))',
+  read: 'hsl(var(--status-success))',
+  failed: 'hsl(var(--destructive))',
+  pending: 'hsl(var(--status-neutral))',
 };
 
 const deriveStatus = (l: LogRow): 'sent' | 'delivered' | 'read' | 'failed' | 'pending' => {
@@ -93,6 +93,18 @@ const WhatsAppDashboard = () => {
     },
   });
 
+  const { data: balance, isFetching: balanceLoading, refetch: refetchBalance } = useQuery({
+    queryKey: ['whatsapp-balance'],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke('send-whatsapp', { body: { action: 'balance', product: 'MOJA' } });
+      if (error) throw error;
+      if (data?.success === false) throw new Error(data.error || 'Balance unavailable');
+      return Number(data?.data?.data?.credit_bal ?? data?.data?.credit_bal ?? 0);
+    },
+    staleTime: 60_000,
+    retry: false,
+  });
+
   const campaigns = useMemo(() => {
     const set = new Set<string>();
     logs.forEach((l) => {
@@ -127,11 +139,15 @@ const WhatsAppDashboard = () => {
     return Array.from(map.values()).slice(0, 10);
   }, [filtered]);
 
-  const pieData = useMemo(() => (
-    (['read', 'delivered', 'sent', 'pending', 'failed'] as const)
-      .map((k) => ({ name: k[0].toUpperCase() + k.slice(1), value: stats[k], key: k }))
-      .filter((d) => d.value > 0)
-  ), [stats]);
+  const deliveryData = useMemo(() => [
+    { name: 'Delivered', value: stats.delivered + stats.read, key: 'delivered' },
+    { name: 'Pending', value: stats.pending + stats.sent, key: 'pending' },
+    { name: 'Failed', value: stats.failed, key: 'failed' },
+  ].filter((d) => d.value > 0), [stats]);
+  const readData = useMemo(() => [
+    { name: 'Read', value: stats.read, key: 'read' },
+    { name: 'Not yet read', value: stats.delivered, key: 'pending' },
+  ].filter((d) => d.value > 0), [stats]);
 
   const responses = useMemo(() => filtered.filter((l) => l.response_text && l.response_text.trim()), [filtered]);
 
@@ -182,6 +198,12 @@ const WhatsAppDashboard = () => {
         </div>
       </div>
 
+      <div className="metric-tile max-w-sm">
+        <div className="rounded-md bg-primary/10 p-2"><WalletCards className="h-5 w-5 text-primary" /></div>
+        <div className="min-w-0 flex-1"><p className="text-xs text-muted-foreground">WhatsApp credit balance</p><p className="text-xl font-bold">{balanceLoading ? 'Inapakia…' : `TZS ${(balance ?? 0).toLocaleString()}`}</p></div>
+        <Button variant="ghost" size="icon" onClick={() => refetchBalance()} disabled={balanceLoading} title="Refresh WhatsApp balance"><RefreshCw className={balanceLoading ? 'animate-spin' : ''} /></Button>
+      </div>
+
       {/* Filters */}
       <Card>
         <CardContent className="p-4 grid grid-cols-1 sm:grid-cols-4 gap-3">
@@ -218,51 +240,54 @@ const WhatsAppDashboard = () => {
         <KPI label="Pending" value={stats.pending} icon={Clock} color={STATUS_COLORS.pending} />
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Card className="lg:col-span-2">
-          <CardHeader className="pb-2"><CardTitle className="text-sm">Delivery by campaign</CardTitle></CardHeader>
-          <CardContent className="h-72">
-            {byCampaign.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-muted-foreground text-sm">No data</div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={byCampaign}>
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                  <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} angle={-15} textAnchor="end" height={60} />
-                  <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
-                  <Tooltip />
-                  <Legend wrapperStyle={{ fontSize: 12 }} />
-                  <Bar dataKey="sent" stackId="s" fill={STATUS_COLORS.sent} name="Sent" />
-                  <Bar dataKey="delivered" stackId="s" fill={STATUS_COLORS.delivered} name="Delivered" />
-                  <Bar dataKey="read" stackId="s" fill={STATUS_COLORS.read} name="Read" />
-                  <Bar dataKey="failed" stackId="s" fill={STATUS_COLORS.failed} name="Failed" />
-                  <Bar dataKey="pending" stackId="s" fill={STATUS_COLORS.pending} name="Pending" />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
-
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm">Status breakdown</CardTitle></CardHeader>
-          <CardContent className="h-72">
-            {pieData.length === 0 ? (
+          <CardHeader className="pb-0"><CardTitle className="text-lg">Delivery Status <span className="text-sm font-normal text-muted-foreground">of {total} messages sent, {stats.delivered + stats.read} delivered</span></CardTitle></CardHeader>
+          <CardContent className="relative h-72">
+            {deliveryData.length === 0 ? (
               <div className="h-full flex items-center justify-center text-muted-foreground text-sm">No data</div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie data={pieData} dataKey="value" nameKey="name" outerRadius={80} innerRadius={45} paddingAngle={2}>
-                    {pieData.map((d) => <Cell key={d.key} fill={STATUS_COLORS[d.key]} />)}
+                  <Pie data={deliveryData} dataKey="value" nameKey="name" outerRadius={92} innerRadius={62} paddingAngle={1}>
+                    {deliveryData.map((d) => <Cell key={d.key} fill={STATUS_COLORS[d.key]} />)}
                   </Pie>
                   <Tooltip />
-                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  <Legend layout="vertical" align="right" verticalAlign="middle" wrapperStyle={{ fontSize: 12 }} />
                 </PieChart>
               </ResponsiveContainer>
             )}
+            {deliveryData.length > 0 && <div className="pointer-events-none absolute inset-y-0 left-[24%] flex w-28 flex-col items-center justify-center text-center"><strong className="text-3xl">{stats.delivered + stats.read}</strong><span className="text-xs text-muted-foreground">Delivered</span></div>}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-0"><CardTitle className="text-lg">Read Status <span className="text-sm font-normal text-muted-foreground">of {stats.delivered + stats.read} delivered, {stats.read} read</span></CardTitle></CardHeader>
+          <CardContent className="relative h-72">
+            {readData.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-muted-foreground text-sm">No data</div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={readData} dataKey="value" nameKey="name" outerRadius={92} innerRadius={62} paddingAngle={1}>
+                    {readData.map((d) => <Cell key={d.key} fill={STATUS_COLORS[d.key]} />)}
+                  </Pie>
+                  <Tooltip />
+                  <Legend layout="vertical" align="right" verticalAlign="middle" wrapperStyle={{ fontSize: 12 }} />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+            {readData.length > 0 && <div className="pointer-events-none absolute inset-y-0 left-[24%] flex w-28 flex-col items-center justify-center text-center"><strong className="text-3xl">{stats.read}</strong><span className="text-xs text-muted-foreground">Read</span></div>}
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Delivery by campaign</CardTitle></CardHeader>
+        <CardContent className="h-72">
+          {byCampaign.length === 0 ? <div className="flex h-full items-center justify-center text-sm text-muted-foreground">No data</div> : <ResponsiveContainer width="100%" height="100%"><BarChart data={byCampaign}><CartesianGrid strokeDasharray="3 3" opacity={0.3} /><XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} angle={-15} textAnchor="end" height={60} /><YAxis tick={{ fontSize: 11 }} allowDecimals={false} /><Tooltip /><Legend wrapperStyle={{ fontSize: 12 }} /><Bar dataKey="sent" stackId="s" fill={STATUS_COLORS.sent} name="Sent" /><Bar dataKey="delivered" stackId="s" fill={STATUS_COLORS.delivered} name="Delivered" /><Bar dataKey="read" stackId="s" fill={STATUS_COLORS.read} name="Read" /><Bar dataKey="failed" stackId="s" fill={STATUS_COLORS.failed} name="Failed" /><Bar dataKey="pending" stackId="s" fill={STATUS_COLORS.pending} name="Pending" /></BarChart></ResponsiveContainer>}
+        </CardContent>
+      </Card>
 
       {/* Click / responses */}
       <Card>
@@ -348,7 +373,7 @@ const WhatsAppDashboard = () => {
                       </TableCell>
                       <TableCell><Badge variant="outline">{l.campaign_name || l.template_name || 'Direct'}</Badge></TableCell>
                       <TableCell>
-                        <Badge style={{ backgroundColor: STATUS_COLORS[s], color: '#fff' }} className="capitalize">{s}</Badge>
+                        <Badge style={{ backgroundColor: STATUS_COLORS[s] }} className="capitalize text-primary-foreground">{s}</Badge>
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground">{new Date(l.created_at).toLocaleString('en-TZ')}</TableCell>
                       <TableCell className="text-xs text-muted-foreground">{l.delivered_at ? new Date(l.delivered_at).toLocaleString('en-TZ') : '—'}</TableCell>

@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 import * as XLSX from 'xlsx';
+import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 
 
 const COMPANY_ADDRESS = 'Plot No. 22, Mbezi Beach A, Kinondoni\nDar es Salaam, Tanzania\ninfo@smartevents.co.tz | www.smartevents.co.tz';
@@ -180,6 +181,25 @@ const SmsReports = () => {
   const totalCost = totalSmsUnits * smsRate;
   const totalPending = logs.filter((l: any) => l.status === 'pending').length;
   const successRate = logs.length > 0 ? Math.round((totalSent / logs.length) * 100) : 0;
+  const deliveryChart = [
+    { name: 'Delivered', value: totalSent, color: 'hsl(var(--status-success))' },
+    { name: 'Pending / Scheduled', value: totalPending + totalScheduled, color: 'hsl(var(--status-neutral))' },
+    { name: 'Failed', value: totalFailed, color: 'hsl(var(--destructive))' },
+  ].filter((item) => item.value > 0);
+  const unitOutcomes = useMemo(() => {
+    const sums = { sent: 0, pending: 0, failed: 0 };
+    (logs as any[]).forEach((log) => {
+      const units = log.sms_count || 1;
+      if (log.status === 'sent') sums.sent += units;
+      else if (log.status === 'failed') sums.failed += units;
+      else sums.pending += units;
+    });
+    return [
+      { name: 'Delivered units', value: sums.sent, color: 'hsl(var(--status-info))' },
+      { name: 'Pending units', value: sums.pending, color: 'hsl(var(--status-warning))' },
+      { name: 'Failed units', value: sums.failed, color: 'hsl(var(--destructive))' },
+    ].filter((item) => item.value > 0);
+  }, [logs]);
 
   // Beem API response breakdown (code + message from beem_response)
   const beemBreakdown = useMemo(() => {
@@ -495,6 +515,23 @@ const SmsReports = () => {
       <p className="text-xs text-muted-foreground -mt-2">
         Mzozo wa gharama: <span className="font-medium text-foreground">{totalSmsUnits.toLocaleString()} SMS units × TZS {smsRate.toLocaleString()} = TZS {totalCost.toLocaleString()}</span>
       </p>
+
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <section className="report-panel">
+          <h4 className="font-heading text-lg font-semibold">Delivery Status <span className="text-sm font-normal text-muted-foreground">of {logs.length} messages, {totalSent} delivered</span></h4>
+          <div className="relative h-72">
+            {deliveryChart.length === 0 ? <div className="flex h-full items-center justify-center text-sm text-muted-foreground">Hakuna taarifa</div> : <ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={deliveryChart} dataKey="value" nameKey="name" innerRadius={62} outerRadius={92}>{deliveryChart.map((item) => <Cell key={item.name} fill={item.color} />)}</Pie><Tooltip /><Legend layout="vertical" align="right" verticalAlign="middle" wrapperStyle={{ fontSize: 12 }} /></PieChart></ResponsiveContainer>}
+            {deliveryChart.length > 0 && <div className="pointer-events-none absolute inset-y-0 left-[24%] flex w-28 flex-col items-center justify-center"><strong className="text-3xl">{totalSent}</strong><span className="text-xs text-muted-foreground">Delivered</span></div>}
+          </div>
+        </section>
+        <section className="report-panel">
+          <h4 className="font-heading text-lg font-semibold">SMS Units <span className="text-sm font-normal text-muted-foreground">{totalSmsUnits.toLocaleString()} units · TZS {totalCost.toLocaleString()}</span></h4>
+          <div className="relative h-72">
+            {unitOutcomes.length === 0 ? <div className="flex h-full items-center justify-center text-sm text-muted-foreground">Hakuna taarifa</div> : <ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={unitOutcomes} dataKey="value" nameKey="name" innerRadius={62} outerRadius={92}>{unitOutcomes.map((item) => <Cell key={item.name} fill={item.color} />)}</Pie><Tooltip /><Legend layout="vertical" align="right" verticalAlign="middle" wrapperStyle={{ fontSize: 12 }} /></PieChart></ResponsiveContainer>}
+            {unitOutcomes.length > 0 && <div className="pointer-events-none absolute inset-y-0 left-[24%] flex w-28 flex-col items-center justify-center"><strong className="text-3xl">{totalSmsUnits.toLocaleString()}</strong><span className="text-xs text-muted-foreground">Units</span></div>}
+          </div>
+        </section>
+      </div>
 
       {/* Network Breakdown */}
       {sortedNetworks.length > 0 && (

@@ -250,6 +250,8 @@ const WhatsAppCompose = () => {
       }
 
       queryClient.invalidateQueries({ queryKey: ['whatsapp-logs'] });
+      queryClient.invalidateQueries({ queryKey: ['wa-dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-balance'] });
     } catch (err: any) {
       toast({ title: 'Send failed', description: err.message, variant: 'destructive' });
     } finally {

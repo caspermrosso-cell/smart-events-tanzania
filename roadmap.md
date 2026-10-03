@@ -1,10 +1,10 @@
 # Roadmap
 
-- [ ] Group the left navigation into playbook work areas.
-- [ ] Add the Communications route and shared SMS/WhatsApp workspace header.
-- [ ] Redesign SMS reporting and allocation visibility.
-- [ ] Fix SMS usage refresh across SMS Management and Events.
-- [ ] Reorder WhatsApp flow: Dashboard, Templates, Compose, Sessions, Logs.
-- [ ] Improve WhatsApp delivery/read/failed/pending reporting and logs.
-- [ ] Show WhatsApp balance/credits from provider send responses.
+- [x] Group the left navigation into playbook work areas.
+- [x] Add the Communications route and shared SMS/WhatsApp workspace header.
+- [x] Redesign SMS reporting and allocation visibility.
+- [x] Fix SMS usage refresh across SMS Management and Events.
+- [x] Reorder WhatsApp flow: Dashboard, Templates, Compose, Sessions, Logs.
+- [x] Improve WhatsApp delivery/read/failed/pending reporting and logs.
+- [x] Show WhatsApp balance/credits from the provider.
 - [ ] Verify desktop and mobile signed-in screens.

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { RefreshCw, History, Clock, CheckCircle, XCircle, Loader2, Trash2 } from 'lucide-react';
+import { RefreshCw, History, Clock, CheckCircle, CheckCheck, Eye, XCircle, Loader2, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 
 const statusConfig: Record<string, { label: string; variant: 'default' | 'destructive' | 'secondary'; icon: any }> = {
   sent: { label: 'Sent', variant: 'default', icon: CheckCircle },
+  delivered: { label: 'Delivered', variant: 'default', icon: CheckCheck },
+  read: { label: 'Read', variant: 'default', icon: Eye },
   failed: { label: 'Failed', variant: 'destructive', icon: XCircle },
   pending: { label: 'Pending', variant: 'secondary', icon: Clock },
 };
@@ -98,7 +100,8 @@ const WhatsAppLogs = () => {
             </TableHeader>
             <TableBody>
               {logs.map((log: any) => {
-                const config = statusConfig[log.status] || statusConfig.pending;
+                const effectiveStatus = log.read_at ? 'read' : log.delivered_at ? 'delivered' : log.status;
+                const config = statusConfig[effectiveStatus] || statusConfig.pending;
                 const StatusIcon = config.icon;
                 return (
                   <TableRow key={log.id}>
@@ -116,7 +119,9 @@ const WhatsAppLogs = () => {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {new Date(log.created_at).toLocaleString('en-TZ')}
+                      <div>{new Date(log.created_at).toLocaleString('en-TZ')}</div>
+                      {log.delivered_at && <div className="text-xs">Delivered {new Date(log.delivered_at).toLocaleString('en-TZ')}</div>}
+                      {log.read_at && <div className="text-xs">Read {new Date(log.read_at).toLocaleString('en-TZ')}</div>}
                     </TableCell>
                   </TableRow>
                 );
