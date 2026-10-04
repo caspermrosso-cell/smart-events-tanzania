@@ -9,52 +9,52 @@
 
 @layer base {
   :root {
-    /* Smart Events: sage green & off-white */
-    --background: 45 30% 97%;
-    --foreground: 150 12% 20%;
+    /* Smart Events: apple green & cream */
+    --background: 45 55% 96%;
+    --foreground: 120 15% 18%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 150 12% 20%;
+    --card: 45 50% 99%;
+    --card-foreground: 120 15% 18%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 150 12% 20%;
+    --popover: 45 50% 99%;
+    --popover-foreground: 120 15% 18%;
 
-    --primary: 125 14% 38%;
-    --primary-foreground: 45 40% 97%;
+    --primary: 95 42% 38%;
+    --primary-foreground: 45 60% 97%;
 
-    --secondary: 100 16% 92%;
-    --secondary-foreground: 150 12% 20%;
+    --secondary: 85 35% 92%;
+    --secondary-foreground: 120 15% 18%;
 
-    --muted: 100 14% 94%;
-    --muted-foreground: 140 8% 38%;
+    --muted: 85 30% 94%;
+    --muted-foreground: 120 10% 35%;
 
-    --accent: 103 20% 62%;
-    --accent-foreground: 150 12% 16%;
+    --accent: 95 48% 55%;
+    --accent-foreground: 120 15% 14%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 100 12% 86%;
-    --input: 100 12% 86%;
-    --ring: 125 14% 38%;
+    --border: 85 25% 86%;
+    --input: 85 25% 86%;
+    --ring: 95 42% 38%;
 
     --radius: 1rem;
 
     /* Custom tokens */
-    --gold: 88 24% 52%;
-    --gold-foreground: 150 12% 16%;
-    --warm-cream: 45 30% 95%;
-    --deep-brown: 150 15% 14%;
-    --sunset: 103 20% 62%;
+    --gold: 45 65% 60%;
+    --gold-foreground: 120 15% 14%;
+    --warm-cream: 45 55% 94%;
+    --deep-brown: 120 18% 14%;
+    --sunset: 95 48% 55%;
 
-    --sidebar-background: 150 14% 16%;
-    --sidebar-foreground: 45 30% 95%;
-    --sidebar-primary: 103 20% 62%;
-    --sidebar-primary-foreground: 150 15% 14%;
-    --sidebar-accent: 140 12% 22%;
-    --sidebar-accent-foreground: 45 30% 95%;
-    --sidebar-border: 140 12% 24%;
-    --sidebar-ring: 103 20% 62%;
+    --sidebar-background: 120 16% 15%;
+    --sidebar-foreground: 45 55% 95%;
+    --sidebar-primary: 95 48% 55%;
+    --sidebar-primary-foreground: 120 18% 14%;
+    --sidebar-accent: 120 12% 21%;
+    --sidebar-accent-foreground: 45 55% 95%;
+    --sidebar-border: 120 12% 23%;
+    --sidebar-ring: 95 48% 55%;
 
     --status-success: 87 58% 48%;
     --status-warning: 40 100% 57%;
@@ -65,47 +65,47 @@
   }
 
   .dark {
-    /* Smart Events night: deep forest green softened with off-white surfaces */
-    --background: 150 14% 12%;
-    --foreground: 45 30% 95%;
+    /* Smart Events night: deep forest green with cream surfaces */
+    --background: 130 15% 11%;
+    --foreground: 45 55% 95%;
 
-    --card: 150 12% 16%;
-    --card-foreground: 45 30% 95%;
+    --card: 130 12% 16%;
+    --card-foreground: 45 55% 95%;
 
-    --popover: 150 12% 17%;
-    --popover-foreground: 45 30% 95%;
+    --popover: 130 12% 17%;
+    --popover-foreground: 45 55% 95%;
 
-    --primary: 103 22% 62%;
-    --primary-foreground: 150 15% 12%;
+    --primary: 95 45% 58%;
+    --primary-foreground: 120 18% 12%;
 
-    --secondary: 140 10% 22%;
-    --secondary-foreground: 45 30% 95%;
+    --secondary: 120 10% 22%;
+    --secondary-foreground: 45 55% 95%;
 
-    --muted: 140 10% 20%;
-    --muted-foreground: 100 12% 76%;
+    --muted: 120 10% 20%;
+    --muted-foreground: 90 12% 76%;
 
-    --accent: 103 20% 55%;
-    --accent-foreground: 150 15% 12%;
+    --accent: 95 45% 50%;
+    --accent-foreground: 120 18% 12%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 140 10% 26%;
-    --input: 140 10% 26%;
-    --ring: 103 22% 62%;
+    --border: 120 10% 26%;
+    --input: 120 10% 26%;
+    --ring: 95 45% 58%;
 
-    --gold: 88 26% 58%;
-    --deep-brown: 150 18% 9%;
-    --sunset: 103 20% 55%;
+    --gold: 45 65% 62%;
+    --deep-brown: 130 18% 8%;
+    --sunset: 95 45% 50%;
 
-    --sidebar-background: 150 16% 10%;
-    --sidebar-foreground: 45 30% 95%;
-    --sidebar-primary: 103 22% 62%;
-    --sidebar-primary-foreground: 150 18% 10%;
-    --sidebar-accent: 140 12% 18%;
-    --sidebar-accent-foreground: 45 30% 95%;
-    --sidebar-border: 140 10% 22%;
-    --sidebar-ring: 103 22% 62%;
+    --sidebar-background: 130 17% 9%;
+    --sidebar-foreground: 45 55% 95%;
+    --sidebar-primary: 95 45% 58%;
+    --sidebar-primary-foreground: 130 18% 10%;
+    --sidebar-accent: 120 12% 18%;
+    --sidebar-accent-foreground: 45 55% 95%;
+    --sidebar-border: 120 10% 22%;
+    --sidebar-ring: 95 45% 58%;
   }
 }
 
