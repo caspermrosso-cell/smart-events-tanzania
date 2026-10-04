@@ -9,53 +9,52 @@
 
 @layer base {
   :root {
-    /* Smart Events - Warm Sand: human, airy, warm neutrals
-       sand-white #FAF8F5 • linen #F0EBE3 • tan #C9B99A • mocha #8B7355 • cocoa #2E2620 */
-    --background: 30 33% 97%;      /* sand white #FAF8F5 */
-    --foreground: 30 19% 15%;      /* cocoa #2E2620 */
+    /* Smart Events brand: logo navy, celebratory gold, and warm ivory */
+    --background: 60 100% 98%;
+    --foreground: 214 100% 18%;
 
     --card: 0 0% 100%;
-    --card-foreground: 30 19% 15%;
+    --card-foreground: 214 100% 18%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 30 19% 15%;
+    --popover-foreground: 214 100% 18%;
 
-    --primary: 163 33% 27%;        /* forest #2F5D50 */
-    --primary-foreground: 30 33% 98%;
+    --primary: 214 100% 18%;
+    --primary-foreground: 51 100% 96%;
 
-    --secondary: 33 27% 92%;       /* linen #F0EBE3 */
-    --secondary-foreground: 30 19% 15%;
+    --secondary: 48 55% 92%;
+    --secondary-foreground: 214 100% 18%;
 
-    --muted: 33 27% 94%;
-    --muted-foreground: 28 12% 40%;
+    --muted: 47 38% 94%;
+    --muted-foreground: 215 25% 38%;
 
-    --accent: 39 29% 70%;          /* tan #C9B99A */
-    --accent-foreground: 30 19% 15%;
+    --accent: 43 73% 49%;
+    --accent-foreground: 214 100% 14%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 33 22% 88%;
-    --input: 33 22% 88%;
-    --ring: 163 33% 27%;
+    --border: 45 32% 85%;
+    --input: 45 32% 85%;
+    --ring: 43 73% 49%;
 
     --radius: 1rem;
 
     /* Custom tokens */
-    --gold: 39 58% 59%;             /* muted gold #D6A85F */
-    --gold-foreground: 30 19% 15%;
-    --warm-cream: 33 27% 92%;       /* linen #F0EBE3 */
-    --deep-brown: 28 22% 14%;       /* cocoa */
-    --sunset: 30 21% 44%;           /* mocha */
+    --gold: 43 73% 49%;
+    --gold-foreground: 214 100% 14%;
+    --warm-cream: 48 55% 92%;
+    --deep-brown: 214 100% 12%;
+    --sunset: 43 73% 49%;
 
-    --sidebar-background: 22 35% 18%;
-    --sidebar-foreground: 40 70% 96%;
-    --sidebar-primary: 27 33% 55%;
-    --sidebar-primary-foreground: 22 35% 15%;
-    --sidebar-accent: 24 30% 26%;
-    --sidebar-accent-foreground: 40 70% 96%;
-    --sidebar-border: 24 30% 26%;
-    --sidebar-ring: 27 33% 55%;
+    --sidebar-background: 214 100% 18%;
+    --sidebar-foreground: 51 100% 96%;
+    --sidebar-primary: 43 73% 49%;
+    --sidebar-primary-foreground: 214 100% 12%;
+    --sidebar-accent: 214 70% 25%;
+    --sidebar-accent-foreground: 51 100% 96%;
+    --sidebar-border: 214 55% 29%;
+    --sidebar-ring: 43 73% 49%;
 
     --status-success: 87 58% 48%;
     --status-warning: 40 100% 57%;
@@ -66,47 +65,47 @@
   }
 
   .dark {
-    /* White Chocolate Night: softer cocoa surfaces without a heavy dark-brown cast */
-    --background: 30 18% 18%;
-    --foreground: 36 35% 94%;
+    /* Smart Events night: deep logo navy softened with warm ivory surfaces */
+    --background: 214 58% 12%;
+    --foreground: 51 55% 94%;
 
-    --card: 30 16% 23%;
-    --card-foreground: 36 35% 94%;
+    --card: 214 48% 17%;
+    --card-foreground: 51 55% 94%;
 
-    --popover: 30 16% 24%;
-    --popover-foreground: 36 35% 94%;
+    --popover: 214 48% 18%;
+    --popover-foreground: 51 55% 94%;
 
-    --primary: 39 58% 66%;
-    --primary-foreground: 30 22% 16%;
+    --primary: 43 78% 58%;
+    --primary-foreground: 214 100% 12%;
 
-    --secondary: 31 14% 30%;
-    --secondary-foreground: 36 30% 92%;
+    --secondary: 214 35% 24%;
+    --secondary-foreground: 51 55% 94%;
 
-    --muted: 31 13% 28%;
-    --muted-foreground: 34 18% 76%;
+    --muted: 214 30% 22%;
+    --muted-foreground: 48 24% 75%;
 
-    --accent: 34 27% 58%;
-    --accent-foreground: 30 22% 16%;
+    --accent: 43 65% 52%;
+    --accent-foreground: 214 100% 12%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 31 13% 35%;
-    --input: 31 13% 35%;
-    --ring: 39 58% 66%;
+    --border: 214 28% 31%;
+    --input: 214 28% 31%;
+    --ring: 43 78% 58%;
 
-    --gold: 39 58% 66%;
-    --deep-brown: 31 18% 24%;
-    --sunset: 30 24% 47%;
+    --gold: 43 78% 58%;
+    --deep-brown: 214 60% 10%;
+    --sunset: 43 65% 52%;
 
-    --sidebar-background: 30 18% 20%;
-    --sidebar-foreground: 36 35% 94%;
-    --sidebar-primary: 39 58% 66%;
-    --sidebar-primary-foreground: 30 22% 16%;
-    --sidebar-accent: 31 14% 29%;
-    --sidebar-accent-foreground: 36 30% 92%;
-    --sidebar-border: 31 13% 34%;
-    --sidebar-ring: 39 58% 66%;
+    --sidebar-background: 214 65% 11%;
+    --sidebar-foreground: 51 55% 94%;
+    --sidebar-primary: 43 78% 58%;
+    --sidebar-primary-foreground: 214 100% 12%;
+    --sidebar-accent: 214 45% 20%;
+    --sidebar-accent-foreground: 51 55% 94%;
+    --sidebar-border: 214 35% 26%;
+    --sidebar-ring: 43 78% 58%;
   }
 }
 
