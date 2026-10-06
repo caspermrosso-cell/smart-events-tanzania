@@ -10,3 +10,4 @@
 - [ ] Verify desktop and mobile signed-in screens.
 - [x] Blend the interface theme with the uploaded charcoal and emerald reference.
 - [x] Add a restrained emerald glow to buttons across the app.
+- [x] Add a floating public WhatsApp chat button for +255 784 670 202.
