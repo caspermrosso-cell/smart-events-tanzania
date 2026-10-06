@@ -8,5 +8,5 @@
 - [x] Improve WhatsApp delivery/read/failed/pending reporting and logs.
 - [x] Show WhatsApp balance/credits from the provider.
 - [ ] Verify desktop and mobile signed-in screens.
-- [ ] Blend the interface theme with the uploaded charcoal and emerald reference.
-- [ ] Add a restrained emerald glow to buttons across the app.
+- [x] Blend the interface theme with the uploaded charcoal and emerald reference.
+- [x] Add a restrained emerald glow to buttons across the app.
