@@ -8,6 +8,13 @@
       "when": 1791173068503,
       "tag": "0000_restrict_testimonial_photo_reads_to_published",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791257557708,
+      "tag": "0001_separate_public_and_owner_testimonial_photo_reads",
+      "breakpoints": true
     }
   ]
 }
