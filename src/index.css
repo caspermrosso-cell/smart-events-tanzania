@@ -65,23 +65,23 @@
   }
 
   .dark {
-    /* Smart Events night: near-black charcoal with luminous emerald */
-    --background: 174 53% 4%;
+    /* Smart Events night: soft charcoal with a faint green cast, luminous emerald */
+    --background: 165 16% 12%;
     --foreground: 150 20% 96%;
 
-    --card: 172 38% 8%;
+    --card: 165 15% 16%;
     --card-foreground: 150 20% 96%;
 
-    --popover: 172 38% 8%;
+    --popover: 165 15% 16%;
     --popover-foreground: 150 20% 96%;
 
     --primary: 158 94% 43%;
     --primary-foreground: 174 60% 5%;
 
-    --secondary: 169 28% 14%;
+    --secondary: 165 14% 20%;
     --secondary-foreground: 150 20% 96%;
 
-    --muted: 170 24% 12%;
+    --muted: 165 13% 18%;
     --muted-foreground: 160 10% 68%;
 
     --accent: 158 94% 43%;
@@ -90,12 +90,12 @@
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 168 25% 18%;
-    --input: 168 25% 18%;
+    --border: 165 14% 23%;
+    --input: 165 14% 23%;
     --ring: 158 94% 43%;
 
     --gold: 158 94% 43%;
-    --deep-brown: 174 53% 3%;
+    --deep-brown: 165 16% 9%;
     --sunset: 160 74% 32%;
 
     --sidebar-background: 174 50% 10%;
