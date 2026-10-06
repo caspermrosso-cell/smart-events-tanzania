@@ -36,6 +36,7 @@ import OAuthConsent from "./pages/OAuthConsent";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ScrollToTop from "./components/ScrollToTop";
+import WhatsAppChatButton from "./components/WhatsAppChatButton";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +49,7 @@ const App = () => (
         <BrowserRouter>
           <ScrollToTop />
           <AuthProvider>
+            <WhatsAppChatButton />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/about" element={<About />} />
