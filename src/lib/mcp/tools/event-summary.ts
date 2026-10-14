@@ -1,13 +1,7 @@
-import { createClient } from "@supabase/supabase-js";
-import { defineTool, type ToolContext } from "@lovable.dev/mcp-js";
+import { supabaseForUser as db } from "../supabase";
+import { defineTool } from "@lovable.dev/mcp-js";
 import { z } from "zod";
 
-function db(ctx: ToolContext) {
-  return createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
-    global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
 
 export default defineTool({
   name: "event_summary",
@@ -20,18 +14,19 @@ export default defineTool({
     const supabase = db(ctx);
 
     const [eventRes, guestsRes, pledgesRes] = await Promise.all([
-      supabase.from("events").select("id, name, event_date, venue, status, expected_guests").eq("id", event_id).maybeSingle(),
-      supabase.from("guests").select("id, checked_in").eq("event_id", event_id),
-      supabase.from("pledges").select("amount_pledged, amount_paid, status").eq("event_id", event_id),
+      supabase.from("events").select("id, title, event_date, venue, status, max_guests").eq("id", event_id).eq("user_id", ctx.getUserId()).is("deleted_at", null).maybeSingle(),
+      supabase.from("guests").select("id, checked_in").eq("event_id", event_id).eq("user_id", ctx.getUserId()),
+      supabase.from("pledges").select("amount, paid_amount, status").eq("event_id", event_id).eq("user_id", ctx.getUserId()),
     ]);
 
+    if (guestsRes.error || pledgesRes.error) return { content: [{ type: "text", text: "Unable to read event summary" }], isError: true };
     if (eventRes.error) return { content: [{ type: "text", text: eventRes.error.message }], isError: true };
     if (!eventRes.data) return { content: [{ type: "text", text: "Event not found" }], isError: true };
 
     const guests = guestsRes.data ?? [];
     const pledges = pledgesRes.data ?? [];
-    const totalPledged = pledges.reduce((s, p: any) => s + Number(p.amount_pledged || 0), 0);
-    const totalPaid = pledges.reduce((s, p: any) => s + Number(p.amount_paid || 0), 0);
+    const totalPledged = pledges.reduce((s, p: any) => s + Number(p.amount || 0), 0);
+    const totalPaid = pledges.reduce((s, p: any) => s + Number(p.paid_amount || 0), 0);
 
     const summary = {
       event: eventRes.data,

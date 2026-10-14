@@ -1,13 +1,7 @@
-import { createClient } from "@supabase/supabase-js";
-import { defineTool, type ToolContext } from "@lovable.dev/mcp-js";
+import { supabaseForUser as db } from "../supabase";
+import { defineTool } from "@lovable.dev/mcp-js";
 import { z } from "zod";
 
-function db(ctx: ToolContext) {
-  return createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
-    global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
 
 export default defineTool({
   name: "list_pledges",
@@ -22,7 +16,8 @@ export default defineTool({
     if (!ctx.isAuthenticated()) return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
     let q = db(ctx)
       .from("pledges")
-      .select("id, event_id, pledger_name, pledger_phone, amount_pledged, amount_paid, status, due_date, created_at")
+      .select("id, event_id, guest_name, amount, paid_amount, status, created_at")
+      .eq("user_id", ctx.getUserId())
       .order("created_at", { ascending: false })
       .limit(limit ?? 100);
     if (event_id) q = q.eq("event_id", event_id);

@@ -1,13 +1,7 @@
-import { createClient } from "@supabase/supabase-js";
-import { defineTool, type ToolContext } from "@lovable.dev/mcp-js";
+import { supabaseForUser as db } from "../supabase";
+import { defineTool } from "@lovable.dev/mcp-js";
 import { z } from "zod";
 
-function db(ctx: ToolContext) {
-  return createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
-    global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
 
 export default defineTool({
   name: "list_invoices",
@@ -22,8 +16,9 @@ export default defineTool({
     if (!ctx.isAuthenticated()) return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
     let q = db(ctx)
       .from("invoices")
-      .select("id, invoice_number, client_name, total_amount, status, issue_date, due_date")
-      .order("issue_date", { ascending: false })
+      .select("id, invoice_number, client_name, grand_total, status, created_at, payment_due_days")
+      .eq("user_id", ctx.getUserId())
+      .order("created_at", { ascending: false })
       .limit(limit ?? 50);
     if (status) q = q.eq("status", status);
     const { data, error } = await q;
