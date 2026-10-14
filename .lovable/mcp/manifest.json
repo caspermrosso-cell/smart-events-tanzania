@@ -5,15 +5,16 @@
   "auth": {
     "type": "oauth",
     "issuer": "https://folppemingnczaohhngg.supabase.co/auth/v1",
+    "require_oauth_client_claim": true,
     "accepted_audiences": [
       "authenticated"
     ]
   },
   "mcp": {
     "server": {
-      "name": "smart-events-mcp",
-      "version": "0.1.0",
-      "title": "Smart Events"
+      "name": "smart-events-tanzania",
+      "version": "0.2.0",
+      "title": "Smart Events Tanzania"
     },
     "tools": [
       {
@@ -146,6 +147,134 @@
               "maximum": 200
             }
           }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "add_guests",
+        "title": "Add event guests",
+        "description": "Add up to 50 guests to an event you own; requires guest-management permission and +255 mobile numbers.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "event_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "guests": {
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "full_name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255
+                  },
+                  "phone": {
+                    "type": "string",
+                    "pattern": "^\\+255[67]\\d{8}$"
+                  },
+                  "card_number": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                  }
+                },
+                "required": [
+                  "full_name",
+                  "phone"
+                ]
+              }
+            }
+          },
+          "required": [
+            "event_id",
+            "guests"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "prepare_event_sms",
+        "title": "Prepare SMS for confirmation",
+        "description": "Save an SMS draft for selected guests of your event. Sends nothing. The user must open the returned Smart Events review link and confirm sending.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "event_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "message": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1000
+            },
+            "guest_ids": {
+              "minItems": 1,
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              }
+            }
+          },
+          "required": [
+            "event_id",
+            "message",
+            "guest_ids"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_sms_draft",
+        "title": "Read SMS confirmation status",
+        "description": "Read your saved SMS draft and its send result after human confirmation.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "draft_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          },
+          "required": [
+            "draft_id"
+          ]
         },
         "outputSchema": null
       }
