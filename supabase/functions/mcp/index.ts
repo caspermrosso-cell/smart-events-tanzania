@@ -191,7 +191,7 @@ var smsInput = z6.object({
   guest_ids: z6.array(z6.string().uuid()).min(1).max(50).refine((v) => new Set(v).size === v.length, "Duplicate guests are not allowed")
 });
 function smsUnits(message, recipients) {
-  const length = Array.from(message).length;
+  const length = message.length;
   return (length <= 160 ? 1 : Math.ceil(length / 153)) * recipients;
 }
 function requireOwnedEvent(event, userId) {
