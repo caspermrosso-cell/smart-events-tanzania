@@ -1,5 +1,10 @@
 # Roadmap
 
+- [ ] Add authenticated ChatGPT guest creation and SMS drafts with human confirmation before sending.
+- [ ] Verify permission, confirmation, and replay protections without sending paid messages.
+- [ ] Apply sage-green and white theme.
+- [ ] Extract the new connector catalog; republish required for hosted actions.
+
 - [x] Group the left navigation into playbook work areas.
 - [x] Add the Communications route and shared SMS/WhatsApp workspace header.
 - [x] Redesign SMS reporting and allocation visibility.
