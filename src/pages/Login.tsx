@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Lock, Fingerprint } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 
+
+import { oauthReturnPath } from '@/lib/oauth-return-path';
 
 const BIOMETRIC_KEY = 'se_bio_cred';
 
@@ -17,13 +19,8 @@ const Login = () => {
   const [searchParams] = useSearchParams();
 
   const rawNext = searchParams.get('next') ?? '';
-  // Only allow same-origin relative paths.
-  const nextPath = rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : '/dashboard';
-
-  if (user) {
-    navigate(nextPath, { replace: true });
-    return null;
-  }
+  const nextPath = oauthReturnPath(rawNext);
+  useEffect(() => { if (user) navigate(nextPath, { replace: true }); }, [user, nextPath, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

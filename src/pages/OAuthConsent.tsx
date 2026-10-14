@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
 type SupabaseOAuthLike = {
@@ -92,23 +93,23 @@ const OAuthConsent = () => {
         </h1>
         <p className="text-sm text-muted-foreground">
           This will let <strong>{clientName}</strong> access your Smart Events account and use the app's
-          tools on your behalf. Only your own data (events, guests, pledges, invoices) will be visible.
+          tools on your behalf. Only your own data will be visible. This connection can add guests and prepare SMS drafts; sending requires your separate confirmation in Smart Events.
         </p>
         <div className="flex gap-3 pt-2">
-          <button
+          <Button
             disabled={busy}
             onClick={() => decide(true)}
             className="flex-1 py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-accent transition-colors disabled:opacity-50"
           >
             {busy ? "…" : "Approve"}
-          </button>
-          <button
+          </Button>
+          <Button
             disabled={busy}
             onClick={() => decide(false)}
             className="flex-1 py-3 rounded-lg border-2 border-border text-foreground font-medium hover:bg-muted transition-colors disabled:opacity-50"
           >
             Deny
-          </button>
+          </Button>
         </div>
       </div>
     </main>
