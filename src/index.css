@@ -59,6 +59,10 @@
 
     --font-heading: 'Outfit', sans-serif;
     --font-body: 'Figtree', sans-serif;
+    --status-success: 87 58% 48%;
+    --status-warning: 40 100% 57%;
+    --status-info: 207 70% 50%;
+    --status-neutral: 0 0% 66%;
   }
 
   .dark {
