@@ -1,10 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
 
 const BEEM_API_URL = 'https://apisms.beem.africa/v1/send';
 const BEEM_BALANCE_URL = 'https://apisms.beem.africa/public/v1/vendors/balance';
@@ -52,6 +49,13 @@ serve(async (req) => {
     const authHeader = 'Basic ' + btoa(apiKey + ':' + secretKey);
     const body = await req.json();
     const { action } = body;
+
+    // OAuth assistants may read balance, but cannot bypass human SMS confirmation.
+    if (action !== 'balance' && claimsData.claims.client_id) {
+      return new Response(JSON.stringify({ error: 'SMS sending requires confirmation in Smart Events with your own signed-in session' }), {
+        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     // Check balance
     if (action === 'balance') {

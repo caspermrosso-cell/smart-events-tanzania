@@ -32,6 +32,7 @@ import PricingSetup from './pages/PricingSetup';
 import FinancialStatements from './pages/FinancialStatements';
 import Purchases from './pages/Purchases';
 import UsersPage from "./pages/Users";
+import AssistantSmsReview from "./pages/AssistantSmsReview";
 import OAuthConsent from "./pages/OAuthConsent";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -63,6 +64,7 @@ const App = () => (
               <Route path="/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
               <Route path="/guests" element={<ProtectedRoute><Guests /></ProtectedRoute>} />
               <Route path="/pledges" element={<ProtectedRoute><Pledges /></ProtectedRoute>} />
+              <Route path="/sms/review/:id" element={<AssistantSmsReview />} />
               <Route path="/sms" element={<ProtectedRoute><SMS /></ProtectedRoute>} />
               <Route path="/whatsapp" element={<ProtectedRoute><WhatsApp /></ProtectedRoute>} />
               <Route path="/communications" element={<ProtectedRoute><Communications /></ProtectedRoute>} />

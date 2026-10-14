@@ -1,13 +1,7 @@
-import { createClient } from "@supabase/supabase-js";
-import { defineTool, type ToolContext } from "@lovable.dev/mcp-js";
+import { supabaseForUser as db } from "../supabase";
+import { defineTool } from "@lovable.dev/mcp-js";
 import { z } from "zod";
 
-function db(ctx: ToolContext) {
-  return createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
-    global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
 
 export default defineTool({
   name: "list_guests",
@@ -22,8 +16,8 @@ export default defineTool({
     if (!ctx.isAuthenticated()) return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
     const { data, error } = await db(ctx)
       .from("guests")
-      .select("id, full_name, phone, category, status, checked_in, created_at")
-      .eq("event_id", event_id)
+      .select("id, full_name, phone, card_number, rsvp_status, checked_in, created_at")
+      .eq("event_id", event_id).eq("user_id", ctx.getUserId()).is("deleted_at", null)
       .order("created_at", { ascending: false })
       .limit(limit ?? 100);
     if (error) return { content: [{ type: "text", text: error.message }], isError: true };

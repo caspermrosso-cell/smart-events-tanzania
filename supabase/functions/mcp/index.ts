@@ -5,16 +5,41 @@
 // src/lib/mcp/index.ts
 import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@0.22.2";
 
-// src/lib/mcp/tools/list-events.ts
+// src/lib/mcp/supabase.ts
 import { createClient } from "npm:@supabase/supabase-js@^2.98.0";
+function env(name) {
+  const g = globalThis;
+  return g.Deno?.env?.get?.(name) ?? g.process?.env?.[name];
+}
+function configured(names) {
+  return names.map(env).find((v) => v?.trim())?.trim();
+}
+function key() {
+  const direct = configured(["SUPABASE_PUBLISHABLE_KEY", "VITE_SUPABASE_PUBLISHABLE_KEY"]);
+  if (direct) return direct;
+  try {
+    const keys = JSON.parse(env("SUPABASE_PUBLISHABLE_KEYS") ?? "{}");
+    if (keys && typeof keys === "object") {
+      const found = Object.values(keys).find((v) => typeof v === "string" && v.startsWith("sb_publishable_"));
+      if (found) return found;
+    }
+  } catch {
+  }
+  const legacy = configured(["SUPABASE_ANON_KEY", "VITE_SUPABASE_ANON_KEY"]);
+  if (!legacy) throw new Error("Publishable key is not configured");
+  return legacy;
+}
+function supabaseForUser(ctx) {
+  const token = ctx.getToken();
+  if (!ctx.isAuthenticated() || !token) throw new Error("Sign in required");
+  const url = configured(["SUPABASE_URL", "VITE_SUPABASE_URL"]);
+  if (!url) throw new Error("Backend URL is not configured");
+  return createClient(url, key(), { global: { headers: { Authorization: `Bearer ${token}` } }, auth: { persistSession: false, autoRefreshToken: false } });
+}
+
+// src/lib/mcp/tools/list-events.ts
 import { defineTool } from "npm:@lovable.dev/mcp-js@0.22.2";
 import { z } from "npm:zod@^4.4.3";
-function db(ctx) {
-  return createClient(process.env.SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY, {
-    global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
-    auth: { persistSession: false, autoRefreshToken: false }
-  });
-}
 var list_events_default = defineTool({
   name: "list_events",
   title: "List events",
@@ -25,7 +50,7 @@ var list_events_default = defineTool({
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ limit }, ctx) => {
     if (!ctx.isAuthenticated()) return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
-    const { data, error } = await db(ctx).from("events").select("id, name, event_date, venue, status, expected_guests, created_at").order("event_date", { ascending: false }).limit(limit ?? 25);
+    const { data, error } = await supabaseForUser(ctx).from("events").select("id, title, event_date, venue, status, max_guests, created_at").eq("user_id", ctx.getUserId()).is("deleted_at", null).order("event_date", { ascending: false }).limit(limit ?? 25);
     if (error) return { content: [{ type: "text", text: error.message }], isError: true };
     return {
       content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
@@ -35,15 +60,8 @@ var list_events_default = defineTool({
 });
 
 // src/lib/mcp/tools/list-guests.ts
-import { createClient as createClient2 } from "npm:@supabase/supabase-js@^2.98.0";
 import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@0.22.2";
 import { z as z2 } from "npm:zod@^4.4.3";
-function db2(ctx) {
-  return createClient2(process.env.SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY, {
-    global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
-    auth: { persistSession: false, autoRefreshToken: false }
-  });
-}
 var list_guests_default = defineTool2({
   name: "list_guests",
   title: "List guests for an event",
@@ -55,7 +73,7 @@ var list_guests_default = defineTool2({
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ event_id, limit }, ctx) => {
     if (!ctx.isAuthenticated()) return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
-    const { data, error } = await db2(ctx).from("guests").select("id, full_name, phone, category, status, checked_in, created_at").eq("event_id", event_id).order("created_at", { ascending: false }).limit(limit ?? 100);
+    const { data, error } = await supabaseForUser(ctx).from("guests").select("id, full_name, phone, card_number, rsvp_status, checked_in, created_at").eq("event_id", event_id).eq("user_id", ctx.getUserId()).is("deleted_at", null).order("created_at", { ascending: false }).limit(limit ?? 100);
     if (error) return { content: [{ type: "text", text: error.message }], isError: true };
     return {
       content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
@@ -65,15 +83,8 @@ var list_guests_default = defineTool2({
 });
 
 // src/lib/mcp/tools/list-pledges.ts
-import { createClient as createClient3 } from "npm:@supabase/supabase-js@^2.98.0";
 import { defineTool as defineTool3 } from "npm:@lovable.dev/mcp-js@0.22.2";
 import { z as z3 } from "npm:zod@^4.4.3";
-function db3(ctx) {
-  return createClient3(process.env.SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY, {
-    global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
-    auth: { persistSession: false, autoRefreshToken: false }
-  });
-}
 var list_pledges_default = defineTool3({
   name: "list_pledges",
   title: "List pledges",
@@ -85,7 +96,7 @@ var list_pledges_default = defineTool3({
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ event_id, limit }, ctx) => {
     if (!ctx.isAuthenticated()) return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
-    let q = db3(ctx).from("pledges").select("id, event_id, pledger_name, pledger_phone, amount_pledged, amount_paid, status, due_date, created_at").order("created_at", { ascending: false }).limit(limit ?? 100);
+    let q = supabaseForUser(ctx).from("pledges").select("id, event_id, guest_name, amount, paid_amount, status, created_at").eq("user_id", ctx.getUserId()).order("created_at", { ascending: false }).limit(limit ?? 100);
     if (event_id) q = q.eq("event_id", event_id);
     const { data, error } = await q;
     if (error) return { content: [{ type: "text", text: error.message }], isError: true };
@@ -97,15 +108,8 @@ var list_pledges_default = defineTool3({
 });
 
 // src/lib/mcp/tools/event-summary.ts
-import { createClient as createClient4 } from "npm:@supabase/supabase-js@^2.98.0";
 import { defineTool as defineTool4 } from "npm:@lovable.dev/mcp-js@0.22.2";
 import { z as z4 } from "npm:zod@^4.4.3";
-function db4(ctx) {
-  return createClient4(process.env.SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY, {
-    global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
-    auth: { persistSession: false, autoRefreshToken: false }
-  });
-}
 var event_summary_default = defineTool4({
   name: "event_summary",
   title: "Event summary",
@@ -114,18 +118,19 @@ var event_summary_default = defineTool4({
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ event_id }, ctx) => {
     if (!ctx.isAuthenticated()) return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
-    const supabase = db4(ctx);
+    const supabase = supabaseForUser(ctx);
     const [eventRes, guestsRes, pledgesRes] = await Promise.all([
-      supabase.from("events").select("id, name, event_date, venue, status, expected_guests").eq("id", event_id).maybeSingle(),
-      supabase.from("guests").select("id, checked_in").eq("event_id", event_id),
-      supabase.from("pledges").select("amount_pledged, amount_paid, status").eq("event_id", event_id)
+      supabase.from("events").select("id, title, event_date, venue, status, max_guests").eq("id", event_id).eq("user_id", ctx.getUserId()).is("deleted_at", null).maybeSingle(),
+      supabase.from("guests").select("id, checked_in").eq("event_id", event_id).eq("user_id", ctx.getUserId()),
+      supabase.from("pledges").select("amount, paid_amount, status").eq("event_id", event_id).eq("user_id", ctx.getUserId())
     ]);
+    if (guestsRes.error || pledgesRes.error) return { content: [{ type: "text", text: "Unable to read event summary" }], isError: true };
     if (eventRes.error) return { content: [{ type: "text", text: eventRes.error.message }], isError: true };
     if (!eventRes.data) return { content: [{ type: "text", text: "Event not found" }], isError: true };
     const guests = guestsRes.data ?? [];
     const pledges = pledgesRes.data ?? [];
-    const totalPledged = pledges.reduce((s, p) => s + Number(p.amount_pledged || 0), 0);
-    const totalPaid = pledges.reduce((s, p) => s + Number(p.amount_paid || 0), 0);
+    const totalPledged = pledges.reduce((s, p) => s + Number(p.amount || 0), 0);
+    const totalPaid = pledges.reduce((s, p) => s + Number(p.paid_amount || 0), 0);
     const summary = {
       event: eventRes.data,
       guests: { total: guests.length, checked_in: guests.filter((g) => g.checked_in).length },
@@ -144,15 +149,8 @@ var event_summary_default = defineTool4({
 });
 
 // src/lib/mcp/tools/list-invoices.ts
-import { createClient as createClient5 } from "npm:@supabase/supabase-js@^2.98.0";
 import { defineTool as defineTool5 } from "npm:@lovable.dev/mcp-js@0.22.2";
 import { z as z5 } from "npm:zod@^4.4.3";
-function db5(ctx) {
-  return createClient5(process.env.SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY, {
-    global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
-    auth: { persistSession: false, autoRefreshToken: false }
-  });
-}
 var list_invoices_default = defineTool5({
   name: "list_invoices",
   title: "List invoices",
@@ -164,7 +162,7 @@ var list_invoices_default = defineTool5({
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ status, limit }, ctx) => {
     if (!ctx.isAuthenticated()) return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
-    let q = db5(ctx).from("invoices").select("id, invoice_number, client_name, total_amount, status, issue_date, due_date").order("issue_date", { ascending: false }).limit(limit ?? 50);
+    let q = supabaseForUser(ctx).from("invoices").select("id, invoice_number, client_name, grand_total, status, created_at, payment_due_days").eq("user_id", ctx.getUserId()).order("created_at", { ascending: false }).limit(limit ?? 50);
     if (status) q = q.eq("status", status);
     const { data, error } = await q;
     if (error) return { content: [{ type: "text", text: error.message }], isError: true };
@@ -175,18 +173,126 @@ var list_invoices_default = defineTool5({
   }
 });
 
+// src/lib/mcp/tools/add-guests.ts
+import { defineTool as defineTool6 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z7 } from "npm:zod@^4.4.3";
+
+// src/lib/assistant/validation.ts
+import { z as z6 } from "npm:zod@^4.4.3";
+var tanzaniaPhone = z6.string().regex(/^\+255[67]\d{8}$/, "Use a Tanzania mobile number in +255 format");
+var guestInput = z6.object({
+  full_name: z6.string().trim().min(1).max(255),
+  phone: tanzaniaPhone,
+  card_number: z6.string().trim().min(1).max(100).optional(),
+  email: z6.string().email().optional()
+});
+var smsInput = z6.object({
+  message: z6.string().min(1).max(1e3).refine((v) => v.trim().length > 0, "Message is required").refine((v) => !/\{[a-zA-Z0-9_]+\}/.test(v), "Resolve all variables before preparing a draft"),
+  guest_ids: z6.array(z6.string().uuid()).min(1).max(50).refine((v) => new Set(v).size === v.length, "Duplicate guests are not allowed")
+});
+function smsUnits(message, recipients) {
+  const length = message.length;
+  return (length <= 160 ? 1 : Math.ceil(length / 153)) * recipients;
+}
+function requireOwnedEvent(event, userId) {
+  if (!event || event.user_id !== userId || event.deleted_at) throw new Error("Event is unavailable or not owned by you");
+}
+
+// src/lib/mcp/actions.ts
+async function authorizedEvent(ctx, eventId, module) {
+  const db = supabaseForUser(ctx);
+  const userId = ctx.getUserId();
+  if (!userId) throw new Error("Sign in required");
+  const [admin, permission, event] = await Promise.all([
+    db.rpc("has_role", { _user_id: userId, _role: "admin" }),
+    db.rpc("has_module_permission", { _user_id: userId, _module: module }),
+    db.from("events").select("id,title,user_id,deleted_at,sms_allocation").eq("id", eventId).eq("user_id", userId).is("deleted_at", null).maybeSingle()
+  ]);
+  if (admin.error || permission.error || event.error) throw new Error("Unable to verify access");
+  if (!admin.data && !permission.data) throw new Error(`You do not have ${module} permission`);
+  requireOwnedEvent(event.data, userId);
+  return { db, userId, event: event.data };
+}
+
+// src/lib/mcp/tools/add-guests.ts
+var add_guests_default = defineTool6({
+  name: "add_guests",
+  title: "Add event guests",
+  description: "Add up to 50 guests to an event you own; requires guest-management permission and +255 mobile numbers.",
+  inputSchema: { event_id: z7.string().uuid(), guests: z7.array(guestInput).min(1).max(50) },
+  annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+  handler: async ({ event_id, guests }, ctx) => {
+    try {
+      const { db, userId } = await authorizedEvent(ctx, event_id, "guests");
+      const cards = guests.map((g) => g.card_number).filter(Boolean);
+      if (new Set(cards).size !== cards.length) throw new Error("Duplicate card numbers in this request");
+      const { data, error } = await db.from("guests").insert(guests.map((g) => ({ ...g, user_id: userId, event_id }))).select("id,full_name,phone,card_number");
+      if (error) throw new Error(error.code === "23505" ? "A guest card number already exists; no guests were added" : "Unable to add guests");
+      return { content: [{ type: "text", text: JSON.stringify(data) }], structuredContent: { guests: data ?? [] } };
+    } catch (error) {
+      return { isError: true, content: [{ type: "text", text: error instanceof Error ? error.message : "Unable to add guests" }] };
+    }
+  }
+});
+
+// src/lib/mcp/tools/prepare-event-sms.ts
+import { defineTool as defineTool7 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z8 } from "npm:zod@^4.4.3";
+var prepare_event_sms_default = defineTool7({
+  name: "prepare_event_sms",
+  title: "Prepare SMS for confirmation",
+  description: "Save an SMS draft for selected guests of your event. Sends nothing. The user must open the returned Smart Events review link and confirm sending.",
+  inputSchema: { event_id: z8.string().uuid(), message: smsInput.shape.message, guest_ids: smsInput.shape.guest_ids },
+  annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+  handler: async ({ event_id, message, guest_ids }, ctx) => {
+    try {
+      const { db, userId, event } = await authorizedEvent(ctx, event_id, "sms");
+      const { data: guests, error } = await db.from("guests").select("id,full_name,phone").eq("event_id", event_id).eq("user_id", userId).is("deleted_at", null).in("id", guest_ids);
+      if (error || guests?.length !== guest_ids.length) throw new Error("Some selected guests are unavailable in this event");
+      const recipients = guests.map((g) => ({ name: g.full_name, phone: tanzaniaPhone.parse(g.phone) }));
+      if (new Set(recipients.map((r) => r.phone)).size !== recipients.length) throw new Error("Selected guests have duplicate phone numbers");
+      const units = smsUnits(message, recipients.length);
+      if (!event || units > event.sms_allocation) throw new Error("Event SMS allocation is insufficient");
+      const { data: draft, error: saveError } = await db.from("assistant_sms_drafts").insert({ user_id: userId, event_id, message, recipients, sms_units: units }).select("id,expires_at").single();
+      if (saveError || !draft) throw new Error("Unable to save SMS draft");
+      const review_url = `https://smart-events-tanzania.lovable.app/sms/review/${draft.id}`;
+      return { content: [{ type: "text", text: `Nothing sent. Review ${recipients.length} recipients and ${units} SMS units, then confirm here: ${review_url}` }], structuredContent: { draft_id: draft.id, review_url, message, recipients, sms_units: units, expires_at: draft.expires_at, status: "awaiting_confirmation" } };
+    } catch (error) {
+      return { isError: true, content: [{ type: "text", text: error instanceof Error ? error.message : "Unable to prepare SMS" }] };
+    }
+  }
+});
+
+// src/lib/mcp/tools/get-sms-draft.ts
+import { defineTool as defineTool8 } from "npm:@lovable.dev/mcp-js@0.22.2";
+import { z as z9 } from "npm:zod@^4.4.3";
+var get_sms_draft_default = defineTool8({
+  name: "get_sms_draft",
+  title: "Read SMS confirmation status",
+  description: "Read your saved SMS draft and its send result after human confirmation.",
+  inputSchema: { draft_id: z9.string().uuid() },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ draft_id }, ctx) => {
+    if (!ctx.isAuthenticated()) return { isError: true, content: [{ type: "text", text: "Sign in required" }] };
+    const { data, error } = await supabaseForUser(ctx).from("assistant_sms_drafts").select("id,event_id,message,sms_units,status,result,expires_at").eq("id", draft_id).eq("user_id", ctx.getUserId()).maybeSingle();
+    if (error || !data) return { isError: true, content: [{ type: "text", text: "Draft unavailable" }] };
+    return { content: [{ type: "text", text: JSON.stringify(data) }], structuredContent: { draft: data } };
+  }
+});
+
 // src/lib/mcp/index.ts
 var projectRef = "folppemingnczaohhngg";
 var mcp_default = defineMcp({
-  name: "smart-events-mcp",
-  title: "Smart Events",
-  version: "0.1.0",
-  instructions: "Tools for the Smart Events Tanzania platform. Read the signed-in user's events, guests, pledges, invoices, and per-event summaries. All calls are scoped to the authenticated user via row-level security.",
+  name: "smart-events-tanzania",
+  title: "Smart Events Tanzania",
+  version: "0.2.0",
+  instructions: "Tools for the Smart Events Tanzania platform. Read the signed-in user's events, guests, pledges, invoices, and per-event summaries. Add guests and prepare SMS drafts for owned events with module permissions. Never claim a prepared SMS was sent. Ask the user to open the review link and explicitly confirm in Smart Events; only that human confirmation can transmit messages. Read draft status to check the result. All calls are scoped to the authenticated user via row-level security.",
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
-    acceptedAudiences: "authenticated"
+    acceptedAudiences: "authenticated",
+    requireOAuthClientClaim: true
   }),
-  tools: [list_events_default, list_guests_default, list_pledges_default, event_summary_default, list_invoices_default]
+  tools: [list_events_default, list_guests_default, list_pledges_default, event_summary_default, list_invoices_default, add_guests_default, prepare_event_sms_default, get_sms_draft_default]
 });
 
 // lovable-mcp-supabase-entry.ts

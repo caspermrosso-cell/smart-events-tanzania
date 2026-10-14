@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      assistant_sms_drafts: {
+        Row: {
+          created_at: string
+          event_id: string
+          expires_at: string
+          id: string
+          message: string
+          recipients: Json
+          result: Json | null
+          sms_units: number
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          expires_at?: string
+          id?: string
+          message: string
+          recipients: Json
+          result?: Json | null
+          sms_units: number
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          expires_at?: string
+          id?: string
+          message?: string
+          recipients?: Json
+          result?: Json | null
+          sms_units?: number
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assistant_sms_drafts_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_testimonials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assistant_sms_drafts_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_requests: {
         Row: {
           created_at: string
@@ -1189,6 +1243,14 @@ export type Database = {
       }
     }
     Functions: {
+      claim_assistant_sms_draft: {
+        Args: { cancel?: boolean; draft_id: string }
+        Returns: Json
+      }
+      finish_assistant_sms_draft: {
+        Args: { details: Json; draft_id: string; outcome: string }
+        Returns: undefined
+      }
       has_module_permission: {
         Args: {
           _module: Database["public"]["Enums"]["app_module"]

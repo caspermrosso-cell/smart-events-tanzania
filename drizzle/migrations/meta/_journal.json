@@ -15,6 +15,13 @@
       "when": 1791257557708,
       "tag": "0001_separate_public_and_owner_testimonial_photo_reads",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791978317472,
+      "tag": "0002_chatgpt_sms_confirmation",
+      "breakpoints": true
     }
   ]
 }
